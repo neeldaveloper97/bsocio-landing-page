@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OAuthProvider {
+  GOOGLE
+  YOUTUBE
+  TIKTOK
+  INSTAGRAM
+  FACEBOOK
+  OTHER
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum PaymentStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+  CANCELED
+  REQUIRES_ACTION
+}
+
+enum FaqState {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FaqStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum FaqVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum FaqCategory {
+  GENERAL
+  REWARDS
+  GETTING_STARTED
+  IMPACT
+}
+
+enum AdminActivityType {
+  USER_LOGIN
+  FAQ_CREATED
+  FAQ_UPDATED
+  FAQ_ARCHIVED
+  SYSTEM
+}
+
+model User {
+  id              String          @id
+  email           String          @unique
+  password        String?
+  role            Role
+  dob             DateTime
+  createdAt       DateTime        @default(now())
+  oauthProvider   OAuthProvider?
+  oauthId         String?         @unique
+  isPermanentUser Boolean         @default(false)
+  isTermsAccepted Boolean
+  adminActivities AdminActivity[]
+}
+
+model Faq {
+  id         String        @id @default(cuid())
+  question   String
+  answer     String
+  category   FaqCategory
+  state      FaqState      @default(DRAFT)
+  status     FaqStatus     @default(ACTIVE)
+  visibility FaqVisibility @default(PUBLIC)
+  sortOrder  Int           @default(0)
+  views      Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([state])
+  @@index([category])
+  @@index([sortOrder])
+}
+
+model AdminActivity {
+  id      String            @id @default(cuid())
+  type    AdminActivityType
+  title   String
+  message String?
+  actorId String?
+  actor   User?             @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([actorId])
+}

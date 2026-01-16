@@ -1,0 +1,24 @@
+# Dependencies
+bsocio/node_modules/
+bsocio-api/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+
+# NestJS
+**/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db

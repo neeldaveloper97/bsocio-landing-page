@@ -1,0 +1,83 @@
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        // Primary CTA - Orange (main action button)
+        default:
+          "bg-brand-orange text-white shadow-md hover:bg-[#E04810] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0",
+        // Blue primary button
+        primary:
+          "bg-brand-blue text-white shadow-md hover:bg-brand-blue/90 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0",
+        // Secondary - Blue outline
+        secondary:
+          "border-2 border-brand-blue bg-white text-brand-blue hover:bg-brand-blue hover:text-white",
+        // Secondary Orange - Orange outline
+        "secondary-orange":
+          "border-2 border-brand-orange bg-white text-brand-orange hover:bg-brand-orange hover:text-white",
+        // Destructive
+        destructive:
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
+        // Outline - Gray border
+        outline:
+          "border border-border bg-background shadow-xs hover:bg-muted hover:text-foreground",
+        // Ghost - No background
+        ghost:
+          "hover:bg-muted hover:text-foreground",
+        // Link style
+        link:
+          "text-brand-blue underline-offset-4 hover:underline",
+        // Green accent
+        green:
+          "bg-brand-green text-white shadow-md hover:bg-brand-green/90 hover:-translate-y-0.5 hover:shadow-lg",
+        // Teal accent
+        teal:
+          "bg-brand-teal text-white shadow-md hover:bg-brand-teal/90 hover:-translate-y-0.5 hover:shadow-lg",
+      },
+      size: {
+        default: "h-10 px-5 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-12 rounded-lg px-8 text-base",
+        xl: "h-14 rounded-xl px-10 text-lg",
+        icon: "size-10",
+        "icon-sm": "size-8",
+        "icon-lg": "size-12",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
+
+  return (
+    <Comp
+      data-slot="button"
+      data-variant={variant}
+      data-size={size}
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants }

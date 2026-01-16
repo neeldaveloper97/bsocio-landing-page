@@ -1,0 +1,73 @@
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+
+  // Security headers
+  app.use(helmet());
+
+  // Global validation (DTO validation everywhere)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // strips unknown properties
+      forbidNonWhitelisted: true, // throws on unknown properties
+      transform: true, // transforms payloads to DTO classes
+    }),
+  );
+
+  // CORS for Admin Dashboard
+  const corsOrigin =
+    configService.get<string>('CORS_ORIGIN') ?? 'http://localhost:3001';
+  // app.enableCors({
+  //   origin: corsOrigin.split(',').map((s) => s.trim()),
+  //   credentials: true,
+  // });
+
+  app.enableCors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Id'],
+    credentials: true,
+  });
+
+  // Swagger (HARSH RULE: ALWAYS ON)
+  const swaggerPath = configService.get<string>('SWAGGER_PATH') ?? 'docs';
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Bsocio API')
+    .setDescription('Admin Dashboard Backend API')
+    .setVersion('1.0.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'access-token',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup(swaggerPath, app, document, {
+    swaggerOptions: { persistAuthorization: true },
+  });
+
+  const port = configService.get<number>('PORT') || 3333;
+  const nodeEnv = configService.get<string>('NODE_ENV') ?? '';
+  await app.listen(port);
+  // eslint-disable-next-line no-console
+  if (nodeEnv === 'development') {
+  }
+  console.log(`Environment: ${nodeEnv}`);
+  console.log(`API: http://localhost:${port}`);
+  // eslint-disable-next-line no-console
+  console.log(`Swagger: http://localhost:${port}/${swaggerPath}`);
+}
+bootstrap();
