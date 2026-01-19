@@ -32,6 +32,8 @@ export default function CtaImpactSection() {
             </div>
           </div>
 
+          
+
           <h3 className="cta-torch-heading">Ready to Carry The Torch?</h3>
 
           <ul className="cta-benefits-list">
@@ -56,7 +58,10 @@ export default function CtaImpactSection() {
           <Link href="/signup" className="btn-primary btn-large" style={{ display: 'block', textAlign: 'center', maxWidth: '400px', margin: '16px auto 0' }}>
             Accept Your Free $250 Gift
           </Link>
-          
+          <div className="cta-narrative-stripe">
+            <p>Bsocio combines Artificial Intelligence with Human Compassion
+— to build a future where giving is smart, social, and global.</p>
+          </div>
         </div>
       </div>
     </section>
