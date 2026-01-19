@@ -4,8 +4,15 @@ import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
 
 async function bootstrap() {
+  // const httpsOptions = {
+  //   key: fs.readFileSync('/home/ubuntu/certs/key.pem'),
+  //   cert: fs.readFileSync('/home/ubuntu/certs/cert.pem'),
+  // };
+
+  // const app = await NestFactory.create(AppModule, { httpsOptions });
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
