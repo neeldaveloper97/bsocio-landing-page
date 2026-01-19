@@ -17,9 +17,6 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-6">
             <Logo variant="footer" />
-            <p className="text-sm leading-relaxed text-footer-text">
-              The Future of Humanity Initiative - Empowering communities through sustainable giving.
-            </p>
             <div className="flex gap-3">
               {socialLinks.map(({ icon: Icon, href, label }) => (
                 <a

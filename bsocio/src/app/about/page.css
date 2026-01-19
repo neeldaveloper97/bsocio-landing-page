@@ -396,6 +396,25 @@
   width: 100%;
 }
 
+/* ========== Paradigm Shift ========== */
+.paradigm-shift {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.paradigm-shift h1 {
+  margin: 0 0 20px 0;
+  font-weight: 700;
+  color: #101828;
+  font-size: clamp(28px, 6vw, 30px);
+  line-height: 1.05;
+}
+
+.paradigm-shift p {
+  font-size: clamp(15px, 2vw, 18px);
+  color: #364153;
+}
+
 /* ========== Triple Win Section ========== */
 .triple-win-section {
   display: flex;

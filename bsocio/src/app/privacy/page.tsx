@@ -1,19 +1,11 @@
 import { Metadata } from "next";
-import Link from "next/link";
+import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import "./page.css";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - Bsocio",
   description: "Learn how Bsocio collects, uses, and protects your personal data.",
 };
-
-function CheckIcon() {
-  return (
-    <svg className="benefit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
 
 export default function PrivacyPage() {
   return (
@@ -273,59 +265,7 @@ export default function PrivacyPage() {
       </div>
 
       {/* CTA Impact Section */}
-      <section className="cta-impact-section">
-        <div className="cta-impact-container">
-          <div className="cta-impact-header">
-            <h2>Your Kindness Creates Lasting Change</h2>
-          </div>
-          
-          <div className="cta-main-card">
-            <div className="cta-legacy-section">
-              <h3>Join a Movement That&apos;s Changing the World</h3>
-              <div className="legacy-boxes">
-                <div className="legacy-box">
-                  <span>End Classroom Hunger</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Save Lives Beyond 2045</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Create Lasting Impact</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cta-narrative-stripe">
-              <p>When you celebrate your birthday with Bsocio, you&apos;re not just receiving a gift—you&apos;re becoming part of a global movement to ensure no child learns on an empty stomach.</p>
-            </div>
-
-            <h3 className="cta-torch-heading">Your $250 Birthday Gift Can:</h3>
-
-            <ul className="cta-benefits-list">
-              <li>
-                <CheckIcon />
-                <span><strong>Feed a child</strong> for an entire school year</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Support education</strong> by ensuring kids can focus on learning, not hunger</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Join 1 billion acts of kindness</strong> transforming our world</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Celebrate with purpose</strong> and become a Birthday Hero</span>
-              </li>
-            </ul>
-
-            <Link href="/signup" className="btn-primary btn-large" style={{ display: 'block', textAlign: 'center', maxWidth: '400px', margin: '16px auto 0' }}>
-              Accept Your Free $250 Gift
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CtaImpactSection />
     </>
   );
 }

@@ -385,7 +385,7 @@ body {
   margin-bottom: 8px;
 }
 
-.card.mission .card-icon { background: rgba(31, 106, 225, 0.15); }
+about.card.mission .card-icon { background: rgba(31, 106, 225, 0.15); }
 .card.vision .card-icon { background: rgba(124, 187, 0, 0.15); }
 .card.belief .card-icon { background: rgba(246, 83, 20, 0.15); }
 
@@ -400,7 +400,7 @@ body {
 
 .card-content p {
   font-family: 'DM Sans', sans-serif;
-  font-size: clamp(14px, 1.8vw, 18px);
+  font-size: clamp(45px, 1.8vw, 18px);
   line-height: 1.5;
   color: #364153;
   margin: 0;
@@ -408,16 +408,18 @@ body {
 
 .info-card.step {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
   padding: clamp(18px, 3vw, 22px);
   background: linear-gradient(180deg, #FFFFFF 0%, #FBFFF5 100%);
   border-left: 6px solid var(--secondary-green);
   border-radius: 10px;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   text-decoration: none;
+  min-height: 140px;
 }
 
 .info-card.step:hover {
@@ -434,7 +436,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  margin: 0 auto 8px auto;
 }
 
 .info-card.step .step-icon svg {
@@ -449,14 +451,16 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
+  width: 100%;
+  align-items: center;
 }
 
 .info-card.step .step-body h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   font-size: clamp(18px, 2.2vw, 20px);
   color: var(--text-dark);
+  font-weight: 600;
 }
-
 .info-card.step .step-body p {
   margin: 0 0 12px 0;
   color: var(--text-light);
