@@ -6,6 +6,52 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id              String          @id
+  email           String          @unique
+  password        String?
+  role            Role
+  createdAt       DateTime        @default(now())
+  oauthProvider   OAuthProvider?
+  oauthId         String?         @unique
+  isPermanentUser Boolean         @default(false)
+  isTermsAccepted Boolean
+  dob             DateTime
+  adminActivities AdminActivity[]
+}
+
+model Faq {
+  id         String        @id @default(cuid())
+  question   String
+  answer     String
+  category   FaqCategory
+  state      FaqState      @default(DRAFT)
+  status     FaqStatus     @default(ACTIVE)
+  visibility FaqVisibility @default(PUBLIC)
+  sortOrder  Int           @default(0)
+  views      Int           @default(0)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([state])
+  @@index([category])
+  @@index([sortOrder])
+}
+
+model AdminActivity {
+  id        String            @id @default(cuid())
+  type      AdminActivityType
+  title     String
+  message   String?
+  actorId   String?
+  createdAt DateTime          @default(now())
+  actor     User?             @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([actorId])
+}
+
 enum OAuthProvider {
   GOOGLE
   YOUTUBE
@@ -57,52 +103,4 @@ enum AdminActivityType {
   FAQ_UPDATED
   FAQ_ARCHIVED
   SYSTEM
-}
-
-model User {
-  id              String          @id
-  email           String          @unique
-  password        String?
-  role            Role
-  dob             DateTime
-  createdAt       DateTime        @default(now())
-  oauthProvider   OAuthProvider?
-  oauthId         String?         @unique
-  isPermanentUser Boolean         @default(false)
-  isTermsAccepted Boolean
-  adminActivities AdminActivity[]
-}
-
-model Faq {
-  id         String        @id @default(cuid())
-  question   String
-  answer     String
-  category   FaqCategory
-  state      FaqState      @default(DRAFT)
-  status     FaqStatus     @default(ACTIVE)
-  visibility FaqVisibility @default(PUBLIC)
-  sortOrder  Int           @default(0)
-  views      Int           @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([state])
-  @@index([category])
-  @@index([sortOrder])
-}
-
-model AdminActivity {
-  id      String            @id @default(cuid())
-  type    AdminActivityType
-  title   String
-  message String?
-  actorId String?
-  actor   User?             @relation(fields: [actorId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([type])
-  @@index([actorId])
 }
