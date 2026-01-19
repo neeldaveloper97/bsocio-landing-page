@@ -1,4 +1,6 @@
 import Link from "next/link";
+import LearnMoreButton from "@/components/ui/LearnMoreButton";
+import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import "./page.css";
 
 // ============================================
@@ -123,7 +125,8 @@ export default function Home() {
           </div>
           <div className="hero-buttons">
             <Link href="/signup" className="btn-primary btn-large">Accept Your Free $250 Gift</Link>
-            <Link href="#learn-more" className="btn-secondary-orange btn-large">Learn More</Link>
+            {/* Client component handles smooth scroll even when hash already present */}
+            <LearnMoreButton className="btn-secondary-orange btn-large">Learn More</LearnMoreButton>
           </div>
         </div>
       </section>
@@ -180,59 +183,7 @@ export default function Home() {
       </section>
 
       {/* CTA Impact Section */}
-      <section className="cta-impact-section">
-        <div className="cta-impact-container">
-          <div className="cta-impact-header">
-            <h2>Your Kindness Creates Lasting Change</h2>
-          </div>
-          
-          <div className="cta-main-card">
-            <div className="cta-legacy-section">
-              <h3>Join a Movement That&apos;s Changing the World</h3>
-              <div className="legacy-boxes">
-                <div className="legacy-box">
-                  <span>End Classroom Hunger</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Save Lives Beyond 2045</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Create Lasting Impact</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cta-narrative-stripe">
-              <p>When you celebrate your birthday with Bsocio, you&apos;re not just receiving a gift—you&apos;re becoming part of a global movement to ensure no child learns on an empty stomach.</p>
-            </div>
-
-            <h3 className="cta-torch-heading">Your $250 Birthday Gift Can:</h3>
-
-            <ul className="cta-benefits-list">
-              <li>
-                <CheckIcon />
-                <span><strong>Feed a child</strong> for an entire school year</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Support education</strong> by ensuring kids can focus on learning, not hunger</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Join 1 billion acts of kindness</strong> transforming our world</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Celebrate with purpose</strong> and become a Birthday Hero</span>
-              </li>
-            </ul>
-
-            <Link href="/signup" className="btn-primary btn-large" style={{ display: 'block', textAlign: 'center', maxWidth: '400px', margin: '16px auto 0' }}>
-              Accept Your Free $250 Gift
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CtaImpactSection />
     </div>
   );
 }

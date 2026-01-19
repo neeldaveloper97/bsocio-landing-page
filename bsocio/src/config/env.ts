@@ -14,7 +14,7 @@ interface EnvConfig {
 }
 
 function getEnvConfig(): EnvConfig {
-  const apiBaseUrl = "https://3qn6nvqb-7000.inc1.devtunnels.ms/";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const env = (process.env.NEXT_PUBLIC_ENV || 'development') as EnvConfig['env'];
 
   if (!apiBaseUrl) {
@@ -22,7 +22,7 @@ function getEnvConfig(): EnvConfig {
   }
 
   return {
-    apiBaseUrl: apiBaseUrl || 'http://localhost:3333',
+    apiBaseUrl: apiBaseUrl || 'localhost:7000',
     env,
     isDev: env === 'development',
     isProd: env === 'production',

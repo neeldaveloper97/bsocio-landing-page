@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
+import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import "./page.css";
 
 export const metadata: Metadata = {
@@ -57,28 +58,29 @@ const SOCIO_CENTRES_OUTCOMES = [
 // SVG Icons
 function MissionIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="#FFFFFF" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="6" stroke="#FFFFFF" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="2" fill="#FFFFFF"/>
-    </svg>
+     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="#1F6AE1" strokeWidth="2"/>
+                        <circle cx="12" cy="12" r="6" stroke="#1F6AE1" strokeWidth="2"/>
+                        <circle cx="12" cy="12" r="2" fill="#1F6AE1"/>
+                    </svg>
   );
 }
 
 function VisionIcon() {
   return (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="12" cy="12" r="3" stroke="#FFFFFF" strokeWidth="2"/>
-    </svg>
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#7CBB00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="#7CBB00" strokeWidth="2"/>
+                    </svg>
   );
 }
 
 function BeliefIcon() {
   return (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69365 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69365 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99871 7.05 2.99871C5.59096 2.99871 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54871 7.04097 1.54871 8.5C1.54871 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22249 22.4518 8.5C22.4518 7.77751 22.3095 7.0621 22.0329 6.39464C21.7563 5.72718 21.351 5.12075 20.84 4.61Z" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+                        <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#F65314" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="#F65314" strokeWidth="2"/>
+                    </svg>
   );
 }
 
@@ -218,7 +220,7 @@ export default function AboutPage() {
           <div className="anchoring-cards">
             <div className="anchoring-card">
               <h3>Bill Gates Socio Day — October 28</h3>
-              <p className="subtitle">A global day of action designed to be celebrated every year beyond his lifetime.</p>
+              <p className="subtitle"><strong>A global day of action designed to be celebrated every year beyond his lifetime.</strong></p>
               <p>On this day, individuals and organizations redirect celebration spending toward child hunger, health, and education.</p>
               <ul>
                 {SOCIO_DAY_OUTCOMES.map((item, index) => (
@@ -228,8 +230,8 @@ export default function AboutPage() {
             </div>
             <div className="anchoring-card">
               <h3>Bill Gates Socio Centres</h3>
-              <p className="subtitle">Future global hubs of innovation and opportunity.</p>
-              <p className="outcomes-title">Key Outcomes:</p>
+              <p className="subtitle"><strong>Future global hubs of innovation and opportunity.</strong></p>
+              <p className="outcomes-title"><strong>Key Outcomes:</strong></p>
               <ul>
                 {SOCIO_CENTRES_OUTCOMES.map((item, index) => (
                   <li key={index}>{item}</li>
@@ -332,7 +334,7 @@ export default function AboutPage() {
         </section>
 
         <section className="paradigm-shift">
-          <h3>The Paradigm Shift</h3>
+          <h1>The Paradigm Shift</h1>
           <p>Each year, the global &quot;gift economy&quot; exceeds hundreds of billions of dollars. What if just 1% of that went toward ending classroom hunger?</p>
         </section>
 
@@ -367,59 +369,7 @@ export default function AboutPage() {
       </div>
 
       {/* CTA Impact Section */}
-      <section className="cta-impact-section">
-        <div className="cta-impact-container">
-          <div className="cta-impact-header">
-            <h2>Your Kindness Creates Lasting Change</h2>
-          </div>
-          
-          <div className="cta-main-card">
-            <div className="cta-legacy-section">
-              <h3>Join a Movement That&apos;s Changing the World</h3>
-              <div className="legacy-boxes">
-                <div className="legacy-box">
-                  <span>End Classroom Hunger</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Save Lives Beyond 2045</span>
-                </div>
-                <div className="legacy-box">
-                  <span>Create Lasting Impact</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cta-narrative-stripe">
-              <p>When you celebrate your birthday with Bsocio, you&apos;re not just receiving a gift—you&apos;re becoming part of a global movement to ensure no child learns on an empty stomach.</p>
-            </div>
-
-            <h3 className="cta-torch-heading">Your $250 Birthday Gift Can:</h3>
-
-            <ul className="cta-benefits-list">
-              <li>
-                <CheckIcon />
-                <span><strong>Feed a child</strong> for an entire school year</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Support education</strong> by ensuring kids can focus on learning, not hunger</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Join 1 billion acts of kindness</strong> transforming our world</span>
-              </li>
-              <li>
-                <CheckIcon />
-                <span><strong>Celebrate with purpose</strong> and become a Birthday Hero</span>
-              </li>
-            </ul>
-
-            <Link href="/signup" className="btn-primary btn-large" style={{ display: 'block', textAlign: 'center', maxWidth: '400px', margin: '16px auto 0' }}>
-              Accept Your Free $250 Gift
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CtaImpactSection />
     </>
   );
 }

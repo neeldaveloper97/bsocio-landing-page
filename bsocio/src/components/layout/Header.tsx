@@ -87,11 +87,6 @@ export default function Header() {
                 </Link>
               );
             })}
-            <div className="mt-4 pt-4 border-t border-border">
-              <Button className="w-full" size="lg">
-                Accept Your Free $250 Gift
-              </Button>
-            </div>
           </nav>
         </div>
       )}
