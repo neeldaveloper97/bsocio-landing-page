@@ -8,7 +8,7 @@
 import { apiClient } from '../client';
 import { parseApiError } from '../error-handler';
 import { API_ENDPOINTS } from '@/config';
-import type { FAQ, FAQResponse, ApiResponse } from '@/types';
+import type { FAQ, FAQResponse } from '@/types';
 
 /**
  * FAQ Service Class

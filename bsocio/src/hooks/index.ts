@@ -12,3 +12,6 @@ export { useAuth } from './useAuth';
 // FAQ Hooks
 export { useFAQs } from './useFAQs';
 export { useFAQ } from './useFAQ';
+
+// Legal Hooks
+export { useLegal } from './useLegal';

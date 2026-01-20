@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ColorVariant } from "@/types/theme";
 import { colorVariants } from "@/types/theme";

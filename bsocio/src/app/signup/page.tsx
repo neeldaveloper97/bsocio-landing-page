@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -230,6 +230,13 @@ export default function SignupPage() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
+  // Redirect on successful signup
+  useEffect(() => {
+    if (isSuccess) {
+      router.push("/");
+    }
+  }, [isSuccess, router]);
+
   // Memoized options to prevent recreation on each render
   const dateOptions = useMemo(() => generateDateOptions(), []);
   const yearOptions = useMemo(() => generateYearOptions(100), []);
@@ -306,7 +313,7 @@ export default function SignupPage() {
     const dob = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDate}`;
     
     // Call signup API
-    const result = await signup({
+    await signup({
       email: formData.email,
       password: formData.password,
       role: DEFAULT_ROLE,
@@ -314,11 +321,8 @@ export default function SignupPage() {
       isTermsAccepted: formData.acceptTerms,
     });
     
-    if (result) {
-      // Success - redirect to login or dashboard
-      router.push("/");
-    }
-  }, [formData, validateForm, signup, router]);
+    // Note: Redirect is handled by useEffect when isSuccess becomes true
+  }, [formData, validateForm, signup]);
 
   // Google OAuth handler
   const handleGoogleSignup = useCallback(() => {

@@ -9,7 +9,7 @@
 export { apiClient } from './client';
 
 // Services
-export { authService, AuthService, faqService, FAQService } from './services';
+export { authService, AuthService, faqService, FAQService, legalService, LegalService } from './services';
 
 // Error Handling
 export {

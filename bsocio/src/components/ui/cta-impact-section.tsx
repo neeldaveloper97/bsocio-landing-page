@@ -6,12 +6,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Container } from "./container";
-import { CheckList } from "./styled-list";
-import type { ColorVariant } from "@/types/theme";
 
 // ============================================
 // TYPES

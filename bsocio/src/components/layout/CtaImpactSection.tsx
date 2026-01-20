@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from "next/link";
 
 function CheckIcon() {
@@ -13,7 +14,7 @@ export default function CtaImpactSection() {
     <section className="cta-impact-section">
       <div className="cta-impact-container">
         <div className="cta-impact-header">
-          <h2>Bsocio means "Be Kind to Be Great — like Bill Gates."</h2>
+          <h2>&quot;Be Kind to Be Great — like Bill Gates.&quot;</h2>
         </div>
         
         <div className="cta-main-card">
@@ -21,13 +22,13 @@ export default function CtaImpactSection() {
             <h3>A True Legacy Isn't Remembered</h3>
             <div className="legacy-boxes">
               <div className="legacy-box">
-                <span>Its lived</span>
+                <span>It&apos;s lived</span>
               </div>
               <div className="legacy-box">
                 <span>Its Shared</span>
               </div>
               <div className="legacy-box">
-                <span>It's Passed on</span>
+                <span>It&apos;s Passed on</span>
               </div>
             </div>
           </div>

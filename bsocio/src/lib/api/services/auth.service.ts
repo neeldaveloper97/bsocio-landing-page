@@ -6,7 +6,7 @@
  */
 
 import { apiClient } from '../client';
-import { parseApiError, ApiException } from '../error-handler';
+import { parseApiError } from '../error-handler';
 import { API_ENDPOINTS } from '@/config';
 import type {
   SignupRequest,

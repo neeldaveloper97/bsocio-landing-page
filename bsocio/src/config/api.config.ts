@@ -47,6 +47,11 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/admin-dashboard/faqs/${id}`,
   },
 
+  // Legal endpoints
+  LEGAL: {
+    BY_TYPE: (type: string) => `admin-dashboard/legal/${type}`,
+  },
+
   // Other endpoints can be added here
 } as const;
 

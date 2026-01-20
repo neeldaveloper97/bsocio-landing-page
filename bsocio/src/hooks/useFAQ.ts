@@ -91,6 +91,7 @@ export function useFAQ(id: string): UseFAQReturn {
    * Fetch on mount or when ID changes
    */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFAQ();
   }, [fetchFAQ]);
 

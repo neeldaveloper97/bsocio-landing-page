@@ -159,3 +159,21 @@ export interface FAQResponse {
   skip: number;
   take: number;
 }
+
+// ============================================
+// Legal Types
+// ============================================
+
+export type LegalType = 'PRIVACY_POLICY' | 'TERMS_OF_USE';
+
+export interface LegalContent {
+  id: string;
+  type: LegalType;
+  title: string;
+  content: string;
+  versionNotes: string;
+  effectiveDate: string;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+}

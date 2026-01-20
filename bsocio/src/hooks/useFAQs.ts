@@ -84,6 +84,7 @@ export function useFAQs(): UseFAQsReturn {
    * Fetch on mount
    */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFAQs();
   }, [fetchFAQs]);
 

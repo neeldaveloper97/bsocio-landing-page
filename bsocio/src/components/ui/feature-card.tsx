@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { cn } from "@/lib/utils";
 import type { IconName, ColorVariant } from "@/types/theme";
