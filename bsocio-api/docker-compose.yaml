@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  bsocio-backend:
+    hostname: bsocio-backend
+    container_name: bsocio-backend
+    build: .
+    image: bsocio-backend
+    restart: always
+    ports:
+      - '7000:7000'
+    environment:
+      - NODE_ENV=production
+      - PORT=7000
+    networks:
+      - bsocio-network
+networks:
+  bsocio-network:
+    name: bsocio-network
