@@ -11,12 +11,12 @@ model User {
   email           String          @unique
   password        String?
   role            Role
+  dob             DateTime
   createdAt       DateTime        @default(now())
   oauthProvider   OAuthProvider?
   oauthId         String?         @unique
   isPermanentUser Boolean         @default(false)
   isTermsAccepted Boolean
-  dob             DateTime
   adminActivities AdminActivity[]
 }
 
@@ -50,6 +50,18 @@ model AdminActivity {
   @@index([createdAt])
   @@index([type])
   @@index([actorId])
+}
+
+model LegalDocument {
+  id            String             @id @default(cuid())
+  type          LegalDocumentType  @unique
+  title         String
+  content       String
+  versionNotes  String?
+  effectiveDate DateTime
+  state         LegalDocumentState @default(DRAFT)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
 
 enum OAuthProvider {
@@ -95,6 +107,16 @@ enum FaqCategory {
   REWARDS
   GETTING_STARTED
   IMPACT
+}
+
+enum LegalDocumentType {
+  PRIVACY_POLICY
+  TERMS_OF_USE
+}
+
+enum LegalDocumentState {
+  DRAFT
+  PUBLISHED
 }
 
 enum AdminActivityType {

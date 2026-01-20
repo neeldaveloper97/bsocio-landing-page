@@ -69,12 +69,12 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3333;
   const nodeEnv = configService.get<string>('NODE_ENV') ?? '';
   await app.listen(port);
-  // eslint-disable-next-line no-console
+
   if (nodeEnv === 'development') {
   }
   console.log(`Environment: ${nodeEnv}`);
   console.log(`API: http://localhost:${port}`);
-  // eslint-disable-next-line no-console
+
   console.log(`Swagger: http://localhost:${port}/${swaggerPath}`);
 }
 bootstrap();
