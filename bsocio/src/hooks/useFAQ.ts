@@ -3,30 +3,37 @@
  * BSOCIO - useFAQ Hook
  * ============================================
  * Custom hook for fetching a single FAQ by ID
+ * 
+ * Uses the generic useFetch pattern for consistent
+ * loading, error, and automatic data fetching on mount.
  */
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { faqService, ApiException, parseApiError } from '@/lib/api';
+import { faqService, type ApiException } from '@/lib/api';
+import { useFetch, type UseFetchOptions } from './useAsync';
 import type { FAQ } from '@/types';
-
-/**
- * Hook state interface
- */
-interface UseFAQState {
-  faq: FAQ | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: ApiException | null;
-}
 
 /**
  * Hook return interface
  */
-interface UseFAQReturn extends UseFAQState {
-  refetch: () => Promise<void>;
+interface UseFAQReturn {
+  /** The FAQ data */
+  faq: FAQ | null;
+  /** Whether the fetch is in progress */
+  isLoading: boolean;
+  /** Whether the fetch failed */
+  isError: boolean;
+  /** Error from the fetch, if any */
+  error: ApiException | null;
+  /** Refetch the FAQ */
+  refetch: () => Promise<FAQ | null>;
 }
+
+/**
+ * Options for the useFAQ hook
+ */
+type UseFAQOptions = Omit<UseFetchOptions<FAQ>, 'enabled' | 'deps'>;
 
 /**
  * Custom hook for fetching a single FAQ by ID
@@ -34,7 +41,7 @@ interface UseFAQReturn extends UseFAQState {
  * @param id - FAQ ID
  * @example
  * ```tsx
- * const { faq, isLoading, isError } = useFAQ('cmkgo0cax0000yguqqcjv3771');
+ * const { faq, isLoading, isError, refetch } = useFAQ('cmkgo0cax0000yguqqcjv3771');
  * 
  * if (isLoading) return <Spinner />;
  * if (!faq) return <NotFound />;
@@ -42,61 +49,21 @@ interface UseFAQReturn extends UseFAQState {
  * return <FAQDetail faq={faq} />;
  * ```
  */
-export function useFAQ(id: string): UseFAQReturn {
-  const [state, setState] = useState<UseFAQState>({
-    faq: null,
-    isLoading: true,
-    isError: false,
-    error: null,
-  });
-
-  /**
-   * Fetch FAQ from API
-   */
-  const fetchFAQ = useCallback(async () => {
-    if (!id) {
-      setState({
-        faq: null,
-        isLoading: false,
-        isError: true,
-        error: null,
-      });
-      return;
+export function useFAQ(id: string, options: UseFAQOptions = {}): UseFAQReturn {
+  const { data, isLoading, error, refetch } = useFetch(
+    () => faqService.getFAQById(id),
+    { 
+      enabled: !!id, 
+      deps: [id],
+      ...options 
     }
-
-    setState((prev) => ({ ...prev, isLoading: true }));
-
-    try {
-      const faq = await faqService.getFAQById(id);
-
-      setState({
-        faq,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-    } catch (error) {
-      const apiError = parseApiError(error);
-
-      setState({
-        faq: null,
-        isLoading: false,
-        isError: true,
-        error: apiError,
-      });
-    }
-  }, [id]);
-
-  /**
-   * Fetch on mount or when ID changes
-   */
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchFAQ();
-  }, [fetchFAQ]);
+  );
 
   return {
-    ...state,
-    refetch: fetchFAQ,
+    faq: data,
+    isLoading,
+    isError: !!error,
+    error,
+    refetch,
   };
 }

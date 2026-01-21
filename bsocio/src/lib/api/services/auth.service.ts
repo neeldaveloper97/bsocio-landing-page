@@ -3,9 +3,18 @@
  * BSOCIO - Authentication Service
  * ============================================
  * Handles all authentication-related API calls
+ * 
+ * This service is responsible for:
+ * - User registration (signup)
+ * - User login/logout
+ * - Token refresh
+ * - Current user profile
+ * 
+ * Token storage is delegated to the centralized tokenStorage service
  */
 
 import { apiClient } from '../client';
+import { tokenStorage } from '../storage';
 import { parseApiError } from '../error-handler';
 import { API_ENDPOINTS } from '@/config';
 import type {
@@ -18,17 +27,30 @@ import type {
 } from '@/types';
 
 /**
- * Token storage keys
+ * Login options for configuring session persistence
  */
-const TOKEN_KEYS = {
-  ACCESS_TOKEN: 'bsocio_access_token',
-  REFRESH_TOKEN: 'bsocio_refresh_token',
-  USER: 'bsocio_user',
-} as const;
+interface LoginOptions {
+  /** If true, tokens will be stored in localStorage for persistence */
+  rememberMe?: boolean;
+}
 
 /**
  * Authentication Service Class
  * Follows singleton pattern for consistent state management
+ * 
+ * @example
+ * ```typescript
+ * // Login a user
+ * const response = await authService.login({ email, password }, { rememberMe: true });
+ * 
+ * // Check authentication status
+ * if (authService.isAuthenticated()) {
+ *   const user = authService.getUser();
+ * }
+ * 
+ * // Logout
+ * await authService.logout();
+ * ```
  */
 class AuthService {
   private static instance: AuthService;
@@ -71,7 +93,7 @@ class AuthService {
 
       // Store user data if returned (signup typically doesn't return tokens)
       if (result.data?.user) {
-        this.setUser(result.data.user);
+        tokenStorage.setUser(result.data.user);
       }
 
       return result.data!;
@@ -83,10 +105,14 @@ class AuthService {
   /**
    * Login user with credentials
    * @param data - Login request payload
+   * @param options - Login options (rememberMe)
    * @returns Promise with login response
    */
-  async login(data: LoginRequest): Promise<LoginResponse> {
+  async login(data: LoginRequest, options: LoginOptions = {}): Promise<LoginResponse> {
     try {
+      // Set storage preference before storing tokens
+      tokenStorage.setRememberMe(options.rememberMe ?? false);
+
       const response = await apiClient.post<ApiResponse<LoginResponse>>(
         API_ENDPOINTS.AUTH.LOGIN,
         {
@@ -97,15 +123,15 @@ class AuthService {
 
       const result = response.data;
 
-      // Store tokens and user data
+      // Store tokens and user data using centralized storage
       if (result.data?.accessToken) {
-        this.setAccessToken(result.data.accessToken);
+        tokenStorage.setAccessToken(result.data.accessToken);
       }
       if (result.data?.refreshToken) {
-        this.setRefreshToken(result.data.refreshToken);
+        tokenStorage.setRefreshToken(result.data.refreshToken);
       }
       if (result.data?.user) {
-        this.setUser(result.data.user);
+        tokenStorage.setUser(result.data.user);
       }
 
       return result.data!;
@@ -124,17 +150,17 @@ class AuthService {
     } catch {
       // Ignore logout API errors
     } finally {
-      this.clearAuthData();
+      tokenStorage.clearAll();
     }
   }
 
   /**
    * Refresh access token
-   * @returns Promise with new tokens
+   * @returns Promise with new tokens or null if no refresh token
    */
   async refreshToken(): Promise<LoginResponse | null> {
     try {
-      const refreshToken = this.getRefreshToken();
+      const refreshToken = tokenStorage.getRefreshToken();
       if (!refreshToken) {
         return null;
       }
@@ -148,21 +174,21 @@ class AuthService {
 
       // Update stored tokens
       if (result.data?.accessToken) {
-        this.setAccessToken(result.data.accessToken);
+        tokenStorage.setAccessToken(result.data.accessToken);
       }
       if (result.data?.refreshToken) {
-        this.setRefreshToken(result.data.refreshToken);
+        tokenStorage.setRefreshToken(result.data.refreshToken);
       }
 
       return result.data!;
     } catch (error) {
-      this.clearAuthData();
+      tokenStorage.clearAll();
       throw parseApiError(error);
     }
   }
 
   /**
-   * Get current user profile
+   * Get current user profile from API
    * @returns Promise with user data
    */
   async getCurrentUser(): Promise<User> {
@@ -170,6 +196,12 @@ class AuthService {
       const response = await apiClient.get<ApiResponse<User>>(
         API_ENDPOINTS.AUTH.ME
       );
+      
+      // Update cached user data
+      if (response.data.data) {
+        tokenStorage.setUser(response.data.data);
+      }
+      
       return response.data.data!;
     } catch (error) {
       throw parseApiError(error);
@@ -177,78 +209,35 @@ class AuthService {
   }
 
   // ============================================
-  // Token Management
+  // Token Management (delegated to tokenStorage)
   // ============================================
 
   /**
    * Get access token from storage
    */
   getAccessToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-  }
-
-  /**
-   * Set access token in storage
-   */
-  setAccessToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, token);
+    return tokenStorage.getAccessToken();
   }
 
   /**
    * Get refresh token from storage
    */
   getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
-  }
-
-  /**
-   * Set refresh token in storage
-   */
-  setRefreshToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, token);
+    return tokenStorage.getRefreshToken();
   }
 
   /**
    * Get stored user data
    */
   getUser(): User | null {
-    if (typeof window === 'undefined') return null;
-    const userData = localStorage.getItem(TOKEN_KEYS.USER);
-    if (!userData) return null;
-    try {
-      return JSON.parse(userData) as User;
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Set user data in storage
-   */
-  setUser(user: User): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(user));
-  }
-
-  /**
-   * Clear all auth data from storage
-   */
-  clearAuthData(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(TOKEN_KEYS.USER);
+    return tokenStorage.getUser() as User | null;
   }
 
   /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return !!this.getAccessToken();
+    return tokenStorage.isAuthenticated();
   }
 }
 

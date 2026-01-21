@@ -69,20 +69,21 @@ export function InfoCard({
       className={cn(
         infoCardVariants({ size, borderPosition, interactive }),
         borderPosition !== "none" && colors.border,
-        showGradient ? colors.bgGradient : "bg-white",
+        showGradient ? colors.bgGradient : "bg-white dark:bg-card",
+        "dark:border-border/50",
         className
       )}
       {...props}
     >
       <CardContent className="space-y-4 p-0">
         {subtitle && (
-          <p className="text-sm text-text-muted">{subtitle}</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">{subtitle}</p>
         )}
-        <CardTitle className="text-xl font-bold text-text-darker">
+        <CardTitle className="text-xl font-bold text-foreground dark:text-foreground">
           {title}
         </CardTitle>
         {description && (
-          <CardDescription className="text-lg text-text-dark">
+          <CardDescription className="text-lg text-muted-foreground dark:text-muted-foreground">
             {description}
           </CardDescription>
         )}

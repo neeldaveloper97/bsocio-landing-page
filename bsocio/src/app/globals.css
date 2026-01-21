@@ -38,6 +38,36 @@
   --gray-bg: #F9FAFB;
   --gray-border: #E5E7EB;
 
+  /* ========== Page-specific Colors ========== */
+  --heading-primary: #101828;
+  --heading-secondary: #1F6AE1;
+  --text-body: #364153;
+  --text-secondary: #4A5565;
+  --text-tertiary: #6A7282;
+  --card-bg: #FFFFFF;
+  --card-border: #E5E7EB;
+  --card-hover-border: #D1D5DB;
+  --section-bg: #F9FAFB;
+  --section-bg-alt: #FFFFFF;
+  --hero-overlay: rgba(0, 0, 0, 0.6);
+  --tab-bg: #FFFFFF;
+  --tab-border: #E5E7EB;
+  --tab-text: #4A5565;
+  --tab-active-text: #1F6AE1;
+  --tab-active-border: #1F6AE1;
+  --badge-bg: #EBF4FF;
+  --badge-text: #1F6AE1;
+  --tag-bg: #F3F4F6;
+  --tag-text: #364153;
+  --input-bg: #FFFFFF;
+  --input-border: #D1D5DB;
+  --divider: #E5E7EB;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --card-image-bg: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  --news-card-image-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --hero-gradient: linear-gradient(100.69deg, #EFF6FF 18.35%, #FFFBF6 51.52%, #FBFFF5 84.7%);
+  --nav-card-gradient: linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%);
+
   /* ========== Spacing ========== */
   --spacing-xs: 8px;
   --spacing-sm: 12px;
@@ -177,6 +207,46 @@
   --sidebar-accent-foreground: #FAFAFA;
   --sidebar-border: #374151;
   --sidebar-ring: #3B82F6;
+
+  /* ========== Dark Mode Page-specific Colors ========== */
+  --primary-blue: #3B82F6;
+  --secondary-green: #84CC16;
+  --accent-orange: #F97316;
+  --teal-gradient: #14B8A6;
+  --white: #1A1A2E;
+  --text-dark: #E5E7EB;
+  --text-light: #9CA3AF;
+  --bg-light: #111827;
+  --gray-bg: #111827;
+  --gray-border: #374151;
+  --heading-primary: #FAFAFA;
+  --heading-secondary: #3B82F6;
+  --text-body: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --card-bg: #1F2937;
+  --card-border: #374151;
+  --card-hover-border: #4B5563;
+  --section-bg: #111827;
+  --section-bg-alt: #1F2937;
+  --hero-overlay: rgba(0, 0, 0, 0.7);
+  --tab-bg: #1F2937;
+  --tab-border: #374151;
+  --tab-text: #9CA3AF;
+  --tab-active-text: #3B82F6;
+  --tab-active-border: #3B82F6;
+  --badge-bg: rgba(59, 130, 246, 0.2);
+  --badge-text: #60A5FA;
+  --tag-bg: #374151;
+  --tag-text: #E5E7EB;
+  --input-bg: #1F2937;
+  --input-border: #4B5563;
+  --divider: #374151;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --card-image-bg: linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%);
+  --news-card-image-bg: linear-gradient(135deg, #4C1D95 0%, #5B21B6 100%);
+  --hero-gradient: linear-gradient(100.69deg, #1E3A5F 18.35%, #2D1B4E 51.52%, #1A3329 84.7%);
+  --nav-card-gradient: linear-gradient(180deg, #1F2937 0%, #111827 100%);
 }
 
 /* ============================================
@@ -196,8 +266,8 @@ html {
 
 body {
   font-family: 'DM Sans', sans-serif;
-  background: #FFFFFF !important;
-  color: var(--text-dark);
+  background: var(--background);
+  color: var(--foreground);
   overflow-x: hidden;
   line-height: 1.6;
   font-size: 16px;

@@ -3,38 +3,46 @@
  * BSOCIO - useFAQs Hook
  * ============================================
  * Custom hook for fetching FAQs
+ * 
+ * Uses the generic useFetch pattern for consistent
+ * loading, error, and automatic data fetching on mount.
  */
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { faqService, ApiException, parseApiError } from '@/lib/api';
-import type { FAQ } from '@/types';
-
-/**
- * Hook state interface
- */
-interface UseFAQsState {
-  faqs: FAQ[];
-  total: number;
-  isLoading: boolean;
-  isError: boolean;
-  error: ApiException | null;
-}
+import { faqService, type ApiException } from '@/lib/api';
+import { useFetch, type UseFetchOptions } from './useAsync';
+import type { FAQ, FAQResponse } from '@/types';
 
 /**
  * Hook return interface
  */
-interface UseFAQsReturn extends UseFAQsState {
-  refetch: () => Promise<void>;
+interface UseFAQsReturn {
+  /** Array of FAQ items */
+  faqs: FAQ[];
+  /** Total number of FAQs */
+  total: number;
+  /** Whether the fetch is in progress */
+  isLoading: boolean;
+  /** Whether the fetch failed */
+  isError: boolean;
+  /** Error from the fetch, if any */
+  error: ApiException | null;
+  /** Refetch the FAQs */
+  refetch: () => Promise<FAQResponse | null>;
 }
+
+/**
+ * Options for the useFAQs hook
+ */
+type UseFAQsOptions = Omit<UseFetchOptions<FAQResponse>, 'enabled'>;
 
 /**
  * Custom hook for fetching all FAQs
  * 
  * @example
  * ```tsx
- * const { faqs, isLoading, isError, error } = useFAQs();
+ * const { faqs, isLoading, isError, error, refetch } = useFAQs();
  * 
  * if (isLoading) return <Spinner />;
  * if (isError) return <Error message={error?.message} />;
@@ -42,54 +50,18 @@ interface UseFAQsReturn extends UseFAQsState {
  * return <FAQList faqs={faqs} />;
  * ```
  */
-export function useFAQs(): UseFAQsReturn {
-  const [state, setState] = useState<UseFAQsState>({
-    faqs: [],
-    total: 0,
-    isLoading: true,
-    isError: false,
-    error: null,
-  });
-
-  /**
-   * Fetch FAQs from API
-   */
-  const fetchFAQs = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-
-    try {
-      const response = await faqService.getAllFAQs();
-
-      setState({
-        faqs: response.items,
-        total: response.total,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-    } catch (error) {
-      const apiError = parseApiError(error);
-
-      setState({
-        faqs: [],
-        total: 0,
-        isLoading: false,
-        isError: true,
-        error: apiError,
-      });
-    }
-  }, []);
-
-  /**
-   * Fetch on mount
-   */
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchFAQs();
-  }, [fetchFAQs]);
+export function useFAQs(options: UseFAQsOptions = {}): UseFAQsReturn {
+  const { data, isLoading, error, refetch } = useFetch(
+    () => faqService.getAllFAQs(),
+    { enabled: true, ...options }
+  );
 
   return {
-    ...state,
-    refetch: fetchFAQs,
+    faqs: data?.items ?? [],
+    total: data?.total ?? 0,
+    isLoading,
+    isError: !!error,
+    error,
+    refetch,
   };
 }

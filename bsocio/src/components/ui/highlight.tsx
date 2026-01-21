@@ -112,16 +112,16 @@ export function HighlightBox({
 }: HighlightBoxProps) {
   const colors = colorVariants[colorVariant];
 
-  // Generate gradient based on color
+  // Generate gradient based on color with dark mode support
   const gradientClass = colorVariant === "blue" 
-    ? "bg-gradient-to-r from-blue-50 to-blue-100"
+    ? "bg-gradient-to-r from-blue-50 to-blue-100 dark:from-primary/10 dark:to-primary/5"
     : colorVariant === "green"
-    ? "bg-gradient-to-r from-green-50 to-green-100"
+    ? "bg-gradient-to-r from-green-50 to-green-100 dark:from-secondary/10 dark:to-secondary/5"
     : colorVariant === "orange"
-    ? "bg-gradient-to-r from-orange-50 to-orange-100"
+    ? "bg-gradient-to-r from-orange-50 to-orange-100 dark:from-accent/10 dark:to-accent/5"
     : colorVariant === "teal"
-    ? "bg-gradient-to-r from-teal-50 to-teal-100"
-    : "bg-gradient-to-r from-purple-50 to-purple-100";
+    ? "bg-gradient-to-r from-teal-50 to-teal-100 dark:from-brand-teal/10 dark:to-brand-teal/5"
+    : "bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-500/10 dark:to-purple-500/5";
 
   return (
     <div
@@ -206,16 +206,16 @@ export function CalloutBox({
 }: CalloutBoxProps) {
   const colors = colorVariants[colorVariant];
 
-  // Generate gradient based on color
+  // Generate gradient based on color with dark mode support
   const gradientClass = colorVariant === "blue"
-    ? "bg-gradient-to-br from-brand-blue/5 to-brand-blue/10"
+    ? "bg-gradient-to-br from-brand-blue/5 to-brand-blue/10 dark:from-brand-blue/10 dark:to-brand-blue/5"
     : colorVariant === "green"
-    ? "bg-gradient-to-br from-brand-green/5 to-brand-green/10"
+    ? "bg-gradient-to-br from-brand-green/5 to-brand-green/10 dark:from-brand-green/10 dark:to-brand-green/5"
     : colorVariant === "orange"
-    ? "bg-gradient-to-br from-brand-orange/5 to-brand-orange/10"
+    ? "bg-gradient-to-br from-brand-orange/5 to-brand-orange/10 dark:from-brand-orange/10 dark:to-brand-orange/5"
     : colorVariant === "teal"
-    ? "bg-gradient-to-br from-brand-teal/5 to-brand-teal/10"
-    : "bg-gradient-to-br from-purple-500/5 to-purple-500/10";
+    ? "bg-gradient-to-br from-brand-teal/5 to-brand-teal/10 dark:from-brand-teal/10 dark:to-brand-teal/5"
+    : "bg-gradient-to-br from-purple-500/5 to-purple-500/10 dark:from-purple-500/10 dark:to-purple-500/5";
 
   return (
     <div
@@ -231,7 +231,7 @@ export function CalloutBox({
         {title}
       </h2>
       {description && (
-        <p className="text-lg text-text-dark">{description}</p>
+        <p className="text-lg text-muted-foreground dark:text-muted-foreground">{description}</p>
       )}
     </div>
   );

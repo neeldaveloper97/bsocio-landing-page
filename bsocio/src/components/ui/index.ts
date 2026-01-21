@@ -7,7 +7,11 @@
 export { Button, buttonVariants } from "./button";
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "./card";
 export { Container, containerVariants } from "./container";
-export { Section, HeroSection, CTASection, sectionVariants } from "./section";
+export { Section, HeroSection, CTASection, SectionHeader, sectionVariants } from "./section";
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./accordion";
+export { Alert, AlertTitle, AlertDescription } from "./alert";
+export { Badge } from "./badge";
+export { Separator } from "./separator";
 
 // Form components
 export { Input, inputVariants } from "./input";
@@ -18,10 +22,15 @@ export { DynamicIcon, iconMap } from "./dynamic-icon";
 export { FeatureCard, featureCardVariants } from "./feature-card";
 export { ImpactCard, impactCardVariants } from "./impact-card";
 export { InfoCard, infoCardVariants } from "./info-card";
-export { BulletList, NumberedList, CheckList, bulletListVariants, numberedListVariants } from "./styled-list";
+export { BulletList as StyledBulletList, NumberedList, CheckList, bulletListVariants, numberedListVariants } from "./styled-list";
 export { QuoteBlock, HighlightBox, StatHighlight, CalloutBox, quoteBlockVariants, highlightBoxVariants, calloutBoxVariants } from "./highlight";
 export { StatItem, StatsGrid, statsGridVariants } from "./stats-grid";
 export { CTAImpactSection } from "./cta-impact-section";
+export { StepCard } from "./step-card";
+export { QuoteBox, TorchStatement } from "./quote-box";
+export { BulletList } from "./bullet-list";
+export { ValueCard, valueCardVariants } from "./value-card";
+export { ContentCard, ImpactItemCard, WinCard, NumberedStep } from "./content-card";
 
 // Types
 export type { InputProps } from "./input";

@@ -48,7 +48,7 @@ export function StatItem({ data, size = "md", className, ...props }: StatItemPro
         {data.value}
         {data.suffix}
       </div>
-      <p className={cn("text-text-muted mt-2", labelSize[size])}>{data.label}</p>
+      <p className={cn("text-muted-foreground dark:text-muted-foreground mt-2", labelSize[size])}>{data.label}</p>
     </div>
   );
 }

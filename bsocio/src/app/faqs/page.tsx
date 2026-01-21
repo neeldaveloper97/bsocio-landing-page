@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { useFAQs } from "@/hooks";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import "./page.css";
 
 export default function FAQsPage() {
   const { faqs, isLoading, isError, error } = useFAQs();
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const toggleFaq = (id: string) => {
-    setActiveId(activeId === id ? null : id);
-  };
+  const [activeId, setActiveId] = useState<string | undefined>(undefined);
 
   const scrollToFaq = (id: string) => {
     setActiveId(id);
@@ -74,35 +76,37 @@ export default function FAQsPage() {
               </aside>
 
               {/* Accordion Content */}
-              <div className="faq-accordion">
+              <Accordion
+                type="single"
+                collapsible
+                value={activeId}
+                onValueChange={setActiveId}
+                className="faq-accordion"
+              >
                 {displayedFAQs.map((faq, index) => (
-                  <div
+                  <AccordionItem
                     key={faq.id}
-                    className={`faq-item ${activeId === faq.id ? "active" : ""}`}
+                    value={faq.id}
                     data-faq={faq.id}
+                    className={`faq-item ${activeId === faq.id ? "active" : ""}`}
                   >
-                    <button
-                      className="faq-button"
-                      aria-expanded={activeId === faq.id}
-                      onClick={() => toggleFaq(faq.id)}
-                    >
+                    <AccordionTrigger className="faq-button" hideChevron>
                       <div className="faq-header">
-                        <span className="faq-number">{(index + 1).toString().padStart(2, "0")}</span>
+                        <span className="faq-number">
+                          {(index + 1).toString().padStart(2, "0")}
+                        </span>
                         <h3 className="faq-question">{faq.question}</h3>
                       </div>
                       <div className="faq-toggle-icon">
-                        <span className="icon-plus"></span>
+                        <span className="icon-plus" />
                       </div>
-                    </button>
-                    <div className="faq-answer-container">
-                      <div 
-                        className="faq-answer"
-                        dangerouslySetInnerHTML={{ __html: faq.answer }}
-                      />
-                    </div>
-                  </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="faq-answer">
+                      <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             </>
           )}
 

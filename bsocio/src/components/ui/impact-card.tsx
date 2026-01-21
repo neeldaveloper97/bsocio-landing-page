@@ -78,6 +78,7 @@ export function ImpactCard({
     <Card
       className={cn(
         impactCardVariants({ size, layout }),
+        "dark:bg-card dark:border-border/50",
         `hover:${colors.border}`,
         className
       )}
@@ -89,8 +90,8 @@ export function ImpactCard({
       )}>
         {renderIcon()}
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-darker mb-2">{title}</h3>
-          <p className="text-text-muted">{description}</p>
+          <h3 className="text-xl font-bold text-foreground dark:text-foreground mb-2">{title}</h3>
+          <p className="text-muted-foreground dark:text-muted-foreground">{description}</p>
         </div>
       </CardContent>
       

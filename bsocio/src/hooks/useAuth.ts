@@ -3,22 +3,33 @@
  * BSOCIO - useAuth Hook
  * ============================================
  * Central authentication state management hook
+ * 
+ * Provides reactive authentication state with:
+ * - Current user information
+ * - Authentication status
+ * - Logout functionality
+ * - User data refresh capability
  */
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { authService, parseApiError, type ApiException } from '@/lib/api';
+import { authService, tokenStorage, parseApiError, type ApiException } from '@/lib/api';
 import type { User } from '@/types';
 
 /**
  * Auth state interface
  */
 interface UseAuthState {
+  /** Current authenticated user */
   user: User | null;
+  /** Whether the user is authenticated */
   isAuthenticated: boolean;
+  /** Whether auth state is being checked */
   isLoading: boolean;
+  /** Whether initial auth check is complete */
   isInitialized: boolean;
+  /** Error from auth operations, if any */
   error: ApiException | null;
 }
 
@@ -26,8 +37,11 @@ interface UseAuthState {
  * Auth hook return interface
  */
 interface UseAuthReturn extends UseAuthState {
+  /** Log out the current user */
   logout: () => Promise<void>;
+  /** Refresh user data from API */
   refreshUser: () => Promise<void>;
+  /** Re-check authentication status */
   checkAuth: () => void;
 }
 
@@ -36,11 +50,15 @@ interface UseAuthReturn extends UseAuthState {
  * 
  * @example
  * ```tsx
- * const { user, isAuthenticated, logout } = useAuth();
+ * const { user, isAuthenticated, isLoading, logout } = useAuth();
+ * 
+ * if (isLoading) return <Spinner />;
  * 
  * if (isAuthenticated) {
  *   return <Dashboard user={user} onLogout={logout} />;
  * }
+ * 
+ * return <LoginPage />;
  * ```
  */
 export function useAuth(): UseAuthReturn {
@@ -53,11 +71,11 @@ export function useAuth(): UseAuthReturn {
   });
 
   /**
-   * Check authentication status on mount
+   * Check authentication status from storage
    */
   const checkAuth = useCallback(() => {
-    const isAuthenticated = authService.isAuthenticated();
-    const user = authService.getUser();
+    const isAuthenticated = tokenStorage.isAuthenticated();
+    const user = tokenStorage.getUser() as User | null;
 
     setState((prev) => ({
       ...prev,
@@ -100,7 +118,6 @@ export function useAuth(): UseAuthReturn {
       setState((prev) => ({ ...prev, isLoading: true }));
 
       const user = await authService.getCurrentUser();
-      authService.setUser(user);
 
       setState((prev) => ({
         ...prev,

@@ -1,69 +1,78 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const socialLinks = [
+// ============================================
+// CONSTANTS
+// ============================================
+
+interface SocialLink {
+  icon: LucideIcon;
+  href: string;
+  label: string;
+}
+
+const SOCIAL_LINKS: SocialLink[] = [
   { icon: Facebook, href: "#", label: "Facebook" },
   { icon: Twitter, href: "#", label: "Twitter" },
   { icon: Linkedin, href: "#", label: "LinkedIn" },
   { icon: Instagram, href: "#", label: "Instagram" },
 ];
 
-export default function Footer() {
+interface FooterSection {
+  title: string;
+  links: { href: string; label: string }[];
+}
+
+const FOOTER_SECTIONS: FooterSection[] = [
+  {
+    title: "Quick Links",
+    links: [
+      { href: "/", label: "Home" },
+      { href: "/about", label: "About Us" },
+      { href: "/how-it-works", label: "How It Works" },
+      { href: "/festivals", label: "Festivals" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { href: "/news-media", label: "News & Media" },
+      { href: "/faqs", label: "FAQs" },
+      { href: "/our-structure", label: "Our Structure" },
+      { href: "/leadership", label: "Leadership Team" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/contact", label: "Contact Us" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Use" },
+    ],
+  },
+];
+
+// ============================================
+// SUB-COMPONENTS
+// ============================================
+
+function SocialLink({ icon: Icon, href, label }: SocialLink) {
   return (
-    <footer className="w-full bg-background-footer text-footer-text">
-      <div className="container-site py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="space-y-6">
-            <Logo variant="footer" />
-            <div className="flex gap-3">
-              {socialLinks.map(({ icon: Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-700 text-footer-links transition-colors hover:bg-brand-blue"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <FooterColumn title="Quick Links">
-            <FooterLink href="/">Home</FooterLink>
-            <FooterLink href="/about">About Us</FooterLink>
-            <FooterLink href="/how-it-works">How It Works</FooterLink>
-            <FooterLink href="/festivals">Festivals</FooterLink>
-          </FooterColumn>
-
-          {/* Resources */}
-          <FooterColumn title="Resources">
-            <FooterLink href="/news-media">News & Media</FooterLink>
-            <FooterLink href="/faqs">FAQs</FooterLink>
-            <FooterLink href="/our-structure">Our Structure</FooterLink>
-            <FooterLink href="/leadership">Leadership Team</FooterLink>
-          </FooterColumn>
-
-          {/* Legal */}
-          <FooterColumn title="Legal">
-            <FooterLink href="/contact">Contact Us</FooterLink>
-            <FooterLink href="/privacy">Privacy Policy</FooterLink>
-            <FooterLink href="/terms">Terms of Use</FooterLink>
-          </FooterColumn>
-        </div>
-      </div>
-
-      <div className="border-t border-slate-700">
-        <div className="container-site py-6">
-          <p className="text-center text-sm text-footer-text">
-            © {new Date().getFullYear()} Bsocio – The Future of Humanity Initiative. All rights reserved.
-          </p>
-        </div>
-      </div>
-    </footer>
+    <a
+      href={href}
+      aria-label={label}
+      className={cn(
+        "flex h-10 w-10 items-center justify-center rounded-lg",
+        "bg-slate-700 text-gray-100",
+        "transition-all duration-200",
+        "hover:bg-primary hover:scale-105",
+        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
+      )}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+    </a>
   );
 }
 
@@ -76,10 +85,12 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h3 className="mb-4 text-base font-semibold text-footer-links sm:text-lg">
+      <h3 className="mb-4 text-base font-semibold text-gray-100 sm:text-lg">
         {title}
       </h3>
-      <ul className="space-y-3">{children}</ul>
+      <ul className="space-y-3" role="list">
+        {children}
+      </ul>
     </div>
   );
 }
@@ -95,10 +106,66 @@ function FooterLink({
     <li>
       <Link
         href={href}
-        className="text-sm text-footer-text transition-colors hover:text-white"
+        className={cn(
+          "text-sm text-gray-400 transition-colors duration-200",
+          "hover:text-white",
+          "focus:outline-none focus:text-primary"
+        )}
       >
         {children}
       </Link>
     </li>
+  );
+}
+
+// ============================================
+// MAIN FOOTER COMPONENT
+// ============================================
+
+export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer
+      className="w-full bg-slate-900 text-gray-400"
+      role="contentinfo"
+      aria-label="Site footer"
+    >
+      {/* Main Footer Content */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Section */}
+          <div className="space-y-6">
+            <Logo variant="footer" />
+            <div className="flex gap-3" role="list" aria-label="Social media links">
+              {SOCIAL_LINKS.map((social) => (
+                <SocialLink key={social.label} {...social} />
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation Sections */}
+          {FOOTER_SECTIONS.map((section) => (
+            <FooterColumn key={section.title} title={section.title}>
+              {section.links.map((link) => (
+                <FooterLink key={link.href} href={link.href}>
+                  {link.label}
+                </FooterLink>
+              ))}
+            </FooterColumn>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer Bottom */}
+      <div className="border-t border-slate-700">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-400">
+            © {currentYear} Bsocio – The Future of Humanity Initiative. All
+            rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 }

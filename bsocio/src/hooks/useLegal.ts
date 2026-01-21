@@ -3,30 +3,37 @@
  * BSOCIO - useLegal Hook
  * ============================================
  * Custom hook for fetching legal content by type
+ * 
+ * Uses the generic useFetch pattern for consistent
+ * loading, error, and automatic data fetching on mount.
  */
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { legalService, ApiException, parseApiError } from '@/lib/api';
+import { legalService, type ApiException } from '@/lib/api';
+import { useFetch, type UseFetchOptions } from './useAsync';
 import type { LegalType, LegalContent } from '@/types';
-
-/**
- * Hook state interface
- */
-interface UseLegalState {
-  legalContent: LegalContent | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: ApiException | null;
-}
 
 /**
  * Hook return interface
  */
-interface UseLegalReturn extends UseLegalState {
-  refetch: () => Promise<void>;
+interface UseLegalReturn {
+  /** The legal content data */
+  legalContent: LegalContent | null;
+  /** Whether the fetch is in progress */
+  isLoading: boolean;
+  /** Whether the fetch failed */
+  isError: boolean;
+  /** Error from the fetch, if any */
+  error: ApiException | null;
+  /** Refetch the legal content */
+  refetch: () => Promise<LegalContent | null>;
 }
+
+/**
+ * Options for the useLegal hook
+ */
+type UseLegalOptions = Omit<UseFetchOptions<LegalContent>, 'enabled' | 'deps'>;
 
 /**
  * Custom hook for fetching legal content by type
@@ -34,7 +41,7 @@ interface UseLegalReturn extends UseLegalState {
  * @param type - Legal content type
  * @example
  * ```tsx
- * const { legalContent, isLoading, isError } = useLegal('PRIVACY_POLICY');
+ * const { legalContent, isLoading, isError, refetch } = useLegal('PRIVACY_POLICY');
  *
  * if (isLoading) return <Spinner />;
  * if (!legalContent) return <NotFound />;
@@ -42,61 +49,21 @@ interface UseLegalReturn extends UseLegalState {
  * return <LegalContent content={legalContent.content} />;
  * ```
  */
-export function useLegal(type: LegalType): UseLegalReturn {
-  const [state, setState] = useState<UseLegalState>({
-    legalContent: null,
-    isLoading: true,
-    isError: false,
-    error: null,
-  });
-
-  /**
-   * Fetch legal content from API
-   */
-  const fetchLegalContent = useCallback(async () => {
-    if (!type) {
-      setState({
-        legalContent: null,
-        isLoading: false,
-        isError: true,
-        error: null,
-      });
-      return;
+export function useLegal(type: LegalType, options: UseLegalOptions = {}): UseLegalReturn {
+  const { data, isLoading, error, refetch } = useFetch(
+    () => legalService.getLegalContent(type),
+    { 
+      enabled: !!type, 
+      deps: [type],
+      ...options 
     }
-
-    setState((prev) => ({ ...prev, isLoading: true }));
-
-    try {
-      const legalContent = await legalService.getLegalContent(type);
-
-      setState({
-        legalContent,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-    } catch (error) {
-      const apiError = parseApiError(error);
-
-      setState({
-        legalContent: null,
-        isLoading: false,
-        isError: true,
-        error: apiError,
-      });
-    }
-  }, [type]);
-
-  /**
-   * Fetch on mount or when type changes
-   */
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchLegalContent();
-  }, [fetchLegalContent]);
+  );
 
   return {
-    ...state,
-    refetch: fetchLegalContent,
+    legalContent: data,
+    isLoading,
+    isError: !!error,
+    error,
+    refetch,
   };
 }

@@ -8,6 +8,9 @@
 // API Client
 export { apiClient } from './client';
 
+// Token Storage
+export { tokenStorage, STORAGE_KEYS } from './storage';
+
 // Services
 export { authService, AuthService, faqService, FAQService, legalService, LegalService } from './services';
 

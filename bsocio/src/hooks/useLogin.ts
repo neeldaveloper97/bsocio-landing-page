@@ -3,114 +3,91 @@
  * BSOCIO - useLogin Hook
  * ============================================
  * Custom hook for user authentication
+ * 
+ * Uses the generic useMutation pattern for consistent
+ * loading, error, and success state management.
  */
 
 'use client';
 
-import { useState, useCallback } from 'react';
-import { authService, ApiException, parseApiError } from '@/lib/api';
+import { authService, type ApiException } from '@/lib/api';
+import { useMutation, type AsyncOptions } from './useAsync';
 import type { LoginRequest, LoginResponse } from '@/types';
 
 /**
- * Hook state interface
+ * Login options with rememberMe support
  */
-interface UseLoginState {
-  isLoading: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  error: ApiException | null;
-  data: LoginResponse | null;
+interface LoginOptions {
+  /** If true, tokens will be stored in localStorage for persistence */
+  rememberMe?: boolean;
 }
 
 /**
  * Hook return interface
  */
-interface UseLoginReturn extends UseLoginState {
-  login: (data: LoginRequest) => Promise<LoginResponse | null>;
+interface UseLoginReturn {
+  /** Execute the login mutation */
+  login: (data: LoginRequest, options?: LoginOptions) => Promise<LoginResponse | null>;
+  /** Whether the login is in progress */
+  isLoading: boolean;
+  /** Whether the login completed successfully */
+  isSuccess: boolean;
+  /** Whether the login failed */
+  isError: boolean;
+  /** Error from the login, if any */
+  error: ApiException | null;
+  /** The login response data */
+  data: LoginResponse | null;
+  /** Reset the hook state */
   reset: () => void;
 }
 
 /**
- * Initial state for the hook
+ * Options for the useLogin hook
  */
-const initialState: UseLoginState = {
-  isLoading: false,
-  isSuccess: false,
-  isError: false,
-  error: null,
-  data: null,
-};
+type UseLoginOptions = AsyncOptions<LoginResponse>;
 
 /**
  * Custom hook for handling user login
  * 
  * @example
  * ```tsx
- * const { login, isLoading, isError, error } = useLogin();
+ * const { login, isLoading, isError, error } = useLogin({
+ *   onSuccess: (data) => {
+ *     console.log('Logged in:', data.user);
+ *     router.push('/dashboard');
+ *   },
+ *   onError: (error) => {
+ *     toast.error(error.message);
+ *   },
+ * });
  * 
  * const handleSubmit = async (data: LoginRequest) => {
- *   const result = await login(data);
- *   if (result) {
- *     // Success - redirect to dashboard
- *   }
+ *   await login(data, { rememberMe: true });
  * };
  * ```
  */
-export function useLogin(): UseLoginReturn {
-  const [state, setState] = useState<UseLoginState>(initialState);
+export function useLogin(options: UseLoginOptions = {}): UseLoginReturn {
+  const { mutate, isLoading, isSuccess, error, data, reset } = useMutation(
+    async (params: { data: LoginRequest; options?: LoginOptions }) =>
+      authService.login(params.data, params.options),
+    options
+  );
 
-  /**
-   * Execute login request
-   */
-  const login = useCallback(async (data: LoginRequest): Promise<LoginResponse | null> => {
-    // Start loading
-    setState({
-      isLoading: true,
-      isSuccess: false,
-      isError: false,
-      error: null,
-      data: null,
-    });
-
-    try {
-      const response = await authService.login(data);
-
-      // Success
-      setState({
-        isLoading: false,
-        isSuccess: true,
-        isError: false,
-        error: null,
-        data: response,
-      });
-
-      return response;
-    } catch (error) {
-      const apiError = parseApiError(error);
-
-      // Error
-      setState({
-        isLoading: false,
-        isSuccess: false,
-        isError: true,
-        error: apiError,
-        data: null,
-      });
-
-      return null;
-    }
-  }, []);
-
-  /**
-   * Reset hook state
-   */
-  const reset = useCallback(() => {
-    setState(initialState);
-  }, []);
+  const login = async (
+    loginData: LoginRequest,
+    loginOptions?: LoginOptions
+  ): Promise<LoginResponse | null> => {
+    return mutate({ data: loginData, options: loginOptions });
+  };
 
   return {
-    ...state,
     login,
+    isLoading,
+    isSuccess,
+    isError: !!error,
+    error,
+    data,
     reset,
   };
 }

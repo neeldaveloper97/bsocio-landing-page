@@ -13,7 +13,7 @@
   gap: 48px;
   max-width: 1536px;
   margin: 0 auto;
-  background: #FFFFFF;
+  background: var(--section-bg-alt);
 }
 
 /* ========== Legal Header ========== */
@@ -25,7 +25,7 @@
   padding: 0px 0px 2px;
   gap: 24px;
   width: 896px;
-  border-bottom: 2px solid #E5E7EB;
+  border-bottom: 2px solid var(--divider);
 }
 
 .legal-header h1 {
@@ -33,7 +33,7 @@
   font-weight: 700;
   font-size: 36px;
   line-height: 40px;
-  color: #101828;
+  color: var(--heading-primary);
   margin: 0;
 }
 
@@ -43,7 +43,7 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: #4A5565;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -66,7 +66,7 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: #364153;
+  color: var(--text-body);
 }
 
 /* ========== Legal Section ========== */
@@ -81,7 +81,7 @@
   font-weight: 700;
   font-size: 24px;
   line-height: 32px;
-  color: #101828;
+  color: var(--heading-primary);
   margin: 0;
 }
 
@@ -90,7 +90,7 @@
   font-weight: 700;
   font-size: 20px;
   line-height: 28px;
-  color: #101828;
+  color: var(--heading-primary);
   margin-top: 12px;
   margin-bottom: 0;
 }
@@ -99,7 +99,7 @@
   font-weight: 700;
   font-size: 18px;
   line-height: 28px;
-  color: #101828;
+  color: var(--heading-primary);
 }
 
 .legal-section p {
@@ -107,7 +107,7 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: #364153;
+  color: var(--text-body);
   margin: 0;
 }
 
@@ -124,7 +124,7 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 26px;
-  color: #364153;
+  color: var(--text-body);
 }
 
 .legal-section li strong {
@@ -132,7 +132,7 @@
 }
 
 .legal-section a {
-  color: #1F6AE1;
+  color: var(--primary-blue);
   text-decoration: none;
 }
 
@@ -151,7 +151,7 @@
 /* ========== Section Divider ========== */
 .section-divider {
   height: 1px;
-  background: #E5E7EB;
+  background: var(--divider);
   width: 896px;
 }
 

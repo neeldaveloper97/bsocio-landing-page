@@ -14,6 +14,7 @@ import axios, {
 } from 'axios';
 import { API_CONFIG } from '@/config';
 import { ApiError } from '@/types';
+import { tokenStorage } from './storage';
 
 /**
  * Create configured axios instance
@@ -31,12 +32,10 @@ const createApiClient = (): AxiosInstance => {
   // ============================================
   client.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      // Get token from storage (if available)
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken');
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+      // Get token from centralized storage
+      const token = tokenStorage.getAccessToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
 
       // Log request in development
@@ -80,7 +79,7 @@ const createApiClient = (): AxiosInstance => {
         originalRequest._retry = true;
 
         try {
-          const refreshToken = localStorage.getItem('refreshToken');
+          const refreshToken = tokenStorage.getRefreshToken();
           if (refreshToken) {
             // Attempt to refresh token
             const response = await axios.post(
@@ -90,9 +89,9 @@ const createApiClient = (): AxiosInstance => {
 
             const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-            // Update tokens in storage
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', newRefreshToken);
+            // Update tokens in centralized storage
+            tokenStorage.setAccessToken(accessToken);
+            tokenStorage.setRefreshToken(newRefreshToken);
 
             // Retry original request with new token
             if (originalRequest.headers) {
@@ -103,8 +102,7 @@ const createApiClient = (): AxiosInstance => {
           }
         } catch (refreshError) {
           // Refresh failed - clear tokens and redirect to login
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          tokenStorage.clearAll();
 
           if (typeof window !== 'undefined') {
             window.location.href = '/login';

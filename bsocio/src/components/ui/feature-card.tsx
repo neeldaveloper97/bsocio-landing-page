@@ -92,7 +92,7 @@ export function FeatureCard({
     <Card
       className={cn(
         featureCardVariants({ size, interactive }),
-        showBackground ? colors.bgLight : "bg-white",
+        showBackground ? colors.bgLight : "bg-white dark:bg-card",
         "border-none",
         className
       )}
@@ -100,10 +100,10 @@ export function FeatureCard({
     >
       <CardContent className="space-y-4 p-0">
         {renderIcon()}
-        <CardTitle className="text-xl font-semibold text-text-darker">
+        <CardTitle className="text-xl font-semibold text-foreground dark:text-foreground">
           {title}
         </CardTitle>
-        <CardDescription className="text-body">
+        <CardDescription className="text-muted-foreground dark:text-muted-foreground">
           {description}
         </CardDescription>
       </CardContent>

@@ -3,114 +3,75 @@
  * BSOCIO - useSignup Hook
  * ============================================
  * Custom hook for user registration
+ * 
+ * Uses the generic useMutation pattern for consistent
+ * loading, error, and success state management.
  */
 
 'use client';
 
-import { useState, useCallback } from 'react';
-import { authService, ApiException, parseApiError } from '@/lib/api';
+import { authService, type ApiException } from '@/lib/api';
+import { useMutation, type AsyncOptions } from './useAsync';
 import type { SignupRequest, SignupResponse } from '@/types';
-
-/**
- * Hook state interface
- */
-interface UseSignupState {
-  isLoading: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  error: ApiException | null;
-  data: SignupResponse | null;
-}
 
 /**
  * Hook return interface
  */
-interface UseSignupReturn extends UseSignupState {
+interface UseSignupReturn {
+  /** Execute the signup mutation */
   signup: (data: SignupRequest) => Promise<SignupResponse | null>;
+  /** Whether the signup is in progress */
+  isLoading: boolean;
+  /** Whether the signup completed successfully */
+  isSuccess: boolean;
+  /** Whether the signup failed */
+  isError: boolean;
+  /** Error from the signup, if any */
+  error: ApiException | null;
+  /** The signup response data */
+  data: SignupResponse | null;
+  /** Reset the hook state */
   reset: () => void;
 }
 
 /**
- * Initial state for the hook
+ * Options for the useSignup hook
  */
-const initialState: UseSignupState = {
-  isLoading: false,
-  isSuccess: false,
-  isError: false,
-  error: null,
-  data: null,
-};
+type UseSignupOptions = AsyncOptions<SignupResponse>;
 
 /**
  * Custom hook for handling user signup
  * 
  * @example
  * ```tsx
- * const { signup, isLoading, isError, error } = useSignup();
+ * const { signup, isLoading, isError, error } = useSignup({
+ *   onSuccess: (data) => {
+ *     console.log('Signed up:', data.user);
+ *     router.push('/login');
+ *   },
+ *   onError: (error) => {
+ *     toast.error(error.message);
+ *   },
+ * });
  * 
  * const handleSubmit = async (data: SignupRequest) => {
- *   const result = await signup(data);
- *   if (result) {
- *     // Success - redirect or show message
- *   }
+ *   await signup(data);
  * };
  * ```
  */
-export function useSignup(): UseSignupReturn {
-  const [state, setState] = useState<UseSignupState>(initialState);
-
-  /**
-   * Execute signup request
-   */
-  const signup = useCallback(async (data: SignupRequest): Promise<SignupResponse | null> => {
-    // Start loading
-    setState({
-      isLoading: true,
-      isSuccess: false,
-      isError: false,
-      error: null,
-      data: null,
-    });
-
-    try {
-      const response = await authService.signup(data);
-
-      // Success
-      setState({
-        isLoading: false,
-        isSuccess: true,
-        isError: false,
-        error: null,
-        data: response,
-      });
-
-      return response;
-    } catch (error) {
-      const apiError = parseApiError(error);
-
-      // Error
-      setState({
-        isLoading: false,
-        isSuccess: false,
-        isError: true,
-        error: apiError,
-        data: null,
-      });
-
-      return null;
-    }
-  }, []);
-
-  /**
-   * Reset hook state
-   */
-  const reset = useCallback(() => {
-    setState(initialState);
-  }, []);
+export function useSignup(options: UseSignupOptions = {}): UseSignupReturn {
+  const { mutate, isLoading, isSuccess, error, data, reset } = useMutation(
+    async (signupData: SignupRequest) => authService.signup(signupData),
+    options
+  );
 
   return {
-    ...state,
-    signup,
+    signup: mutate,
+    isLoading,
+    isSuccess,
+    isError: !!error,
+    error,
+    data,
     reset,
   };
 }

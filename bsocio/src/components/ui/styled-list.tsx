@@ -72,7 +72,7 @@ export function BulletList({
             bulletSizes[bulletSize],
             colors.bg
           )} />
-          <span className="text-text-dark">{item}</span>
+          <span className="text-muted-foreground dark:text-muted-foreground">{item}</span>
         </li>
       ))}
     </ul>
@@ -144,7 +144,7 @@ export function NumberedList({
           )}>
             {startFrom + index}
           </div>
-          <span className="text-text-dark">{item}</span>
+          <span className="text-muted-foreground dark:text-muted-foreground">{item}</span>
         </li>
       ))}
     </ol>
@@ -192,7 +192,7 @@ export function CheckList({
               d="M5 13l4 4L19 7" 
             />
           </svg>
-          <span className="text-text-dark">{item}</span>
+          <span className="text-muted-foreground dark:text-muted-foreground">{item}</span>
         </li>
       ))}
     </ul>
