@@ -29,6 +29,7 @@ COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/global-bundle.pem ./global-bundle.pem
 
 # Expose API port
 EXPOSE 7000
