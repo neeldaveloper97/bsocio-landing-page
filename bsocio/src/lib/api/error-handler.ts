@@ -2,11 +2,10 @@
  * ============================================
  * BSOCIO - API Error Handler
  * ============================================
- * Centralized error handling utilities
+ * Centralized error handling utilities (fetch-based)
  */
 
-import { AxiosError } from 'axios';
-import { ApiError } from '@/types';
+import type { ApiError } from '@/types';
 
 /**
  * Standard error codes for consistent error handling
@@ -25,20 +24,28 @@ export const ERROR_CODES = {
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
 /**
+ * Extended Error type for fetch errors
+ */
+interface FetchError extends Error {
+  status?: number;
+  data?: ApiError;
+}
+
+/**
  * Custom API Error class
  */
 export class ApiException extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: number;
   public readonly errors?: Record<string, string[]>;
-  public readonly originalError?: AxiosError<ApiError>;
+  public readonly originalError?: Error;
 
   constructor(
     message: string,
     code: ErrorCode,
     statusCode: number,
     errors?: Record<string, string[]>,
-    originalError?: AxiosError<ApiError>
+    originalError?: Error
   ) {
     super(message);
     this.name = 'ApiException';
@@ -81,17 +88,23 @@ export class ApiException extends Error {
 }
 
 /**
- * Parse axios error into standardized ApiException
+ * Parse fetch error into standardized ApiException
  */
 export function parseApiError(error: unknown): ApiException {
-  // Handle AxiosError
-  if (error instanceof AxiosError) {
-    const response = error.response;
-    const data = response?.data as ApiError | undefined;
+  // Handle ApiException (pass through)
+  if (error instanceof ApiException) {
+    return error;
+  }
 
-    // Network error (no response)
-    if (!response) {
-      if (error.code === 'ECONNABORTED') {
+  // Handle fetch errors with status
+  if (error instanceof Error) {
+    const fetchError = error as FetchError;
+    const statusCode = fetchError.status || 0;
+    const data = fetchError.data;
+
+    // Network error (no status)
+    if (!statusCode) {
+      if (error.name === 'AbortError') {
         return new ApiException(
           'Request timeout. Please try again.',
           ERROR_CODES.TIMEOUT,
@@ -100,19 +113,20 @@ export function parseApiError(error: unknown): ApiException {
           error
         );
       }
-      return new ApiException(
-        'Network error. Please check your connection.',
-        ERROR_CODES.NETWORK_ERROR,
-        0,
-        undefined,
-        error
-      );
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        return new ApiException(
+          'Network error. Please check your connection.',
+          ERROR_CODES.NETWORK_ERROR,
+          0,
+          undefined,
+          error
+        );
+      }
     }
 
     // Map status codes to error codes
-    const statusCode = response.status;
     let errorCode: ErrorCode;
-    let message = data?.message || 'An error occurred';
+    let message = data?.message || error.message || 'An error occurred';
 
     switch (statusCode) {
       case 400:
@@ -141,7 +155,7 @@ export function parseApiError(error: unknown): ApiException {
         message = 'Server error. Please try again later.';
         break;
       default:
-        errorCode = ERROR_CODES.UNKNOWN_ERROR;
+        errorCode = statusCode ? ERROR_CODES.UNKNOWN_ERROR : ERROR_CODES.NETWORK_ERROR;
     }
 
     return new ApiException(
@@ -150,20 +164,6 @@ export function parseApiError(error: unknown): ApiException {
       statusCode,
       data?.errors,
       error
-    );
-  }
-
-  // Handle ApiException (pass through)
-  if (error instanceof ApiException) {
-    return error;
-  }
-
-  // Handle generic Error
-  if (error instanceof Error) {
-    return new ApiException(
-      error.message,
-      ERROR_CODES.UNKNOWN_ERROR,
-      0
     );
   }
 

@@ -13,9 +13,80 @@ export { Alert, AlertTitle, AlertDescription } from "./alert";
 export { Badge } from "./badge";
 export { Separator } from "./separator";
 
-// Form components
+// shadcn Form components
 export { Input, inputVariants } from "./input";
-export { Select, selectVariants } from "./select";
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+export { Label } from "./label";
+export { Checkbox } from "./checkbox";
+export { RadioGroup, RadioGroupItem } from "./radio-group";
+export { Switch } from "./switch";
+export { Textarea } from "./textarea";
+export {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
+} from "./form";
+
+// shadcn Overlay components
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog";
+export {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";
+export { Popover, PopoverContent, PopoverTrigger } from "./popover";
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
+export { Toaster } from "./sonner";
 
 // Custom design system components
 export { DynamicIcon, iconMap } from "./dynamic-icon";
@@ -34,7 +105,6 @@ export { ContentCard, ImpactItemCard, WinCard, NumberedStep } from "./content-ca
 
 // Types
 export type { InputProps } from "./input";
-export type { SelectProps, SelectOption } from "./select";
 export type { DynamicIconProps } from "./dynamic-icon";
 export type { FeatureCardProps } from "./feature-card";
 export type { ImpactCardProps } from "./impact-card";
