@@ -209,13 +209,43 @@ export default function SignupPage() {
   
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [googleAuthState, setGoogleAuthState] = useState<{
+    isLoading: boolean;
+    isSuccess: boolean;
+    isError: boolean;
+    error: string | null;
+  }>({
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    error: null,
+  });
 
-  // Redirect on successful signup
+  // Redirect on successful signup (email or Google)
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess || googleAuthState.isSuccess) {
       router.push("/");
     }
-  }, [isSuccess, router]);
+  }, [isSuccess, googleAuthState.isSuccess, router]);
+
+  // Google auth handlers
+  const handleGoogleSuccess = useCallback(() => {
+    setGoogleAuthState({
+      isLoading: false,
+      isSuccess: true,
+      isError: false,
+      error: null,
+    });
+  }, []);
+
+  const handleGoogleError = useCallback((err: Error) => {
+    setGoogleAuthState({
+      isLoading: false,
+      isSuccess: false,
+      isError: true,
+      error: err.message || 'Google sign-in failed',
+    });
+  }, []);
 
   // Memoized options to prevent recreation on each render
   const dateOptions = useMemo(() => generateDateOptions(), []);
@@ -329,8 +359,17 @@ export default function SignupPage() {
               </div>
             )}
 
+            {/* Google Auth Error */}
+            {googleAuthState.isError && googleAuthState.error && (
+              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+                <p className="text-sm text-red-600">
+                  {googleAuthState.error}
+                </p>
+              </div>
+            )}
+
             {/* Success Message */}
-            {isSuccess && (
+            {(isSuccess || googleAuthState.isSuccess) && (
               <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
                 <p className="text-sm text-green-600">
                   Account created successfully! Redirecting...
@@ -441,7 +480,7 @@ export default function SignupPage() {
                 variant="primary" 
                 size="lg" 
                 className="mt-2 w-full"
-                disabled={isLoading}
+                disabled={isLoading || googleAuthState.isLoading}
               >
                 {isLoading ? "Creating Account..." : "Accept the Invitation"}
               </Button>
@@ -451,13 +490,8 @@ export default function SignupPage() {
               {/* Google Sign Up */}
               <GoogleSignInButton 
                 className="w-full"
-                onSuccess={() => {
-                  // User will be redirected to /dashboard automatically
-                  console.log('Google sign-in successful');
-                }}
-                onError={(error) => {
-                  console.error('Google sign-in error:', error);
-                }}
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
               />
             </form>
 
