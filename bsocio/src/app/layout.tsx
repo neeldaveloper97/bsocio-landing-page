@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import {
   generateMetadata as createMetadata,
   generateOrganizationSchema,
@@ -53,13 +55,17 @@ export default function RootLayout({
           Skip to main content
         </a>
 
-        <Header />
-        
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-        
-        <Footer />
+        <AuthProvider>
+          <QueryProvider>
+            <Header />
+            
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+            
+            <Footer />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

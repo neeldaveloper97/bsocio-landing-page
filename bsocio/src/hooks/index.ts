@@ -4,23 +4,11 @@
  * ============================================
  */
 
-// Generic Async Utilities
-export {
-  useAsync,
-  useFetch,
-  useMutation,
-  type AsyncState,
-  type AsyncOptions,
-  type UseAsyncReturn,
-  type UseFetchOptions,
-  type UseFetchReturn,
-  type UseMutationReturn,
-} from './useAsync';
-
 // Authentication Hooks
 export { useSignup } from './useSignup';
 export { useLogin } from './useLogin';
 export { useAuth } from './useAuth';
+export { useGoogleIdTokenAuth, useGoogleUserDataAuth, useGoogleAuthMutation } from './useGoogleAuth';
 
 // FAQ Hooks
 export { useFAQs } from './useFAQs';
@@ -28,3 +16,7 @@ export { useFAQ } from './useFAQ';
 
 // Legal Hooks
 export { useLegal } from './useLegal';
+
+// Re-export TanStack Query utilities for convenience
+export { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+export { queryKeys, queryClient } from '@/lib/query-client';

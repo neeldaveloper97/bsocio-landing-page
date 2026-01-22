@@ -2,16 +2,15 @@
  * ============================================
  * BSOCIO - useLogin Hook
  * ============================================
- * Custom hook for user authentication
+ * Custom hook for user authentication using TanStack Query
  * 
- * Uses the generic useMutation pattern for consistent
- * loading, error, and success state management.
+ * Provides automatic retry, loading states, and error handling.
  */
 
 'use client';
 
+import { useMutation } from '@tanstack/react-query';
 import { authService, type ApiException } from '@/lib/api';
-import { useMutation, type AsyncOptions } from './useAsync';
 import type { LoginRequest, LoginResponse } from '@/types';
 
 /**
@@ -45,14 +44,24 @@ interface UseLoginReturn {
 /**
  * Options for the useLogin hook
  */
-type UseLoginOptions = AsyncOptions<LoginResponse>;
+interface UseLoginOptions {
+  /** Callback when login succeeds */
+  onSuccess?: (data: LoginResponse) => void;
+  /** Callback when login fails */
+  onError?: (error: ApiException) => void;
+}
 
 /**
  * Custom hook for handling user login
  * 
+ * Features:
+ * - Automatic retry on network failures
+ * - Loading and error state management
+ * - Success/error callbacks
+ * 
  * @example
  * ```tsx
- * const { login, isLoading, isError, error } = useLogin({
+ * const { login, isPending, isError, error } = useLogin({
  *   onSuccess: (data) => {
  *     console.log('Logged in:', data.user);
  *     router.push('/dashboard');
@@ -68,26 +77,35 @@ type UseLoginOptions = AsyncOptions<LoginResponse>;
  * ```
  */
 export function useLogin(options: UseLoginOptions = {}): UseLoginReturn {
-  const { mutate, isLoading, isSuccess, error, data, reset } = useMutation(
-    async (params: { data: LoginRequest; options?: LoginOptions }) =>
-      authService.login(params.data, params.options),
-    options
-  );
+  const mutation = useMutation<
+    LoginResponse,
+    ApiException,
+    { data: LoginRequest; options?: LoginOptions }
+  >({
+    mutationFn: ({ data, options: loginOptions }) =>
+      authService.login(data, loginOptions),
+    onSuccess: options.onSuccess,
+    onError: options.onError,
+  });
 
   const login = async (
     loginData: LoginRequest,
     loginOptions?: LoginOptions
   ): Promise<LoginResponse | null> => {
-    return mutate({ data: loginData, options: loginOptions });
+    try {
+      return await mutation.mutateAsync({ data: loginData, options: loginOptions });
+    } catch {
+      return null;
+    }
   };
 
   return {
     login,
-    isLoading,
-    isSuccess,
-    isError: !!error,
-    error,
-    data,
-    reset,
+    isLoading: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error ?? null,
+    data: mutation.data ?? null,
+    reset: mutation.reset,
   };
 }

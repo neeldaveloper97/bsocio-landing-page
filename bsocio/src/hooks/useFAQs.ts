@@ -2,16 +2,17 @@
  * ============================================
  * BSOCIO - useFAQs Hook
  * ============================================
- * Custom hook for fetching FAQs
+ * Custom hook for fetching FAQs using TanStack Query
  * 
- * Uses the generic useFetch pattern for consistent
- * loading, error, and automatic data fetching on mount.
+ * Provides automatic caching, background refetching,
+ * and request deduplication out of the box.
  */
 
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { faqService, type ApiException } from '@/lib/api';
-import { useFetch, type UseFetchOptions } from './useAsync';
+import { queryKeys } from '@/lib/query-client';
 import type { FAQ, FAQResponse } from '@/types';
 
 /**
@@ -29,16 +30,17 @@ interface UseFAQsReturn {
   /** Error from the fetch, if any */
   error: ApiException | null;
   /** Refetch the FAQs */
-  refetch: () => Promise<FAQResponse | null>;
+  refetch: () => Promise<any>;
 }
 
 /**
- * Options for the useFAQs hook
- */
-type UseFAQsOptions = Omit<UseFetchOptions<FAQResponse>, 'enabled'>;
-
-/**
  * Custom hook for fetching all FAQs
+ * 
+ * Features:
+ * - Automatic caching (5 min stale time)
+ * - Background refetching on window focus
+ * - Request deduplication
+ * - Automatic retry on failure
  * 
  * @example
  * ```tsx
@@ -50,18 +52,18 @@ type UseFAQsOptions = Omit<UseFetchOptions<FAQResponse>, 'enabled'>;
  * return <FAQList faqs={faqs} />;
  * ```
  */
-export function useFAQs(options: UseFAQsOptions = {}): UseFAQsReturn {
-  const { data, isLoading, error, refetch } = useFetch(
-    () => faqService.getAllFAQs(),
-    { enabled: true, ...options }
-  );
+export function useFAQs(): UseFAQsReturn {
+  const { data, isLoading, error, refetch } = useQuery<FAQResponse, ApiException>({
+    queryKey: queryKeys.faqs.all(),
+    queryFn: () => faqService.getAllFAQs(),
+  });
 
   return {
     faqs: data?.items ?? [],
     total: data?.total ?? 0,
     isLoading,
     isError: !!error,
-    error,
+    error: error ?? null,
     refetch,
   };
 }

@@ -125,15 +125,6 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
                 variant="mobile"
               />
             ))}
-            
-            {/* Mobile CTA */}
-            <div className="mt-4 border-t border-border pt-4">
-              <Button asChild className="w-full" size="lg">
-                <Link href="/signup" onClick={onClose}>
-                  Accept Your Free $250 Gift
-                </Link>
-              </Button>
-            </div>
           </div>
         </nav>
       </div>
@@ -163,6 +154,7 @@ export default function Header() {
   }, [pathname, closeMenu]);
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-50 w-full",
@@ -219,13 +211,14 @@ export default function Header() {
           </Button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      <MobileMenu
-        isOpen={isMenuOpen}
-        onClose={closeMenu}
-        pathname={pathname}
-      />
     </header>
+
+    {/* Mobile Menu - Outside header to avoid sticky context issues */}
+    <MobileMenu
+      isOpen={isMenuOpen}
+      onClose={closeMenu}
+      pathname={pathname}
+    />
+    </>
   );
 }

@@ -2,16 +2,17 @@
  * ============================================
  * BSOCIO - useLegal Hook
  * ============================================
- * Custom hook for fetching legal content by type
+ * Custom hook for fetching legal content by type using TanStack Query
  * 
- * Uses the generic useFetch pattern for consistent
- * loading, error, and automatic data fetching on mount.
+ * Provides automatic caching, background refetching,
+ * and request deduplication out of the box.
  */
 
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { legalService, type ApiException } from '@/lib/api';
-import { useFetch, type UseFetchOptions } from './useAsync';
+import { queryKeys } from '@/lib/query-client';
 import type { LegalType, LegalContent } from '@/types';
 
 /**
@@ -27,16 +28,18 @@ interface UseLegalReturn {
   /** Error from the fetch, if any */
   error: ApiException | null;
   /** Refetch the legal content */
-  refetch: () => Promise<LegalContent | null>;
+  refetch: () => Promise<any>;
 }
 
 /**
- * Options for the useLegal hook
- */
-type UseLegalOptions = Omit<UseFetchOptions<LegalContent>, 'enabled' | 'deps'>;
-
-/**
  * Custom hook for fetching legal content by type
+ *
+ * Features:
+ * - Automatic caching (5 min stale time)
+ * - Background refetching on window focus
+ * - Request deduplication
+ * - Automatic retry on failure
+ * - Only fetches when type is provided
  *
  * @param type - Legal content type
  * @example
@@ -49,21 +52,20 @@ type UseLegalOptions = Omit<UseFetchOptions<LegalContent>, 'enabled' | 'deps'>;
  * return <LegalContent content={legalContent.content} />;
  * ```
  */
-export function useLegal(type: LegalType, options: UseLegalOptions = {}): UseLegalReturn {
-  const { data, isLoading, error, refetch } = useFetch(
-    () => legalService.getLegalContent(type),
-    { 
-      enabled: !!type, 
-      deps: [type],
-      ...options 
-    }
-  );
+export function useLegal(type: LegalType): UseLegalReturn {
+  const { data, isLoading, error, refetch } = useQuery<LegalContent, ApiException>({
+    queryKey: type === 'PRIVACY_POLICY' 
+      ? queryKeys.legal.privacy() 
+      : queryKeys.legal.terms(),
+    queryFn: () => legalService.getLegalContent(type),
+    enabled: !!type, // Only fetch when type is provided
+  });
 
   return {
-    legalContent: data,
+    legalContent: data ?? null,
     isLoading,
     isError: !!error,
-    error,
+    error: error ?? null,
     refetch,
   };
 }

@@ -2,16 +2,17 @@
  * ============================================
  * BSOCIO - useFAQ Hook
  * ============================================
- * Custom hook for fetching a single FAQ by ID
+ * Custom hook for fetching a single FAQ by ID using TanStack Query
  * 
- * Uses the generic useFetch pattern for consistent
- * loading, error, and automatic data fetching on mount.
+ * Provides automatic caching, background refetching,
+ * and request deduplication out of the box.
  */
 
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { faqService, type ApiException } from '@/lib/api';
-import { useFetch, type UseFetchOptions } from './useAsync';
+import { queryKeys } from '@/lib/query-client';
 import type { FAQ } from '@/types';
 
 /**
@@ -27,16 +28,18 @@ interface UseFAQReturn {
   /** Error from the fetch, if any */
   error: ApiException | null;
   /** Refetch the FAQ */
-  refetch: () => Promise<FAQ | null>;
+  refetch: () => Promise<any>;
 }
 
 /**
- * Options for the useFAQ hook
- */
-type UseFAQOptions = Omit<UseFetchOptions<FAQ>, 'enabled' | 'deps'>;
-
-/**
  * Custom hook for fetching a single FAQ by ID
+ * 
+ * Features:
+ * - Automatic caching (5 min stale time)
+ * - Background refetching on window focus
+ * - Request deduplication
+ * - Automatic retry on failure
+ * - Only fetches when ID is provided
  * 
  * @param id - FAQ ID
  * @example
@@ -49,21 +52,18 @@ type UseFAQOptions = Omit<UseFetchOptions<FAQ>, 'enabled' | 'deps'>;
  * return <FAQDetail faq={faq} />;
  * ```
  */
-export function useFAQ(id: string, options: UseFAQOptions = {}): UseFAQReturn {
-  const { data, isLoading, error, refetch } = useFetch(
-    () => faqService.getFAQById(id),
-    { 
-      enabled: !!id, 
-      deps: [id],
-      ...options 
-    }
-  );
+export function useFAQ(id: string): UseFAQReturn {
+  const { data, isLoading, error, refetch } = useQuery<FAQ, ApiException>({
+    queryKey: queryKeys.faqs.byId(id),
+    queryFn: () => faqService.getFAQById(id),
+    enabled: !!id, // Only fetch when ID is provided
+  });
 
   return {
-    faq: data,
+    faq: data ?? null,
     isLoading,
     isError: !!error,
-    error,
+    error: error ?? null,
     refetch,
   };
 }
