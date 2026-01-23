@@ -52,6 +52,11 @@ export const API_ENDPOINTS = {
     BY_TYPE: (type: string) => `admin-dashboard/legal/${type}`,
   },
 
+  // Contact endpoints
+  CONTACT: {
+    SUBMIT: '/contact',
+  },
+
   // Other endpoints can be added here
 } as const;
 

@@ -53,10 +53,10 @@ type ContactFormData = z.infer<typeof contactSchema>;
 // ============================================
 
 const CONTACT_REASONS = [
-  { value: "media", label: "Media & Press" },
-  { value: "partnership", label: "Partnerships & Collaborations" },
-  { value: "report", label: "Report Scams or Misuse" },
-  { value: "general", label: "General Inquiry / Other" },
+  { value: "MEDIA_PRESS", label: "Media & Press" },
+  { value: "PARTNERSHIP", label: "Partnerships & Collaborations" },
+  { value: "REPORT", label: "Report Scams or Misuse" },
+  { value: "GENERAL", label: "General Inquiry / Other" },
 ];
 
 const COUNTRIES = [
@@ -138,18 +138,45 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Form submitted:", data);
+      // Map form data to API payload format
+      const payload = {
+        reason: data.reason.toUpperCase().replace(/-/g, "_"), // Convert to MEDIA_PRESS, PARTNERSHIP, etc.
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone || "",
+        country: data.country,
+        message: data.message,
+      };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Make API call to contact endpoint
+      const response = await fetch("https://api.specsto.online/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Request failed with status ${response.status}`
+        );
+      }
+
+      const result = await response.json();
 
       toast.success(
         "Thank you for contacting us! We will respond within 24-48 business hours."
       );
       form.reset();
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error("Contact form error:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }

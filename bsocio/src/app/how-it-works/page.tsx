@@ -407,8 +407,9 @@ You don&apos;t need to be a billionaire to create a billionaire-level impact.</p
                   alt="Thinking Girl"
                   width={500}
                   height={500}
+                  quality={85}
+                  sizes="(max-width: 768px) 100vw, 500px"
                   style={{ objectFit: 'cover' }}
-                  unoptimized
                 />
               </div>
 

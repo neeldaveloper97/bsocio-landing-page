@@ -1,0 +1,774 @@
+/* ============================================
+   BSOCIO ADMIN - Analytics & Metrics
+   Figma Design - Exact Match
+   ============================================ */
+
+/* Page Container */
+.analytics-page {
+    padding: 0;
+    min-width: 100%;
+}
+
+/* Page Header */
+.analytics-header {
+    margin-bottom: 32px;
+}
+
+.analytics-header h1 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.analytics-header p {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #6B7280;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Section Header */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.section-header h2 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+/* Export Button */
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-export:hover {
+    background-color: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+.btn-export svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* SIGN-UP METRICS SECTION */
+.signup-section {
+    margin-bottom: 32px;
+}
+
+/* Month Tabs */
+.month-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.month-tab {
+    padding: 10px 18px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.month-tab:hover {
+    background-color: #F3F4F6;
+    border-color: #D1D5DB;
+    color: #374151;
+}
+
+.month-tab.active {
+    background-color: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
+/* Signup Stats Wrapper */
+.signup-stats-wrapper {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Total Signups Card - Blue Gradient */
+.total-signups-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+    text-align: center;
+}
+
+.total-signups-card .total-label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.total-signups-card .total-value {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.total-signups-card .total-period {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Quick Stats Row */
+.quick-stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-top: 1px solid #E5E7EB;
+}
+
+.quick-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    text-align: center;
+    border-right: 1px solid #E5E7EB;
+}
+
+.quick-stat:last-child {
+    border-right: none;
+}
+
+.quick-stat .stat-label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+.quick-stat .stat-value {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #2563EB;
+}
+
+.quick-stat.growth .stat-value.positive {
+    color: #65A30D;
+}
+
+.quick-stat.growth .stat-value.negative {
+    color: #DC2626;
+}
+
+/* TREND SECTION */
+.trend-section {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    margin-top: 24px;
+    overflow: hidden;
+}
+
+.trend-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.trend-header svg {
+    flex-shrink: 0;
+}
+
+.trend-header h3 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.trend-chart-area {
+    padding: 32px 24px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trend-placeholder {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    color: #9CA3AF;
+    margin: 0;
+}
+
+.trend-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 4px;
+    height: 140px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.trend-bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 24px;
+    flex: 0 0 auto;
+    height: 100%;
+}
+
+.trend-bar {
+    width: 18px;
+    min-height: 6px;
+    background: linear-gradient(180deg, #3B82F6 0%, #60A5FA 100%);
+    border-radius: 4px 4px 0 0;
+    margin-top: auto;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.trend-bar:hover {
+    background: linear-gradient(180deg, #1D4ED8 0%, #3B82F6 100%);
+    transform: scaleX(1.15);
+}
+
+.trend-date {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    color: #9CA3AF;
+    margin-top: 8px;
+}
+
+/* BIRTHDAY METRICS SECTION */
+.birthday-section {
+    margin-top: 0;
+}
+
+/* Birthday Total Card */
+.birthday-total-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.birthday-total-card .birthday-icon {
+    flex-shrink: 0;
+}
+
+.birthday-total-card .birthday-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.birthday-total-card .birthday-label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 4px;
+}
+
+.birthday-total-card .birthday-count {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #EA580C;
+    line-height: 1;
+}
+
+/* Birthday Calendar Card */
+.birthday-calendar-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.birthday-calendar-card h3 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 20px 0;
+}
+
+/* Weekday Grid */
+.weekday-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.weekday-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 12px;
+    background-color: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.weekday-card:hover {
+    background-color: #F3F4F6;
+    border-color: #D1D5DB;
+}
+
+.weekday-card .weekday-name {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+.weekday-card .weekday-count {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #2563EB;
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Large Desktops (1400px and below) */
+@media screen and (max-width: 1400px) {
+    .weekday-grid {
+        gap: 10px;
+    }
+
+    .weekday-card {
+        padding: 16px 10px;
+    }
+
+    .weekday-card .weekday-count {
+        font-size: 20px;
+    }
+}
+
+/* Desktops (1200px and below) */
+@media screen and (max-width: 1200px) {
+    .quick-stats-row {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .quick-stat {
+        padding: 20px 12px;
+    }
+
+    .quick-stat .stat-value {
+        font-size: 24px;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .weekday-card {
+        padding: 14px 8px;
+    }
+
+    .weekday-card .weekday-name {
+        font-size: 11px;
+    }
+
+    .weekday-card .weekday-count {
+        font-size: 18px;
+    }
+}
+
+/* Tablets (992px and below) */
+@media screen and (max-width: 992px) {
+    .analytics-header h1 {
+        font-size: 24px;
+    }
+
+    .quick-stats-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .quick-stat {
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .quick-stat:nth-child(3) {
+        border-right: none;
+    }
+
+    .quick-stat:nth-child(4),
+    .quick-stat:nth-child(5) {
+        border-bottom: none;
+    }
+
+    .quick-stat:nth-child(5) {
+        grid-column: span 1;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .total-signups-card .total-value {
+        font-size: 48px;
+    }
+}
+
+/* Small Tablets / Large Phones (768px and below) */
+@media screen and (max-width: 768px) {
+    .analytics-header {
+        margin-bottom: 24px;
+    }
+
+    .analytics-header h1 {
+        font-size: 22px;
+    }
+
+    .analytics-header p {
+        font-size: 14px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .btn-export {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .month-tabs {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .month-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .month-tab {
+        flex-shrink: 0;
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .total-signups-card {
+        padding: 32px 20px;
+    }
+
+    .total-signups-card .total-value {
+        font-size: 42px;
+    }
+
+    .total-signups-card .total-label {
+        font-size: 12px;
+    }
+
+    .quick-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-stat {
+        padding: 18px 12px;
+    }
+
+    .quick-stat:nth-child(2) {
+        border-right: none;
+    }
+
+    .quick-stat:nth-child(3) {
+        border-right: 1px solid #E5E7EB;
+    }
+
+    .quick-stat:nth-child(4) {
+        border-right: none;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .quick-stat:nth-child(5) {
+        grid-column: span 2;
+        border-bottom: none;
+    }
+
+    .quick-stat .stat-value {
+        font-size: 22px;
+    }
+
+    .trend-header {
+        padding: 16px 20px;
+    }
+
+    .trend-chart-area {
+        padding: 24px 20px;
+        min-height: 160px;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .weekday-card:last-child {
+        grid-column: span 1;
+    }
+
+    .birthday-total-card {
+        padding: 20px;
+    }
+
+    .birthday-total-card .birthday-count {
+        font-size: 28px;
+    }
+
+    .birthday-calendar-card {
+        padding: 20px;
+    }
+}
+
+/* Mobile Phones (576px and below) */
+@media screen and (max-width: 576px) {
+    .analytics-header h1 {
+        font-size: 20px;
+    }
+
+    .analytics-header p {
+        font-size: 13px;
+    }
+
+    .section-header h2 {
+        font-size: 16px;
+    }
+
+    .month-tab {
+        padding: 7px 12px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+
+    .total-signups-card {
+        padding: 28px 16px;
+    }
+
+    .total-signups-card .total-value {
+        font-size: 36px;
+    }
+
+    .total-signups-card .total-period {
+        font-size: 14px;
+    }
+
+    .quick-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-stat {
+        padding: 16px 10px;
+    }
+
+    .quick-stat .stat-label {
+        font-size: 12px;
+    }
+
+    .quick-stat .stat-value {
+        font-size: 20px;
+    }
+
+    .trend-header h3 {
+        font-size: 14px;
+    }
+
+    .trend-chart-area {
+        padding: 20px 16px;
+        min-height: 140px;
+    }
+
+    .trend-bars {
+        height: 120px;
+    }
+
+    .trend-bar-item {
+        min-width: 20px;
+    }
+
+    .trend-bar {
+        width: 14px;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .weekday-card {
+        padding: 14px 10px;
+    }
+
+    .weekday-card .weekday-name {
+        font-size: 11px;
+    }
+
+    .weekday-card .weekday-count {
+        font-size: 18px;
+    }
+
+    .birthday-total-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        padding: 24px 16px;
+    }
+
+    .birthday-total-card .birthday-info {
+        align-items: center;
+    }
+
+    .birthday-total-card .birthday-count {
+        font-size: 32px;
+    }
+
+    .birthday-calendar-card {
+        padding: 16px;
+    }
+
+    .birthday-calendar-card h3 {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+}
+
+/* Extra Small (400px and below) */
+@media screen and (max-width: 400px) {
+    .analytics-header h1 {
+        font-size: 18px;
+    }
+
+    .total-signups-card .total-value {
+        font-size: 32px;
+    }
+
+    .quick-stat .stat-value {
+        font-size: 18px;
+    }
+
+    .weekday-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .weekday-card {
+        padding: 12px 8px;
+    }
+
+    .weekday-card .weekday-count {
+        font-size: 16px;
+    }
+}
+
+/* LOADING & ERROR STATES */
+.loading-state,
+.error-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    color: #6B7280;
+}
+
+.error-state {
+    flex-direction: column;
+    gap: 16px;
+    color: #DC2626;
+}
+
+.error-state button {
+    padding: 10px 24px;
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.error-state button:hover {
+    background-color: #1D4ED8;
+}
