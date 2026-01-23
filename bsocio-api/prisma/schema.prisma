@@ -160,3 +160,39 @@ enum AdminActivityType {
   FAQ_ARCHIVED
   SYSTEM
 }
+
+model NewsArticle {
+  id              String              @id @default(cuid())
+  title           String
+  author          String
+  category        NewsCategory
+  excerpt         String
+  content         String              // Markdown
+  featuredImage   String
+  publicationDate DateTime
+
+  tags            String[]            // stored as text[]
+  status          NewsStatus           @default(DRAFT)
+  views           Int                 @default(0)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([status])
+  @@index([publicationDate])
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum NewsCategory {
+  PRESS_RELEASE
+  MEDIA_COVERAGE
+  ANNOUNCEMENT
+  IMPACT_STORY
+  PARTNERSHIP
+}
+
