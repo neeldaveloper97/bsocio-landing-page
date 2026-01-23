@@ -1,135 +1,181 @@
 /**
  * ============================================
- * BSOCIO - Axios Client Instance
+ * BSOCIO - Fetch API Client
  * ============================================
- * Configured axios instance with interceptors
+ * Native fetch-based API client with interceptor-like functionality
  * for request/response handling
  */
 
-import axios, {
-  AxiosInstance,
-  AxiosError,
-  InternalAxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
 import { API_CONFIG } from '@/config';
-import { ApiError } from '@/types';
 import { tokenStorage } from './storage';
 
 /**
- * Create configured axios instance
+ * Request configuration options
  */
-const createApiClient = (): AxiosInstance => {
-  const client = axios.create({
-    baseURL: API_CONFIG.baseURL,
-    timeout: API_CONFIG.timeout,
-    headers: API_CONFIG.headers,
-    withCredentials: false, // Set to true if using cookies
+interface RequestOptions extends Omit<RequestInit, 'body'> {
+  body?: unknown;
+  params?: Record<string, string | number | boolean | undefined>;
+}
+
+/**
+ * API Response wrapper
+ */
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  ok: boolean;
+}
+
+/**
+ * Build URL with query parameters
+ */
+function buildUrl(endpoint: string, params?: RequestOptions['params']): string {
+  const url = new URL(endpoint, API_CONFIG.baseURL);
+  
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  return url.toString();
+}
+
+/**
+ * Handle token refresh on 401 responses
+ */
+async function handleTokenRefresh(): Promise<string | null> {
+  const refreshToken = tokenStorage.getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseURL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Refresh failed');
+    }
+
+    const data = await response.json();
+    tokenStorage.setAccessToken(data.accessToken);
+    tokenStorage.setRefreshToken(data.refreshToken);
+    
+    return data.accessToken;
+  } catch {
+    // Refresh failed - clear tokens
+    tokenStorage.clearAll();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return null;
+  }
+}
+
+/**
+ * Make an API request with automatic token handling
+ */
+async function request<T>(
+  endpoint: string,
+  options: RequestOptions = {},
+  retry = true
+): Promise<ApiResponse<T>> {
+  const { body, params, headers: customHeaders, ...fetchOptions } = options;
+
+  const url = buildUrl(endpoint, params);
+  const token = tokenStorage.getAccessToken();
+
+  const headers: HeadersInit = {
+    ...API_CONFIG.headers,
+    ...customHeaders,
+  };
+
+  if (token) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Log request in development
+  if (process.env.NEXT_PUBLIC_ENV === 'development') {
+    console.log(`[API Request] ${options.method || 'GET'} ${endpoint}`, { body, params });
+  }
+
+  const response = await fetch(url, {
+    ...fetchOptions,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
   });
 
-  // ============================================
-  // Request Interceptor
-  // ============================================
-  client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      // Get token from centralized storage
-      const token = tokenStorage.getAccessToken();
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      // Log request in development
-      if (process.env.NEXT_PUBLIC_ENV === 'development') {
-        console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-          data: config.data,
-          params: config.params,
-        });
-      }
-
-      return config;
-    },
-    (error: AxiosError) => {
-      console.error('[API Request Error]', error);
-      return Promise.reject(error);
+  // Handle 401 - attempt token refresh
+  if (response.status === 401 && retry) {
+    const newToken = await handleTokenRefresh();
+    if (newToken) {
+      return request<T>(endpoint, options, false);
     }
-  );
+  }
 
-  // ============================================
-  // Response Interceptor
-  // ============================================
-  client.interceptors.response.use(
-    (response: AxiosResponse) => {
-      // Log response in development
-      if (process.env.NEXT_PUBLIC_ENV === 'development') {
-        console.log(`[API Response] ${response.config.url}`, {
-          status: response.status,
-          data: response.data,
-        });
-      }
+  const data = await response.json().catch(() => ({}));
 
-      return response;
-    },
-    async (error: AxiosError<ApiError>) => {
-      const originalRequest = error.config as InternalAxiosRequestConfig & {
-        _retry?: boolean;
-      };
+  // Log response in development
+  if (process.env.NEXT_PUBLIC_ENV === 'development') {
+    console.log(`[API Response] ${endpoint}`, { status: response.status, data });
+  }
 
-      // Handle 401 Unauthorized - Token refresh logic
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
+  if (!response.ok) {
+    const error = new Error(data.message || `HTTP error ${response.status}`) as Error & {
+      status: number;
+      data: unknown;
+    };
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
 
-        try {
-          const refreshToken = tokenStorage.getRefreshToken();
-          if (refreshToken) {
-            // Attempt to refresh token
-            const response = await axios.post(
-              `${API_CONFIG.baseURL}/auth/refresh`,
-              { refreshToken }
-            );
+  return {
+    data,
+    status: response.status,
+    ok: response.ok,
+  };
+}
 
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
+/**
+ * API Client with HTTP method helpers
+ */
+export const apiClient = {
+  /**
+   * GET request
+   */
+  get: <T>(endpoint: string, params?: RequestOptions['params']) =>
+    request<T>(endpoint, { method: 'GET', params }),
 
-            // Update tokens in centralized storage
-            tokenStorage.setAccessToken(accessToken);
-            tokenStorage.setRefreshToken(newRefreshToken);
+  /**
+   * POST request
+   */
+  post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(endpoint, { method: 'POST', body, ...options }),
 
-            // Retry original request with new token
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            }
+  /**
+   * PUT request
+   */
+  put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(endpoint, { method: 'PUT', body, ...options }),
 
-            return client(originalRequest);
-          }
-        } catch (refreshError) {
-          // Refresh failed - clear tokens and redirect to login
-          tokenStorage.clearAll();
+  /**
+   * PATCH request
+   */
+  patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(endpoint, { method: 'PATCH', body, ...options }),
 
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
-          }
-
-          return Promise.reject(refreshError);
-        }
-      }
-
-      // Log error in development
-      if (process.env.NEXT_PUBLIC_ENV === 'development') {
-        console.error('[API Error]', {
-          url: originalRequest?.url,
-          status: error.response?.status,
-          message: error.response?.data?.message || error.message,
-          data: error.response?.data,
-        });
-      }
-
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
+  /**
+   * DELETE request
+   */
+  delete: <T>(endpoint: string, options?: RequestOptions) =>
+    request<T>(endpoint, { method: 'DELETE', ...options }),
 };
-
-// Export singleton instance
-export const apiClient = createApiClient();
 
 export default apiClient;

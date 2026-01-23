@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { Toaster } from "@/components/ui/sonner";
 import {
   generateMetadata as createMetadata,
   generateOrganizationSchema,
@@ -64,6 +65,7 @@ export default function RootLayout({
             </main>
             
             <Footer />
+            <Toaster richColors position="top-right" />
           </QueryProvider>
         </AuthProvider>
       </body>
