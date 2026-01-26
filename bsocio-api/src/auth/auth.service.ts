@@ -46,7 +46,7 @@ export class AuthService {
 
     const { accessToken, refreshToken } = await this.generateTokens(user);
 
-    return { 
+    return {
       success: true,
       accessToken,
       refreshToken,
@@ -66,7 +66,7 @@ export class AuthService {
     try {
       // Verify the ID token with Google
       const googleUser = await this.verifyGoogleToken(idToken);
-      
+
       if (!googleUser.email_verified) {
         throw new UnauthorizedException('Google email not verified');
       }
@@ -110,10 +110,7 @@ export class AuthService {
     // Check if user exists by Google ID or email
     let user = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { oauthId: googleId },
-          { email: email },
-        ],
+        OR: [{ oauthId: googleId }, { email: email }],
       },
     });
 
@@ -181,11 +178,41 @@ export class AuthService {
   }
 
   /**
+   * Refresh access token using a valid refresh token
+   */
+  async refreshToken(refreshToken: string) {
+    try {
+      // Verify the refresh token
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+
+      // Get the user
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+      // Generate new tokens
+      const tokens = await this.generateTokens(user);
+      return {
+        success: true,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  /**
    * Verify Google ID token
    */
   private async verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-    
+
     // Verify token with Google's tokeninfo endpoint
     const response = await fetch(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`,
@@ -208,7 +235,11 @@ export class AuthService {
   /**
    * Generate access and refresh tokens
    */
-  private async generateTokens(user: { id: string; email: string; role: string }) {
+  private async generateTokens(user: {
+    id: string;
+    email: string;
+    role: string;
+  }) {
     const payload = {
       sub: user.id,
       email: user.email,

@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from 'src/users/dto/login.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -15,6 +16,15 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiResponse({ status: 200, description: 'Token refresh successful' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  async refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refreshToken(dto.refreshToken);
   }
 
   @Post('google')
@@ -31,7 +41,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback with user data' })
   @ApiResponse({ status: 200, description: 'Google authentication successful' })
   async googleCallback(
-    @Body() dto: { email: string; name: string; picture?: string; googleId: string },
+    @Body()
+    dto: {
+      email: string;
+      name: string;
+      picture?: string;
+      googleId: string;
+    },
   ) {
     return this.authService.googleAuthWithUserData(dto);
   }

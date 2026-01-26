@@ -29,8 +29,6 @@ async function bootstrap() {
   );
 
   // CORS for Admin Dashboard
-  const corsOrigin =
-    configService.get<string>('CORS_ORIGIN') ?? 'http://localhost:3001';
   // app.enableCors({
   //   origin: corsOrigin.split(',').map((s) => s.trim()),
   //   credentials: true,
@@ -38,7 +36,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Id'],
     credentials: true,
   });

@@ -4,6 +4,8 @@ import { DashboardOverviewModule } from './dashboard-overview/dashboard-overview
 import { AdminActivityModule } from './activity/admin-activity.module';
 import { LegalDocumentsModule } from './legal-documents/legal-documents.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { NewsModule } from './news/news.module';
+import { CampaignModule } from './Email Campaign/campaign.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     AdminActivityModule,
     LegalDocumentsModule,
     AnalyticsModule,
+    NewsModule,
+    CampaignModule,
   ],
   controllers: [],
   providers: [],

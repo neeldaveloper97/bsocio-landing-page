@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { ContactModule } from './contact/contact.module';
+import { ImagesModule } from './images/image.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ContactModule } from './contact/contact.module';
     AuthModule,
     AdminDashboardModule,
     ContactModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

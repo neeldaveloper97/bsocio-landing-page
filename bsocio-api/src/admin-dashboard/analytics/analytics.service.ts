@@ -13,6 +13,24 @@ export class AnalyticsService {
     };
   }
 
+  private getMonthName(month: number): string {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
+  }
+
   async getOverview(year: number, month: number) {
     const now = new Date();
 
@@ -66,6 +84,20 @@ export class AnalyticsService {
       ORDER BY date ASC
     `);
 
+    /* ---------------- MONTHLY SIGNUPS (All 12 months) ---------------- */
+
+    const monthlySignups: { month: string; value: number }[] = [];
+    for (let m = 1; m <= 12; m++) {
+      const range = this.monthRange(year, m);
+      const count = await this.prisma.user.count({
+        where: { createdAt: { gte: range.start, lt: range.end } },
+      });
+      monthlySignups.push({
+        month: this.getMonthName(m).substring(0, 3),
+        value: count,
+      });
+    }
+
     /* ---------------- BIRTHDAYS ---------------- */
 
     const birthdayTotal = await this.prisma.$queryRaw<
@@ -77,7 +109,7 @@ export class AnalyticsService {
         AND EXTRACT(MONTH FROM "dob") = ${month}
     `);
 
-    const birthdaysByDay = await this.prisma.$queryRaw<
+    const birthdaysByWeekday = await this.prisma.$queryRaw<
       { weekday: number; count: number }[]
     >(Prisma.sql`
       SELECT EXTRACT(DOW FROM "dob")::int AS weekday,
@@ -86,21 +118,27 @@ export class AnalyticsService {
       WHERE "dob" IS NOT NULL
         AND EXTRACT(MONTH FROM "dob") = ${month}
       GROUP BY weekday
+      ORDER BY weekday ASC
     `);
 
-    const weekdayMap = [
-      'SUNDAY',
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
+    const weekdayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
     ];
 
-    const byWeekday = Object.fromEntries(
-      birthdaysByDay.map((d) => [weekdayMap[d.weekday], d.count]),
-    );
+    // Build calendar with all 7 days (even if 0)
+    const birthdayCalendar = weekdayNames.map((name, index) => {
+      const found = birthdaysByWeekday.find((b) => b.weekday === index);
+      return {
+        dayName: name,
+        count: found?.count ?? 0,
+      };
+    });
 
     /* ---------------- FINAL RESPONSE ---------------- */
 
@@ -112,14 +150,17 @@ export class AnalyticsService {
         thisMonth: thisMonthCount,
         lastMonth: lastMonthCount,
         growthPercent,
+        monthlyTotal: thisMonthCount,
+        monthlyPeriod: `${this.getMonthName(month)} ${year}`,
       },
       signupTrend: signupTrend.map((t) => ({
         date: t.date.toISOString().slice(0, 10),
         count: t.count,
       })),
+      monthlySignups,
       birthdays: {
         totalThisMonth: birthdayTotal[0]?.count ?? 0,
-        byWeekday,
+        calendar: birthdayCalendar,
       },
     };
   }
