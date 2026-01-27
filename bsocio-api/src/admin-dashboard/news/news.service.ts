@@ -15,9 +15,13 @@ export class NewsService {
     });
   }
 
-  list(status?: string) {
+  list(status?: string, category?: string) {
+    const where: any = {};
+    if (status) where.status = status as any;
+    if (category) where.category = category as any;
+
     return this.prisma.newsArticle.findMany({
-      where: status ? { status: status as any } : {},
+      where,
       orderBy: { publicationDate: 'desc' },
     });
   }

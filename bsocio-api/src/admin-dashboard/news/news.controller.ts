@@ -8,18 +8,23 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 
 @ApiTags('admin-dashboard: news')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('admin-dashboard/news')
 export class NewsController {
   constructor(private readonly service: NewsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create news article' })
   create(@Body() dto: CreateNewsDto) {
@@ -28,8 +33,10 @@ export class NewsController {
 
   @Get()
   @ApiOperation({ summary: 'List news articles' })
-  list(@Query('status') status?: string) {
-    return this.service.list(status);
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'category', required: false })
+  list(@Query('status') status?: string, @Query('category') category?: string) {
+    return this.service.list(status, category);
   }
 
   @Get(':id')
@@ -38,12 +45,14 @@ export class NewsController {
     return this.service.getById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Update news article' })
   update(@Param('id') id: string, @Body() dto: CreateNewsDto) {
     return this.service.update(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/archive')
   @ApiOperation({ summary: 'Archive news article' })
   archive(@Param('id') id: string) {
