@@ -107,7 +107,7 @@ function FooterLink({
       <Link
         href={href}
         className={cn(
-          "text-sm text-gray-400 transition-colors duration-200",
+          "text-sm text-gray-300 transition-colors duration-200",
           "hover:text-white",
           "focus:outline-none focus:text-primary"
         )}
@@ -127,7 +127,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="w-full bg-slate-900 text-gray-400"
+      className="w-full bg-slate-900 text-gray-300"
       role="contentinfo"
       aria-label="Site footer"
     >
@@ -137,11 +137,11 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="space-y-6">
             <Logo variant="footer" />
-            <div className="flex gap-3" role="list" aria-label="Social media links">
+            <nav className="flex gap-3" aria-label="Social media links">
               {SOCIAL_LINKS.map((social) => (
                 <SocialLink key={social.label} {...social} />
               ))}
-            </div>
+            </nav>
           </div>
 
           {/* Navigation Sections */}

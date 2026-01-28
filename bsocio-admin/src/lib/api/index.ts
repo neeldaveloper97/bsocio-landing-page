@@ -23,6 +23,8 @@ export {
   FAQService,
   legalService,
   LegalService,
+  adminActivityService,
+  AdminActivityService,
 } from './services';
 
 // Error Handling

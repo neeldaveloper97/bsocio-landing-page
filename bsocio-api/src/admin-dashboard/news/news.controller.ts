@@ -7,6 +7,7 @@ import {
   Post,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -27,16 +28,32 @@ export class NewsController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create news article' })
-  create(@Body() dto: CreateNewsDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateNewsDto, @Request() req: any) {
+    return this.service.create(dto, req.user?.userId);
   }
 
   @Get()
   @ApiOperation({ summary: 'List news articles' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'category', required: false })
-  list(@Query('status') status?: string, @Query('category') category?: string) {
-    return this.service.list(status, category);
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Field to sort by (title, category, author, publicationDate, status, views)',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    description: 'Sort order (asc or desc)',
+  })
+  list(
+    @Query('status') status?: string,
+    @Query('category') category?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+  ) {
+    return this.service.list(status, category, sortBy, sortOrder);
   }
 
   @Get(':id')
@@ -48,14 +65,18 @@ export class NewsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Update news article' })
-  update(@Param('id') id: string, @Body() dto: CreateNewsDto) {
-    return this.service.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: CreateNewsDto,
+    @Request() req: any,
+  ) {
+    return this.service.update(id, dto, req.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/archive')
   @ApiOperation({ summary: 'Archive news article' })
-  archive(@Param('id') id: string) {
-    return this.service.archive(id);
+  archive(@Param('id') id: string, @Request() req: any) {
+    return this.service.archive(id, req.user?.userId);
   }
 }

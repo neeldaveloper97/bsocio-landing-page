@@ -177,3 +177,32 @@ export interface LegalContent {
   createdAt: string;
   updatedAt: string;
 }
+
+// ============================================
+// News Types
+// ============================================
+
+export type NewsCategory = 
+  | 'PRESS_RELEASE'
+  | 'MEDIA_COVERAGE'
+  | 'ANNOUNCEMENT'
+  | 'IMPACT_STORY'
+  | 'PARTNERSHIP';
+
+export type NewsStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  author: string;
+  category: NewsCategory;
+  excerpt: string;
+  content: string;
+  featuredImage: string;
+  publicationDate: string;
+  tags: string[];
+  status: NewsStatus;
+  views: number;
+  createdAt: string;
+  updatedAt: string;
+}

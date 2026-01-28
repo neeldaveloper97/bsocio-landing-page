@@ -8,9 +8,15 @@
 'use client';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from '@/lib/query-client';
-import { ReactNode } from 'react';
+import { ReactNode, lazy, Suspense } from 'react';
+
+// Lazy load DevTools - only in development and on client
+const ReactQueryDevtools = lazy(() =>
+  import('@tanstack/react-query-devtools').then((mod) => ({
+    default: mod.ReactQueryDevtools,
+  }))
+);
 
 interface QueryProviderProps {
   children: ReactNode;
@@ -18,14 +24,16 @@ interface QueryProviderProps {
 
 /**
  * Provider component for TanStack Query
- * Includes DevTools in development mode
+ * Includes DevTools in development mode (lazy loaded)
  */
 export function QueryProvider({ children }: QueryProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
       {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} />
+        <Suspense fallback={null}>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </Suspense>
       )}
     </QueryClientProvider>
   );

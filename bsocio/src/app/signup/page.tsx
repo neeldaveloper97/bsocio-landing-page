@@ -2,13 +2,18 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 
 // Hooks
 import { useSignup } from "@/hooks";
 
 // Components
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+// Load Google sign-in button client-side only to avoid bundling @react-oauth/google on all pages
+const GoogleSignInButton = dynamic(
+  () => import("@/components/auth/GoogleSignInButton").then((mod) => mod.GoogleSignInButton),
+  { ssr: false, loading: () => <div /> }
+);
 
 // Types
 import type { UserRole } from "@/types";

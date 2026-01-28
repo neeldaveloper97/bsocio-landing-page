@@ -17,6 +17,9 @@ export { useFAQ } from './useFAQ';
 // Legal Hooks
 export { useLegal } from './useLegal';
 
+// News Hooks
+export { useNews, useNewsArticle, useRelatedArticles } from './useNews';
+
 // Re-export TanStack Query utilities for convenience
 export { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export { queryKeys, queryClient } from '@/lib/query-client';

@@ -1,43 +1,183 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAnalytics } from '@/hooks';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Download, TrendingUp } from 'lucide-react';
+import './analytics.css';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// Generate available years (from 2020 to current year)
+const START_YEAR = 2020;
+
 export default function AnalyticsPage() {
     const currentDate = new Date();
-    const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
-    const [selectedYear] = useState(currentDate.getFullYear());
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // 1-indexed
+    
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+    // Generate available years (past years only, no future years)
+    const availableYears = useMemo(() => {
+        const years: number[] = [];
+        for (let year = currentYear; year >= START_YEAR; year--) {
+            years.push(year);
+        }
+        return years;
+    }, [currentYear]);
 
     const { data, isLoading, isError, refetch } = useAnalytics({
         params: { year: selectedYear, month: selectedMonth }
     });
 
+    // Handle year change
+    const handleYearChange = (year: string) => {
+        const newYear = parseInt(year, 10);
+        setSelectedYear(newYear);
+        
+        // If selecting current year, ensure month is not in future
+        if (newYear === currentYear && selectedMonth > currentMonth) {
+            setSelectedMonth(currentMonth);
+        }
+    };
+
     const handleMonthChange = (monthIndex: number) => {
-        setSelectedMonth(monthIndex + 1);
+        // For current year, only allow months up to current month
+        // For past years, allow all months
+        if (selectedYear < currentYear || monthIndex + 1 <= currentMonth) {
+            setSelectedMonth(monthIndex + 1);
+        }
     };
 
-    const handleExportSignups = () => {
-        console.log('Exporting signup data...');
+    // Check if a month is disabled
+    const isMonthDisabled = (monthIndex: number) => {
+        // For current year, disable future months
+        if (selectedYear === currentYear) {
+            return monthIndex + 1 > currentMonth;
+        }
+        // For past years, all months are enabled
+        return false;
     };
 
-    const handleExportBirthdays = () => {
-        console.log('Exporting birthday data...');
-    };
+    // Export signup data as CSV
+    const handleExportSignups = useCallback(() => {
+        if (!data?.signupTrend) return;
+
+        const headers = ['Date', 'Sign-ups'];
+        const rows = data.signupTrend.map(item => [item.date, item.count.toString()]);
+        
+        // Add summary row
+        rows.push([]);
+        rows.push(['Summary']);
+        rows.push(['Total Sign-ups', data.signups?.monthlyTotal?.toString() || '0']);
+        rows.push(['Today', data.signups?.today?.toString() || '0']);
+        rows.push(['This Week', data.signups?.thisWeek?.toString() || '0']);
+        rows.push(['This Month', data.signups?.thisMonth?.toString() || '0']);
+        rows.push(['Last Month', data.signups?.lastMonth?.toString() || '0']);
+        rows.push(['Growth %', data.signups?.growthPercent?.toFixed(2) + '%' || '0%']);
+
+        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `signups_${MONTHS[selectedMonth - 1]}_${selectedYear}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, [data, selectedMonth, selectedYear]);
+
+    // Export birthday data as CSV
+    const handleExportBirthdays = useCallback(() => {
+        if (!data?.birthdays) return;
+
+        const headers = ['Day of Week', 'Birthday Count'];
+        const rows = data.birthdays.calendar.map(day => [day.dayName, day.count.toString()]);
+        
+        // Add summary
+        rows.push([]);
+        rows.push(['Total Birthdays This Month', data.birthdays.totalThisMonth?.toString() || '0']);
+
+        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `birthdays_${MONTHS[selectedMonth - 1]}_${selectedYear}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, [data, selectedMonth, selectedYear]);
 
     if (isLoading) {
         return (
-            <div style={{ minWidth: '100%' }}>
-                <div style={{ marginBottom: '32px' }}>
-                    <Skeleton className="h-8 w-64 mb-2" />
-                    <Skeleton className="h-5 w-96" />
+            <div className="analytics-loading" role="status" aria-label="Loading analytics">
+                {/* Header Skeleton */}
+                <div className="analytics-loading-header">
+                    <div className="skeleton-box" style={{ width: '220px', height: '32px', borderRadius: '6px' }} />
+                    <div className="skeleton-box" style={{ width: '300px', height: '20px', marginTop: '12px', borderRadius: '4px' }} />
                 </div>
-                <Skeleton className="w-full rounded-xl mb-6" style={{ height: '300px' }} />
-                <Skeleton className="w-full rounded-xl" style={{ height: '200px' }} />
+                
+                {/* Section Header Skeleton */}
+                <div className="analytics-loading-section" style={{ marginTop: '32px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <div className="skeleton-box" style={{ width: '160px', height: '24px', borderRadius: '4px' }} />
+                        <div className="skeleton-box" style={{ width: '130px', height: '42px', borderRadius: '8px' }} />
+                    </div>
+                    
+                    {/* Month Tabs Skeleton */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                            <div key={i} className="skeleton-box" style={{ width: '58px', height: '40px', borderRadius: '20px' }} />
+                        ))}
+                    </div>
+                    
+                    {/* Main Stats Card Skeleton */}
+                    <div className="skeleton-box" style={{ width: '100%', height: '200px', borderRadius: '12px', marginBottom: '16px' }} />
+                    
+                    {/* Quick Stats Row Skeleton */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="skeleton-box" style={{ height: '100px', borderRadius: '8px' }} />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Trend Graph Skeleton */}
+                <div className="analytics-loading-section" style={{ marginTop: '24px' }}>
+                    <div className="skeleton-box" style={{ width: '100%', height: '240px', borderRadius: '12px' }} />
+                </div>
+                
+                {/* Birthday Section Skeleton */}
+                <div className="analytics-loading-section" style={{ marginTop: '32px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <div className="skeleton-box" style={{ width: '180px', height: '24px', borderRadius: '4px' }} />
+                        <div className="skeleton-box" style={{ width: '180px', height: '42px', borderRadius: '8px' }} />
+                    </div>
+                    
+                    {/* Birthday Total Card Skeleton */}
+                    <div className="skeleton-box" style={{ width: '100%', height: '100px', borderRadius: '12px', marginBottom: '20px' }} />
+                    
+                    {/* Calendar Skeleton */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }}>
+                        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                            <div key={i} className="skeleton-box" style={{ height: '90px', borderRadius: '10px' }} />
+                        ))}
+                    </div>
+                </div>
+                
+                <span className="sr-only">Loading analytics data...</span>
             </div>
         );
     }
@@ -93,152 +233,74 @@ export default function AnalyticsPage() {
         : defaultCalendar;
 
     return (
-        <div style={{ minWidth: '100%' }}>
+        <div className="analytics-page">
             {/* Page Header */}
-            <div style={{ marginBottom: '32px' }}>
-                <h1 style={{
-                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                    fontSize: '28px',
-                    fontWeight: 700,
-                    color: '#111827',
-                    marginBottom: '8px',
-                    lineHeight: 1.2
-                }}>
-                    Analytics & Metrics
-                </h1>
-                <p style={{
-                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                    fontSize: '15px',
-                    fontWeight: 400,
-                    color: '#6B7280',
-                    lineHeight: 1.5,
-                    margin: 0
-                }}>
-                    Track sign-ups, engagement, and birthday data.
-                </p>
+            <div className="analytics-header">
+                <div className="analytics-header-left">
+                    <h1>Analytics & Metrics</h1>
+                    <p>Track sign-ups, engagement, and birthday data.</p>
+                </div>
+                <div className="analytics-header-right">
+                    <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
+                        <SelectTrigger className="year-filter-trigger">
+                            <SelectValue placeholder="Select Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableYears.map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {/* Sign-Up Metrics Section */}
-            <section style={{ marginBottom: '32px' }}>
+            <section className="signup-section">
                 {/* Section Header */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '20px',
-                    flexWrap: 'wrap',
-                    gap: '16px'
-                }}>
-                    <h2 style={{
-                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        color: '#111827',
-                        margin: 0
-                    }}>
-                        Sign-Up Metrics
-                    </h2>
-                    <button
-                        onClick={handleExportSignups}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '10px 16px',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #E5E7EB',
-                            borderRadius: '8px',
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            color: '#374151',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
+                <div className="section-header">
+                    <h2>Sign-Up Metrics</h2>
+                    <button onClick={handleExportSignups} className="btn-export">
                         <Download style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                         Export Data
                     </button>
                 </div>
 
                 {/* Month Tabs */}
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                    {MONTHS.map((month, index) => (
-                        <button
-                            key={month}
-                            onClick={() => handleMonthChange(index)}
-                            style={{
-                                padding: '10px 18px',
-                                backgroundColor: selectedMonth === index + 1 ? '#2563EB' : '#FFFFFF',
-                                border: `1px solid ${selectedMonth === index + 1 ? '#2563EB' : '#E5E7EB'}`,
-                                borderRadius: '20px',
-                                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                color: selectedMonth === index + 1 ? '#FFFFFF' : '#6B7280',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                            }}
-                        >
-                            {month}
-                        </button>
-                    ))}
+                <div className="month-tabs">
+                    {MONTHS.map((month, index) => {
+                        const isDisabled = isMonthDisabled(index);
+                        const isSelected = selectedMonth === index + 1;
+                        
+                        return (
+                            <button
+                                key={month}
+                                onClick={() => handleMonthChange(index)}
+                                disabled={isDisabled}
+                                className={`month-tab ${isSelected ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                            >
+                                {month}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Signup Stats Wrapper */}
-                <div style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    overflow: 'hidden'
-                }}>
+                <div className="signup-stats-card">
                     {/* Total Signups Card - Blue Gradient */}
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '40px 24px',
-                        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
-                        textAlign: 'center'
-                    }}>
-                        <span style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: 'rgba(255, 255, 255, 0.9)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px',
-                            marginBottom: '12px'
-                        }}>
-                            TOTAL SIGN-UPS
-                        </span>
-                        <span style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '56px',
-                            fontWeight: 700,
-                            color: '#FFFFFF',
-                            lineHeight: 1,
-                            marginBottom: '8px'
-                        }}>
+                    <div className="total-signups-hero">
+                        <span className="total-signups-label">TOTAL SIGN-UPS</span>
+                        <span className="total-signups-value">
                             {data?.signups?.monthlyTotal?.toLocaleString() ?? '0'}
                         </span>
-                        <span style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '15px',
-                            fontWeight: 400,
-                            color: 'rgba(255, 255, 255, 0.85)'
-                        }}>
+                        <span className="total-signups-period">
                             {data?.signups?.monthlyPeriod ?? `${MONTHS[selectedMonth - 1]} ${selectedYear}`}
                         </span>
                     </div>
 
                     {/* Quick Stats Row */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(5, 1fr)',
-                        borderTop: '1px solid #E5E7EB'
-                    }}>
+                    <div className="quick-stats-grid">
                         {[
                             { label: 'Today', value: data?.signups?.today ?? 0 },
                             { label: 'This Week', value: data?.signups?.thisWeek ?? 0 },
@@ -248,33 +310,10 @@ export default function AnalyticsPage() {
                         ].map((stat, index, arr) => (
                             <div
                                 key={stat.label}
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '24px 16px',
-                                    textAlign: 'center',
-                                    borderRight: index < arr.length - 1 ? '1px solid #E5E7EB' : 'none'
-                                }}
+                                className={`quick-stat-item ${index < arr.length - 1 ? 'with-border' : ''}`}
                             >
-                                <span style={{
-                                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    color: '#6B7280',
-                                    marginBottom: '8px'
-                                }}>
-                                    {stat.label}
-                                </span>
-                                <span style={{
-                                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                    fontSize: '28px',
-                                    fontWeight: 600,
-                                    color: stat.isGrowth 
-                                        ? (stat.value >= 0 ? '#65A30D' : '#DC2626')
-                                        : '#2563EB'
-                                }}>
+                                <span className="quick-stat-label">{stat.label}</span>
+                                <span className={`quick-stat-value ${stat.isGrowth ? (stat.value >= 0 ? 'growth-positive' : 'growth-negative') : ''}`}>
                                     {stat.isGrowth 
                                         ? `${stat.value >= 0 ? '+' : ''}${stat.value.toFixed(1)}%`
                                         : stat.value.toLocaleString()
@@ -286,81 +325,25 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Trend Graph Section */}
-                <div style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    marginTop: '24px',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '20px 24px',
-                        borderBottom: '1px solid #E5E7EB'
-                    }}>
+                <div className="trend-graph-card">
+                    <div className="trend-graph-header">
                         <TrendingUp style={{ width: '20px', height: '20px', color: '#2563EB', flexShrink: 0 }} />
-                        <h3 style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '16px',
-                            fontWeight: 600,
-                            color: '#111827',
-                            margin: 0
-                        }}>
-                            Trend Graphs & Comparisons
-                        </h3>
+                        <h3>Trend Graphs & Comparisons</h3>
                     </div>
-                    <div style={{
-                        padding: '32px 24px',
-                        minHeight: '180px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
+                    <div className="trend-graph-content">
                         {data?.signupTrend && data.signupTrend.length > 0 ? (
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'flex-end',
-                                justifyContent: 'flex-start',
-                                gap: '4px',
-                                height: '140px',
-                                width: '100%',
-                                overflowX: 'auto',
-                                paddingBottom: '8px'
-                            }}>
+                            <div className="trend-bars-container">
                                 {data.signupTrend.map((item) => {
                                     const maxCount = Math.max(...data.signupTrend.map(t => t.count), 1);
                                     const heightPercent = Math.max(8, (item.count / maxCount) * 100);
                                     return (
-                                        <div key={item.date} style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            minWidth: '24px',
-                                            flex: '0 0 auto',
-                                            height: '100%'
-                                        }}>
+                                        <div key={item.date} className="trend-bar-item">
                                             <div 
-                                                style={{ 
-                                                    width: '18px',
-                                                    minHeight: '6px',
-                                                    height: `${heightPercent}%`,
-                                                    background: 'linear-gradient(180deg, #3B82F6 0%, #60A5FA 100%)',
-                                                    borderRadius: '4px 4px 0 0',
-                                                    marginTop: 'auto',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease'
-                                                }}
+                                                className="trend-bar"
+                                                style={{ height: `${heightPercent}%` }}
                                                 title={`${item.date}: ${item.count} signups`}
                                             />
-                                            <span style={{
-                                                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                                fontSize: '10px',
-                                                fontWeight: 500,
-                                                color: '#9CA3AF',
-                                                marginTop: '8px'
-                                            }}>
+                                            <span className="trend-bar-label">
                                                 {new Date(item.date).getDate()}
                                             </span>
                                         </div>
@@ -368,12 +351,7 @@ export default function AnalyticsPage() {
                                 })}
                             </div>
                         ) : (
-                            <p style={{
-                                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                fontSize: '14px',
-                                color: '#9CA3AF',
-                                margin: 0
-                            }}>
+                            <p className="trend-empty-message">
                                 Interactive trend graph visualization would display here
                             </p>
                         )}
@@ -382,60 +360,19 @@ export default function AnalyticsPage() {
             </section>
 
             {/* Birthday Metrics Section */}
-            <section>
+            <section className="birthday-section">
                 {/* Section Header */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '20px',
-                    flexWrap: 'wrap',
-                    gap: '16px'
-                }}>
-                    <h2 style={{
-                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        color: '#111827',
-                        margin: 0
-                    }}>
-                        Birthday Metrics
-                    </h2>
-                    <button
-                        onClick={handleExportBirthdays}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '10px 16px',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #E5E7EB',
-                            borderRadius: '8px',
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            color: '#374151',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
+                <div className="section-header">
+                    <h2>Birthday Metrics</h2>
+                    <button onClick={handleExportBirthdays} className="btn-export">
                         <Download style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                         Export Birthday Data (CSV)
                     </button>
                 </div>
 
                 {/* Birthday Total Card */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    padding: '24px',
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    marginBottom: '20px'
-                }}>
-                    <div style={{ flexShrink: 0 }}>
+                <div className="birthday-total-card">
+                    <div className="birthday-icon">
                         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect width="40" height="40" rx="8" fill="#FFF7ED"/>
                             <path d="M28 14H12C11.4477 14 11 14.4477 11 15V29C11 29.5523 11.4477 30 12 30H28C28.5523 30 29 29.5523 29 29V15C29 14.4477 28.5523 14 28 14Z" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -444,81 +381,22 @@ export default function AnalyticsPage() {
                             <path d="M11 20H29" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            color: '#6B7280',
-                            marginBottom: '4px'
-                        }}>
-                            Total Birthdays This Month
-                        </span>
-                        <span style={{
-                            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: '32px',
-                            fontWeight: 700,
-                            color: '#EA580C',
-                            lineHeight: 1
-                        }}>
+                    <div className="birthday-info">
+                        <span className="birthday-label">Total Birthdays This Month</span>
+                        <span className="birthday-value">
                             {data?.birthdays?.totalThisMonth?.toLocaleString() ?? '0'}
                         </span>
                     </div>
                 </div>
 
                 {/* Birthday Calendar Card */}
-                <div style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    padding: '24px'
-                }}>
-                    <h3 style={{
-                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#111827',
-                        margin: '0 0 20px 0'
-                    }}>
-                        Birthdays by Day (Calendar View)
-                    </h3>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
-                        gap: '12px',
-                        width: '100%'
-                    }}>
+                <div className="birthday-calendar-card">
+                    <h3>Birthdays by Day (Calendar View)</h3>
+                    <div className="birthday-calendar-grid">
                         {birthdayCalendar.map((day) => (
-                            <div 
-                                key={day.dayName}
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '20px 12px',
-                                    backgroundColor: '#F9FAFB',
-                                    border: '1px solid #E5E7EB',
-                                    borderRadius: '10px',
-                                    textAlign: 'center',
-                                    transition: 'all 0.15s ease'
-                                }}
-                            >
-                                <span style={{
-                                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    color: '#6B7280',
-                                    marginBottom: '8px'
-                                }}>
-                                    {day.dayName}
-                                </span>
-                                <span style={{
-                                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                                    fontSize: '22px',
-                                    fontWeight: 600,
-                                    color: '#2563EB'
-                                }}>
+                            <div key={day.dayName} className="birthday-day-card">
+                                <span className="birthday-day-name">{day.dayName}</span>
+                                <span className="birthday-day-count">
                                     {day.count?.toLocaleString() ?? '0'}
                                 </span>
                             </div>

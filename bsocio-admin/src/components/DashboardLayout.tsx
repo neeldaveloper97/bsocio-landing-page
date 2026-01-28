@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useCallback, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks';
@@ -17,7 +17,8 @@ interface NavItem {
     href: string;
 }
 
-const navItems: NavItem[] = [
+// Static nav items - defined outside component to prevent recreation
+const NAV_ITEMS: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: '📊', href: '/dashboard' },
     { id: 'analytics', label: 'Analytics', icon: '📈', href: '/dashboard/analytics' },
     { id: 'news', label: 'News & Media', icon: '📰', href: '/dashboard/news' },
@@ -26,10 +27,33 @@ const navItems: NavItem[] = [
     { id: 'nominees', label: 'Nominees', icon: '⭐', href: '/dashboard/nominees' },
     { id: 'guests', label: 'Guests', icon: '👥', href: '/dashboard/guests' },
     { id: 'faqs', label: 'FAQs', icon: '❓', href: '/dashboard/faqs' },
+    { id: 'campaigns', label: 'Campaigns', icon: '📧', href: '/dashboard/campaigns' },
     { id: 'communications', label: 'Communications', icon: '✉️', href: '/dashboard/communications' },
     { id: 'legal', label: 'Legal Documents', icon: '📋', href: '/dashboard/legal' },
     { id: 'users', label: 'User & System', icon: '⚙️', href: '/dashboard/users' },
 ];
+
+// Memoized nav item component
+const NavItemLink = memo(function NavItemLink({ 
+    item, 
+    isActive, 
+    onClick 
+}: { 
+    item: NavItem; 
+    isActive: boolean; 
+    onClick: () => void;
+}) {
+    return (
+        <Link
+            href={item.href}
+            className={`nav-item ${isActive ? 'active' : ''}`}
+            onClick={onClick}
+        >
+            <span className="icon">{item.icon}</span>
+            <span>{item.label}</span>
+        </Link>
+    );
+});
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,37 +61,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const router = useRouter();
     const { user, logout } = useAuth();
 
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
+    const toggleSidebar = useCallback(() => {
+        setSidebarOpen((prev) => !prev);
+    }, []);
 
-    const closeSidebar = () => {
+    const closeSidebar = useCallback(() => {
         setSidebarOpen(false);
-    };
+    }, []);
 
-    const isActive = (href: string) => {
+    // Memoize isActive check function
+    const getIsActive = useCallback((href: string) => {
         if (href === '/dashboard') {
             return pathname === '/dashboard';
         }
         return pathname.startsWith(href);
-    };
+    }, [pathname]);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         await logout();
         router.push('/login');
-    };
+    }, [logout, router]);
 
-    // Get user initials for avatar
-    const getUserInitials = () => {
+    // Memoize user display values
+    const userInitials = useMemo(() => {
         if (user?.email) {
             return user.email.substring(0, 2).toUpperCase();
         }
         return 'AD';
-    };
+    }, [user?.email]);
 
-    const getUserDisplayName = () => {
+    const userDisplayName = useMemo(() => {
         return user?.email?.split('@')[0] || 'Admin';
-    };
+    }, [user?.email]);
 
     return (
         <AuthGuard>
@@ -114,16 +139,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 {/* Navigation */}
                 <nav className="sidebar-nav">
-                    {navItems.map((item) => (
-                        <Link
+                    {NAV_ITEMS.map((item) => (
+                        <NavItemLink
                             key={item.id}
-                            href={item.href}
-                            className={`nav-item ${isActive(item.href) ? 'active' : ''}`}
+                            item={item}
+                            isActive={getIsActive(item.href)}
                             onClick={closeSidebar}
-                        >
-                            <span className="icon">{item.icon}</span>
-                            <span>{item.label}</span>
-                        </Link>
+                        />
                     ))}
                 </nav>
 
@@ -146,10 +168,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </div>
                         <div className="header-user">
                             <div className="user-info">
-                                <span className="user-name">{getUserDisplayName()}</span>
+                                <span className="user-name">{userDisplayName}</span>
                                 <span className="user-email">{user?.email || ''}</span>
                             </div>
-                            <div className="user-avatar">{getUserInitials()}</div>
+                            <div className="user-avatar">{userInitials}</div>
                         </div>
                     </div>
                 </header>

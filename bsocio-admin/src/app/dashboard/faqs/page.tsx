@@ -1,13 +1,29 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useFAQs } from '@/hooks';
-import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibility } from '@/types';
+import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { SortableHeader } from '@/components/ui/SortableHeader';
+import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibility, FAQFilters } from '@/types';
+
+const PAGE_SIZE = 10;
 
 export default function FAQsPage() {
-    const { faqs, isLoading, isError, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs();
+    // Sorting state
+    const [sortBy, setSortBy] = useState<string>('sortOrder');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    
+    const filters: FAQFilters = useMemo(() => ({
+        sortBy,
+        sortOrder,
+    }), [sortBy, sortOrder]);
+
+    const { faqs, isLoading, isError, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
     const [showModal, setShowModal] = useState(false);
     const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
     
     // Form state
     const [question, setQuestion] = useState('');
@@ -16,6 +32,20 @@ export default function FAQsPage() {
     const [status, setStatus] = useState<FAQStatus>('ACTIVE');
     const [state, setState] = useState<FAQState>('PUBLISHED');
     const [visibility, setVisibility] = useState<FAQVisibility>('PUBLIC');
+
+    // Pagination
+    const totalPages = Math.ceil(faqs.length / PAGE_SIZE);
+    const paginatedFaqs = useMemo(() => {
+        const start = currentPage * PAGE_SIZE;
+        return faqs.slice(start, start + PAGE_SIZE);
+    }, [faqs, currentPage]);
+
+    // Handle sort
+    const handleSort = useCallback((field: string, order: 'asc' | 'desc') => {
+        setSortBy(field);
+        setSortOrder(order);
+        setCurrentPage(0); // Reset to first page
+    }, []);
 
     const resetForm = () => {
         setQuestion('');
@@ -97,9 +127,7 @@ export default function FAQsPage() {
                     <p>Manage frequently asked questions</p>
                 </div>
                 <button className="btn-create" onClick={() => openModal()}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 4V16M4 10H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <PlusIcon />
                     Add FAQ
                 </button>
             </div>
@@ -125,8 +153,9 @@ export default function FAQsPage() {
 
             {/* FAQs Table */}
             <div className="table-container">
-                <div className="table-header">
+                <div className="table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2>All FAQs</h2>
+                    <span style={{ fontSize: '14px', color: '#6B7280' }}>{faqs.length} total</span>
                 </div>
                 {isLoading ? (
                     <div className="loading-state" style={{ padding: '24px' }}>Loading FAQs...</div>
@@ -136,59 +165,104 @@ export default function FAQsPage() {
                         <button onClick={refetch}>Retry</button>
                     </div>
                 ) : (
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Question</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {faqs.length === 0 ? (
+                    <>
+                        <div className="table-wrapper">
+                            <table className="data-table">
+                                <thead>
                                     <tr>
-                                        <td colSpan={4} style={{ textAlign: 'center' }}>No FAQs found</td>
+                                        <SortableHeader
+                                            label="Question"
+                                            field="question"
+                                            currentSortBy={sortBy}
+                                            currentSortOrder={sortOrder}
+                                            onSort={handleSort}
+                                        />
+                                        <SortableHeader
+                                            label="Category"
+                                            field="category"
+                                            currentSortBy={sortBy}
+                                            currentSortOrder={sortOrder}
+                                            onSort={handleSort}
+                                        />
+                                        <SortableHeader
+                                            label="Status"
+                                            field="status"
+                                            currentSortBy={sortBy}
+                                            currentSortOrder={sortOrder}
+                                            onSort={handleSort}
+                                            style={{ textAlign: 'center' }}
+                                        />
+                                        <th style={{ textAlign: 'center' }}>Actions</th>
                                     </tr>
-                                ) : (
-                                    faqs.map((faq) => (
-                                        <tr key={faq.id}>
-                                            <td>{faq.question}</td>
-                                            <td>{faq.category}</td>
-                                            <td>{getStatusBadge(faq.status)}</td>
-                                            <td>
-                                                <div className="action-buttons">
-                                                    <button className="action-btn" title="Edit" onClick={() => openModal(faq)}>
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                        </svg>
-                                                    </button>
-                                                    <button className="action-btn" title="Delete" onClick={() => handleDelete(faq.id)} disabled={isMutating}>
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                        </svg>
-                                                    </button>
+                                </thead>
+                                <tbody>
+                                    {paginatedFaqs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} style={{ textAlign: 'center', padding: '48px 24px' }}>
+                                                <div className="empty-state">
+                                                    <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>❓</span>
+                                                    <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No FAQs found</h3>
+                                                    <p style={{ margin: 0, color: '#6B7280' }}>Create your first FAQ to get started</p>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ) : (
+                                        paginatedFaqs.map((faq) => (
+                                            <tr key={faq.id}>
+                                                <td data-label="Question">{faq.question}</td>
+                                                <td data-label="Category">{faq.category}</td>
+                                                <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(faq.status)}</td>
+                                                <td data-label="Actions" style={{ textAlign: 'center' }}>
+                                                    <div className="action-buttons" style={{ justifyContent: 'center' }}>
+                                                        <button className="action-btn" title="Edit" onClick={() => openModal(faq)}>
+                                                            <EditIcon />
+                                                        </button>
+                                                        <button className="action-btn" title="Delete" onClick={() => handleDelete(faq.id)} disabled={isMutating}>
+                                                            <DeleteIcon />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="table-pagination">
+                                <button
+                                    className="pagination-btn"
+                                    disabled={currentPage === 0}
+                                    onClick={() => setCurrentPage(p => p - 1)}
+                                >
+                                    Previous
+                                </button>
+                                <span className="pagination-info">
+                                    Page {currentPage + 1} of {totalPages}
+                                </span>
+                                <button
+                                    className="pagination-btn"
+                                    disabled={currentPage >= totalPages - 1}
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             {/* Add/Edit FAQ Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
+            {showModal && typeof window !== 'undefined' && createPortal(
+                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-header">
                             <h2>{editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}</h2>
                             <button className="modal-close" onClick={closeModal}>×</button>
                         </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="modal-body">
                             <div className="form-group">
                                 <label htmlFor="question">Question</label>
                                 <input 
@@ -228,18 +302,15 @@ export default function FAQsPage() {
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group">
+                            <div className="form-group" style={{ width: '100%' }}>
                                 <label htmlFor="answer">Answer</label>
-                                <textarea 
-                                    id="answer" 
-                                    className="form-textarea" 
-                                    placeholder="Enter the answer..." 
-                                    rows={5}
+                                <RichTextEditor
                                     value={answer}
-                                    onChange={(e) => setAnswer(e.target.value)}
-                                ></textarea>
+                                    onChange={setAnswer}
+                                    placeholder="Enter the answer..."
+                                />
                             </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', flexWrap: 'wrap' }}>
                                 <button className="btn-secondary" onClick={closeModal}>Cancel</button>
                                 <button className="btn-primary" onClick={handleSubmit} disabled={isMutating}>
                                     {isMutating ? 'Saving...' : (editingFAQ ? 'Update FAQ' : 'Add FAQ')}
@@ -247,7 +318,8 @@ export default function FAQsPage() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

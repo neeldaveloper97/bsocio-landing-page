@@ -57,6 +57,18 @@ export const API_ENDPOINTS = {
     SUBMIT: '/contact',
   },
 
+  // News endpoints (public - no auth required)
+  NEWS: {
+    LIST: 'admin-dashboard/news',
+    BY_ID: (id: string) => `admin-dashboard/news/${id}`,
+  },
+
+  // Images (S3)
+  IMAGES: {
+    SIGNED_URL: '/images/signed-url',
+    RAW: '/images/raw',
+  },
+
   // Other endpoints can be added here
 } as const;
 

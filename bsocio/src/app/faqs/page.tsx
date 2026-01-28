@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { useFAQs } from "@/hooks";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import {
@@ -11,17 +11,41 @@ import {
 } from "@/components/ui/accordion";
 import "./page.css";
 
+// Memoized sidebar navigation button
+const SidebarNavButton = memo(function SidebarNavButton({
+  id,
+  index,
+  question,
+  isActive,
+  onClick,
+}: {
+  id: string;
+  index: number;
+  question: string;
+  isActive: boolean;
+  onClick: (id: string) => void;
+}) {
+  return (
+    <button
+      className={isActive ? "sidebar-nav-btn active" : "sidebar-nav-btn"}
+      onClick={() => onClick(id)}
+    >
+      {index + 1}. {question}
+    </button>
+  );
+});
+
 export default function FAQsPage() {
   const { faqs, isLoading, isError, error } = useFAQs();
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
 
-  const scrollToFaq = (id: string) => {
+  const scrollToFaq = useCallback((id: string) => {
     setActiveId(id);
     const element = document.querySelector(`[data-faq="${id}"]`);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  };
+  }, []);
 
   // Filter only published and active FAQs
   const displayedFAQs = faqs.filter(
@@ -64,13 +88,14 @@ export default function FAQsPage() {
                 <h3 className="sidebar-title">All Questions</h3>
                 <nav className="faq-navigation">
                   {displayedFAQs.map((faq, index) => (
-                    <button
+                    <SidebarNavButton
                       key={faq.id}
-                      className={`sidebar-nav-btn ${activeId === faq.id ? "active" : ""}`}
-                      onClick={() => scrollToFaq(faq.id)}
-                    >
-                      {index + 1}. {faq.question}
-                    </button>
+                      id={faq.id}
+                      index={index}
+                      question={faq.question}
+                      isActive={activeId === faq.id}
+                      onClick={scrollToFaq}
+                    />
                   ))}
                 </nav>
               </aside>

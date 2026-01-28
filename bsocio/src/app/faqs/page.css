@@ -3,6 +3,18 @@
    src/app/faqs/page.css
    ============================================ */
 
+/* ========== Performance Optimizations ========== */
+/* Optimize paint for FAQ content */
+.faq-accordion,
+.faq-sidebar {
+  contain: layout paint;
+}
+
+/* Stable layout for FAQ items */
+.faq-item {
+  contain: layout style;
+}
+
 /* ========== FAQ Hero ========== */
 .faq-hero {
   width: 100%;
@@ -12,6 +24,8 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
+  /* Optimize LCP - hero is critical */
+  contain: layout style;
 }
 
 .faq-hero .hero-container {

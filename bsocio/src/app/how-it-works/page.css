@@ -4,6 +4,22 @@
    Based on Figma Design
    ============================================ */
 
+/* ========== Performance Optimizations ========== */
+/* Below-fold sections use content-visibility for better TBT */
+.hiw-detailed-steps,
+.hiw-benefits-section,
+.hiw-quote-section,
+.hiw-cta-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* Optimize paint for card sections */
+.hiw-benefits-cards,
+.hiw-steps-grid {
+  contain: layout paint;
+}
+
 /* ========== Hero Section ========== */
 .hiw-hero {
     width: 100%;
@@ -11,6 +27,8 @@
     padding: 128px 20px;
     position: relative;
     overflow: hidden;
+    /* Optimize LCP - hero is critical */
+    contain: layout style;
 }
 
 .hiw-hero-container {

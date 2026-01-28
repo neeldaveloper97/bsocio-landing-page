@@ -3,6 +3,20 @@
    src/app/page.css
    ============================================ */
 
+/* ========== Performance Optimizations ========== */
+/* Below-fold sections use content-visibility for better TBT */
+.get-involved-section,
+.vision-section,
+.cta-impact-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Optimize paint for card grids */
+.step-cards-grid {
+  contain: layout paint;
+}
+
 /* ========== Hero Section ========== */
 .hero {
   position: relative;
@@ -20,6 +34,8 @@
   overflow: visible;
   box-sizing: border-box;
   padding: clamp(80px, 12vw, 128px) clamp(16px, 3vw, 24px) clamp(60px, 8vw, 80px);
+  /* Optimize LCP - hero is critical */
+  contain: layout style;
 }
 
 .circle-blue,

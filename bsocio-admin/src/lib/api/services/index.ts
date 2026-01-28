@@ -9,3 +9,7 @@ export { dashboardService, DashboardService } from './dashboard.service';
 export { analyticsService, AnalyticsService } from './analytics.service';
 export { faqService, FAQService } from './faq.service';
 export { legalService, LegalService } from './legal.service';
+export { newsService } from './news.service';
+export { campaignService, CampaignService } from './campaign.service';
+export { contactService, ContactService } from './contact.service';
+export { adminActivityService, AdminActivityService } from './admin-activity.service';

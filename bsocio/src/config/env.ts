@@ -22,7 +22,7 @@ function getEnvConfig(): EnvConfig {
   }
 
   return {
-    apiBaseUrl: apiBaseUrl || 'localhost:7000',
+    apiBaseUrl: apiBaseUrl || 'http://localhost:7000',
     env,
     isDev: env === 'development',
     isProd: env === 'production',

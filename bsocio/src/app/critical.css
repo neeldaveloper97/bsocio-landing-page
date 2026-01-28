@@ -1,0 +1,68 @@
+/* Critical CSS for LCP optimization - Inlined in production */
+/* This file contains only the CSS needed for above-the-fold content */
+
+/* Hero section styles */
+.hero-section {
+  display: flex;
+  min-height: 80vh;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(100.69deg, #EFF6FF 18.35%, #FFFBF6 51.52%, #FBFFF5 84.7%);
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 1rem;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 56rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.hero-title {
+  color: #1F6AE1;
+  font-size: clamp(1.875rem, 5vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 48rem;
+}
+
+.hero-description {
+  color: #364153;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  max-width: 42rem;
+}
+
+/* Header critical styles */
+.header-container {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+/* Button critical styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1F6AE1;
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #1557B0;
+}

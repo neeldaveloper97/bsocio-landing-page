@@ -1,8 +1,49 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "geolocation=()",
+  },
+];
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  poweredByHeader: false,
+  compress: true,
   reactCompiler: true,
+  // Experimental optimizations for tree-shaking large packages
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@radix-ui/react-icons",
+      "@radix-ui/react-accordion",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+      "sonner",
+      "@tanstack/react-query",
+      "react-hook-form",
+      "zod",
+      "clsx",
+      "tailwind-merge",
+    ],
+  },
   images: {
     remotePatterns: [
       {
@@ -16,6 +57,21 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
+    qualities: [75, 85],
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          ...securityHeaders,
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
   },
 };
 

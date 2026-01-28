@@ -90,6 +90,7 @@ export { Toaster } from "./sonner";
 
 // Custom design system components
 export { DynamicIcon, iconMap } from "./dynamic-icon";
+export * from "./brand-icons";
 export { FeatureCard, featureCardVariants } from "./feature-card";
 export { ImpactCard, impactCardVariants } from "./impact-card";
 export { InfoCard, infoCardVariants } from "./info-card";

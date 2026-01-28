@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -35,8 +36,8 @@ export class FaqController {
   @ApiBearerAuth('access-token')
   @Post()
   @ApiOperation({ summary: 'Create FAQ' })
-  create(@Body() dto: CreateFaqDto) {
-    return this.faqService.create(dto);
+  create(@Body() dto: CreateFaqDto, @Request() req: any) {
+    return this.faqService.create(dto, req.user?.userId);
   }
 
   @Get()
@@ -57,8 +58,12 @@ export class FaqController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update FAQ' })
   @ApiParam({ name: 'id' })
-  update(@Param('id') id: string, @Body() dto: UpdateFaqDto) {
-    return this.faqService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateFaqDto,
+    @Request() req: any,
+  ) {
+    return this.faqService.update(id, dto, req.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -66,8 +71,8 @@ export class FaqController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete FAQ' })
   @ApiParam({ name: 'id' })
-  remove(@Param('id') id: string) {
-    return this.faqService.remove(id);
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.faqService.remove(id, req.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)

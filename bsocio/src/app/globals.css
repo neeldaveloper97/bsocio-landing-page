@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Arimo:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
@@ -7,6 +6,11 @@
    BSOCIO - GLOBAL CSS
    Variables, Base Styles, Shared Components
    ============================================ */
+
+/* Font family using next/font variables */
+.font-sans {
+  font-family: var(--font-dm-sans), var(--font-arimo), system-ui, -apple-system, sans-serif;
+}
 
 /* ============================================
    CSS VARIABLES
@@ -96,10 +100,10 @@
   --popover-foreground: #364153;
   --primary: #1F6AE1;
   --primary-foreground: #FFFFFF;
-  --secondary: #7CBB00;
+  --secondary: #5A9400;
   --secondary-foreground: #FFFFFF;
-  --muted: #F9FAFB;
-  --muted-foreground: #4A5565;
+  --muted: #F3F4F6;
+  --muted-foreground: #374151;
   --accent: #F65314;
   --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
@@ -880,3 +884,139 @@ footer {
 }
 
 } /* End of @layer components */
+
+/* ============================================
+   ACCESSIBILITY UTILITIES
+   ============================================ */
+
+/* Screen reader only - visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus visible outline for keyboard navigation */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+  padding: 1em;
+  background: var(--primary-blue);
+  color: white;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Content-visibility for below-fold sections - improves TBT and FCP */
+.below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Optimize paint for heavy sections */
+.paint-optimized {
+  contain: layout paint;
+  will-change: auto;
+}
+
+/* Lazy rendering for offscreen content */
+.lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* Footer optimization - always below fold */
+footer,
+.footer-container {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* Card grid optimization for long lists */
+.card-grid-optimized > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 250px;
+}
+
+/* Reduce layout recalculations */
+.layout-stable {
+  contain: layout style;
+}
+
+/* GPU acceleration hints for animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Image container optimization */
+.img-container {
+  contain: layout paint;
+  overflow: hidden;
+}
+
+/* Optimize text rendering */
+.text-optimized {
+  text-rendering: optimizeSpeed;
+}
+
+/* Skeleton loading states for CLS prevention */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Prevent layout shifts for images */
+.img-aspect-16-9 {
+  aspect-ratio: 16/9;
+  background-color: #f3f4f6;
+}
+
+.img-aspect-4-3 {
+  aspect-ratio: 4/3;
+  background-color: #f3f4f6;
+}
+
+.img-aspect-1-1 {
+  aspect-ratio: 1/1;
+  background-color: #f3f4f6;
+}

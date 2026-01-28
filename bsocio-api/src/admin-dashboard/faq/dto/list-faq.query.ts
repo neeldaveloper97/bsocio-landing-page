@@ -47,4 +47,20 @@ export class ListFaqQueryDto {
   @IsInt()
   @Min(1)
   take?: number;
+
+  @ApiPropertyOptional({
+    example: 'question',
+    description: 'Field to sort by (question, category, status, createdAt)',
+  })
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @ApiPropertyOptional({
+    example: 'asc',
+    description: 'Sort order (asc or desc)',
+  })
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'asc' | 'desc';
 }

@@ -144,6 +144,45 @@ export interface DashboardOverviewResponse {
 }
 
 // ============================================
+// Admin Activity Types
+// ============================================
+
+export type AdminActivityType =
+  | 'USER_LOGIN'
+  | 'FAQ_CREATED'
+  | 'FAQ_UPDATED'
+  | 'FAQ_ARCHIVED'
+  | 'NEWS_CREATED'
+  | 'NEWS_UPDATED'
+  | 'NEWS_ARCHIVED'
+  | 'LEGAL_CREATED'
+  | 'LEGAL_UPDATED'
+  | 'SYSTEM';
+
+export interface AdminActivity {
+  id: string;
+  type: AdminActivityType;
+  title: string;
+  message?: string;
+  adminEmail: string;
+  adminName: string;
+  createdAt: string;
+}
+
+export interface AdminActivityRequest {
+  skip?: number;
+  take?: number;
+  filter?: '24h' | 'week' | 'month';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AdminActivityResponse {
+  activities: AdminActivity[];
+  total: number;
+}
+
+// ============================================
 // Analytics Types
 // ============================================
 
@@ -288,4 +327,153 @@ export interface UpdateUserRequest {
   role?: UserRole;
   isActive?: boolean;
   isEmailVerified?: boolean;
+}
+
+// ============================================
+// News & Media Types
+// ============================================
+
+export type NewsCategory = 
+  | 'PRESS_RELEASE'
+  | 'MEDIA_COVERAGE'
+  | 'ANNOUNCEMENT'
+  | 'IMPACT_STORY'
+  | 'PARTNERSHIP';
+
+export type NewsStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  author: string;
+  category: NewsCategory;
+  excerpt: string;
+  content: string;
+  featuredImage: string;
+  publicationDate: string;
+  tags: string[];
+  status: NewsStatus;
+  views: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNewsRequest {
+  title: string;
+  author: string;
+  category: NewsCategory;
+  excerpt: string;
+  content: string;
+  featuredImage: string;
+  publicationDate: string;
+  tags?: string[];
+  status: NewsStatus;
+}
+
+export interface UpdateNewsRequest {
+  title?: string;
+  author?: string;
+  category?: NewsCategory;
+  excerpt?: string;
+  content?: string;
+  featuredImage?: string;
+  publicationDate?: string;
+  tags?: string[];
+  status?: NewsStatus;
+}
+
+export interface NewsFilters {
+  status?: NewsStatus;
+  category?: NewsCategory;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// ============================================
+// Image Upload Types
+// ============================================
+
+export interface ImageUploadResponse {
+  success: boolean;
+  message: string;
+  status: number;
+  data: {
+    key: string;
+    url: string;
+    mimetype: string;
+    originalname: string;
+  };
+}
+
+// ============================================
+// Email Campaign Types
+// ============================================
+
+export type EmailAudience = 'ALL_USERS' | 'SEGMENTED_USERS';
+export type EmailSendType = 'NOW' | 'SCHEDULED';
+export type EmailCampaignStatus = 'DRAFT' | 'SCHEDULED' | 'SENT';
+
+export interface EmailCampaign {
+  id: string;
+  name: string;
+  subject: string;
+  content: string;
+  audience: EmailAudience;
+  sendType: EmailSendType;
+  scheduledAt: string | null;
+  status: EmailCampaignStatus;
+  totalSent: number;
+  delivered: number;
+  openRate: number;
+  clickRate: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEmailCampaignRequest {
+  name: string;
+  subject: string;
+  content: string;
+  audience: EmailAudience;
+  sendType: EmailSendType;
+  scheduledAt?: string;
+}
+
+export interface EmailCampaignFilters {
+  status?: EmailCampaignStatus;
+}
+
+// ============================================
+// Contact Inquiry Types
+// ============================================
+
+export type ContactReason = 'MEDIA_PRESS' | 'PARTNERSHIPS' | 'REPORT_SCAM' | 'GENERAL_INQUIRY';
+export type ContactStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED';
+
+export interface ContactInquiry {
+  id: string;
+  reason: ContactReason;
+  fullName: string;
+  email: string;
+  phone?: string;
+  country: string;
+  message: string;
+  status: ContactStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactInquiryFilters {
+  status?: ContactStatus;
+  reason?: ContactReason;
+  skip?: number;
+  take?: number;
+}
+
+export interface ContactInquiryListResponse {
+  items: ContactInquiry[];
+  total: number;
+  skip: number;
+  take: number;
 }

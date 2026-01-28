@@ -262,4 +262,92 @@ export const apiClient = {
   delete<T>(endpoint: string, config?: RequestConfig): Promise<ClientResponse<T>> {
     return request<T>('DELETE', endpoint, undefined, config);
   },
+
+  /**
+   * Upload file (multipart/form-data)
+   */
+  async upload<T>(endpoint: string, formData: FormData, config?: RequestConfig): Promise<ClientResponse<T>> {
+    const { withAuth = true, timeout = API_CONFIG.timeout } = config || {};
+
+    const url = buildUrl(endpoint, config?.params);
+
+    // Create headers WITHOUT Content-Type (browser sets it with boundary for FormData)
+    const headers = new Headers();
+    if (withAuth) {
+      const token = tokenStorage.getAccessToken();
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      let response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal: controller.signal,
+      });
+
+      // Handle 401 - attempt token refresh
+      if (response.status === 401 && withAuth) {
+        const refreshed = await refreshAccessToken();
+
+        if (refreshed) {
+          const newHeaders = new Headers();
+          const token = tokenStorage.getAccessToken();
+          if (token) {
+            newHeaders.set('Authorization', `Bearer ${token}`);
+          }
+          response = await fetch(url, {
+            method: 'POST',
+            headers: newHeaders,
+            body: formData,
+          });
+        } else {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          throw new ApiException(
+            'Session expired. Please login again.',
+            ERROR_CODES.UNAUTHORIZED,
+            401
+          );
+        }
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw parseApiError({
+          ...data,
+          statusCode: response.status,
+        });
+      }
+
+      return {
+        data: data as T,
+        status: response.status,
+        headers: response.headers,
+      };
+    } catch (error) {
+      if (error instanceof ApiException) {
+        throw error;
+      }
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiException(
+          'Request timed out. Please try again.',
+          ERROR_CODES.TIMEOUT,
+          0
+        );
+      }
+
+      throw parseApiError(error);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  },
 };

@@ -80,7 +80,7 @@ export function StepCard({
         <span
           className={cn(
             "mt-auto text-sm font-semibold",
-            "text-secondary",
+            "text-primary",
             "transition-all duration-200 group-hover:underline"
           )}
         >

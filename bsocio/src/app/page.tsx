@@ -1,13 +1,25 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import LearnMoreButton from "@/components/ui/LearnMoreButton";
-import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import { Container } from "@/components/ui/container";
 import { StepCard } from "@/components/ui/step-card";
 import { QuoteBox, TorchStatement } from "@/components/ui/quote-box";
 import { BulletList } from "@/components/ui/bullet-list";
 import { Button } from "@/components/ui/button";
 import { generateMetadata as generateSeoMetadata } from "@/lib/seo";
+import {
+  HowItWorksNavIcon as HowItWorksIcon,
+  FestivalsNavIcon as FestivalsIcon,
+  AboutNavIcon as AboutIcon,
+  NewsNavIcon as NewsIcon,
+} from "@/components/ui/brand-icons";
+
+// Lazy load below-the-fold section
+const CtaImpactSection = dynamic(
+  () => import("@/components/layout/CtaImpactSection"),
+  { loading: () => <section className="w-full py-12 sm:py-16 md:py-20 lg:py-24 bg-primary/5" /> }
+);
 
 // ============================================
 // SEO METADATA
@@ -19,92 +31,6 @@ export const metadata: Metadata = generateSeoMetadata({
     "Join the Bsocio movement and receive $250 to celebrate your birthday with kindness. Help feed hungry children and be part of building a future where no child goes to school hungry.",
   pathname: "/",
 });
-
-// ============================================
-// SVG ICONS FOR STEP CARDS
-// ============================================
-
-function HowItWorksIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <circle cx="5" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-      <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-      <circle cx="19" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M7 12H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M14 12H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function FestivalsIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <rect x="3" y="5" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M3 9H21" stroke="currentColor" strokeWidth="2" />
-      <path d="M8 2V6M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M12 13L13 15L15 16L13 17L12 19L11 17L9 16L11 15L12 13Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function AboutIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 16v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="8" r="0.5" fill="currentColor" stroke="currentColor" strokeWidth="1" />
-    </svg>
-  );
-}
-
-function NewsIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 // ============================================
 // DATA DEFINITIONS
@@ -161,26 +87,28 @@ const BULLET_ITEMS = [
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Hero Section */}
+      {/* Hero Section - Optimized for LCP */}
       <section
         className="relative flex min-h-[80vh] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-orange-50/30 to-green-50 px-4 py-20 dark:from-primary/10 dark:via-background dark:to-secondary/10 lg:min-h-screen lg:py-28"
         aria-labelledby="hero-title"
+        style={{
+          // Inline critical styles for faster first paint
+          background: 'linear-gradient(100.69deg, #EFF6FF 18.35%, #FFFBF6 51.52%, #FBFFF5 84.7%)',
+        }}
       >
-        {/* Decorative circles */}
-        <div
-          className="pointer-events-none absolute right-8 top-12 h-32 w-32 rounded-full bg-primary opacity-10 sm:h-48 sm:w-48 lg:right-14 lg:top-20 lg:h-64 lg:w-64"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute bottom-16 left-6 h-24 w-24 rounded-full bg-secondary opacity-10 sm:h-32 sm:w-32 lg:h-48 lg:w-48"
-          aria-hidden="true"
-        />
 
-        {/* Hero Content */}
+        {/* Hero Content - LCP Element */}
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 text-center sm:gap-8">
           <h1
             id="hero-title"
             className="max-w-3xl text-3xl font-bold leading-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl"
+            style={{
+              // Inline critical styles for LCP optimization
+              color: '#1F6AE1',
+              fontSize: 'clamp(1.875rem, 5vw, 3.75rem)',
+              fontWeight: 700,
+              lineHeight: 1.2,
+            }}
           >
             Bsocio Like Bill Gates Movement Is Here!
           </h1>

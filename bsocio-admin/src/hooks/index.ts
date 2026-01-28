@@ -10,3 +10,24 @@ export { useDashboard } from './useDashboard';
 export { useAnalytics } from './useAnalytics';
 export { useFAQs } from './useFAQs';
 export { useLegal } from './useLegal';
+export { useAdminActivity } from './useAdminActivity';
+export {
+  useNews,
+  useNewsById,
+  useCreateNews,
+  useUpdateNews,
+  useArchiveNews,
+  useDeleteNews,
+  useUploadImage,
+  useDeleteImage,
+} from './useNews';
+export {
+  useCampaigns,
+  useCampaignById,
+  useSendCampaign,
+  useSaveCampaignDraft,
+} from './useCampaigns';
+export {
+  useContacts,
+  useContactById,
+} from './useContacts';

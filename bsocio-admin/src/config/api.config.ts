@@ -35,6 +35,11 @@ export const API_ENDPOINTS = {
     OVERVIEW: '/admin-dashboard/overview',
   },
 
+  // Admin Activity
+  ADMIN: {
+    ACTIVITY: '/admin-dashboard/activity',
+  },
+
   // Analytics
   ANALYTICS: {
     OVERVIEW: '/admin-dashboard/analytics/overview',
@@ -52,9 +57,38 @@ export const API_ENDPOINTS = {
     BY_TYPE: (type: 'TERMS' | 'PRIVACY') => `/admin-dashboard/legal/${type}`,
   },
 
+  // News & Media Management
+  NEWS: {
+    BASE: '/admin-dashboard/news',
+    BY_ID: (id: string) => `/admin-dashboard/news/${id}`,
+    ARCHIVE: (id: string) => `/admin-dashboard/news/${id}/archive`,
+  },
+
+  // Images (S3)
+  IMAGES: {
+    UPLOAD: '/images',
+    DELETE: '/images',
+    SIGNED_URL: '/images/signed-url',
+    RAW: '/images/raw',
+  },
+
   // Users Management
   USERS: {
     BASE: '/users',
     BY_ID: (id: string) => `/users/${id}`,
+  },
+
+  // Email Campaigns
+  CAMPAIGNS: {
+    BASE: '/admin-dashboard/campaigns',
+    BY_ID: (id: string) => `/admin-dashboard/campaigns/${id}`,
+    SEND: '/admin-dashboard/campaigns/send',
+    DRAFT: '/admin-dashboard/campaigns/draft',
+  },
+
+  // Contact Inquiries
+  CONTACT: {
+    BASE: '/contact',
+    BY_ID: (id: string) => `/contact/${id}`,
   },
 } as const;
