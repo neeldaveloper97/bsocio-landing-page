@@ -103,4 +103,12 @@ export class NewsService {
 
     return article;
   }
+  async delete(id: string) {
+    const existing = await this.prisma.newsArticle.findUnique({
+      where: { id },
+    });
+    if (!existing) throw new NotFoundException('News article not found');
+
+    return this.prisma.newsArticle.delete({ where: { id } });
+  }
 }

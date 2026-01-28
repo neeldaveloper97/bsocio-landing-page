@@ -28,6 +28,26 @@ class EnvVars {
 
   @IsString()
   @IsOptional()
+  FRONTEND_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  MAIL_DOMAIN?: string;
+
+  @IsString()
+  @IsOptional()
+  MAIL_FROM?: string;
+
+  @IsString()
+  @IsOptional()
+  BACKEND_URL_DEV?: string;
+
+  @IsString()
+  @IsOptional()
+  BACKEND_URL_PROD?: string;
+
+  @IsString()
+  @IsOptional()
   SWAGGER_PATH?: string;
 
   @IsInt()

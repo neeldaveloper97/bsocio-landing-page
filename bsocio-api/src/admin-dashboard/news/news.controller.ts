@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -78,5 +79,12 @@ export class NewsController {
   @ApiOperation({ summary: 'Archive news article' })
   archive(@Param('id') id: string, @Request() req: any) {
     return this.service.archive(id, req.user?.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete news article' })
+  delete(@Param('id') id: string) {
+    return this.service.delete(id);
   }
 }

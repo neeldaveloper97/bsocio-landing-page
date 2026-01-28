@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -7,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { AdminActivityService } from 'src/admin-dashboard/activity/admin-activity.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { MailService } from 'src/lib/mail/mail.service';
 
 interface GoogleUserInfo {
   sub: string;
@@ -26,6 +28,7 @@ export class AuthService {
     private readonly adminActivityService: AdminActivityService,
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   async login(email: string, password: string) {
@@ -45,6 +48,11 @@ export class AuthService {
     });
 
     const { accessToken, refreshToken } = await this.generateTokens(user);
+
+    // Send magic link asynchronously (non-blocking) - 15 minute expiry
+    this.sendMagicLinkEmail(user).catch((err) => {
+      console.error('Failed to send magic link:', err);
+    });
 
     return {
       success: true,
@@ -252,5 +260,137 @@ export class AuthService {
     ]);
 
     return { accessToken, refreshToken };
+  }
+
+  /**
+   * Generate a short-lived magic link JWT and send to user's email.
+   */
+  private async sendMagicLinkEmail(user: { id: string; email: string }) {
+    // create a unique jti and persist as single-use record
+    const jti = randomUUID();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // sign token including jti so we can validate/consume it later
+    const magicToken = await this.jwtService.signAsync(
+      { sub: user.id, type: 'MAGIC', jti },
+      { expiresIn: '15m' },
+    );
+
+    // persist magic link record
+    await this.prisma.magicLink.create({
+      data: {
+        jti,
+        userId: user.id,
+        expiresAt,
+        type: 'MAGIC',
+      },
+    });
+
+    const environment = this.configService.get<string>('NODE_ENV');
+
+    const backend =
+      environment === 'production'
+        ? this.configService.get<string>('BACKEND_URL_PROD') ||
+          this.configService.get<string>('CORS_ORIGIN') ||
+          'https://api.specsto.online'
+        : this.configService.get<string>('BACKEND_URL_DEV') ||
+          this.configService.get<string>('CORS_ORIGIN') ||
+          'http://localhost:3001';
+    const magicUrl = `${backend}/auth/magic?token=${encodeURIComponent(magicToken)}`;
+    const subject = 'Your magic sign-in link (valid 15 minutes)';
+
+    // use template mail for nicer HTML
+    await this.mailService.sendTemplateMail({
+      to: user.email,
+      subject,
+      template: 'magic-link',
+      context: {
+        magicUrl,
+        expiresInMinutes: 15,
+        email: user.email,
+      },
+      text: `Use this link to sign in: ${magicUrl} (expires in 15 minutes)`,
+    });
+
+    // Log magic URL for local/dev testing (do not log in production)
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`[DEV] Magic sign-in URL for ${user.email}: ${magicUrl}`);
+    }
+  }
+
+  /**
+   * Verify a magic token and return a full set of auth tokens.
+   */
+  async verifyMagicToken(token: string) {
+    try {
+      const payload: any = await this.jwtService.verifyAsync(token);
+      if (!payload || payload.type !== 'MAGIC' || !payload.jti)
+        throw new UnauthorizedException('Invalid magic link');
+
+      // check persisted jti record
+      const record = await this.prisma.magicLink.findUnique({
+        where: { jti: payload.jti },
+      });
+      if (!record)
+        throw new UnauthorizedException('Invalid or already used magic link');
+      if (record.used)
+        throw new UnauthorizedException('Magic link already used');
+      if (record.expiresAt < new Date())
+        throw new UnauthorizedException('Magic link expired');
+
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) throw new UnauthorizedException('User not found');
+
+      // mark as used (single-use)
+      await this.prisma.magicLink.update({
+        where: { jti: payload.jti },
+        data: { used: true },
+      });
+
+      const { accessToken, refreshToken } = await this.generateTokens(user);
+      return {
+        success: true,
+        accessToken,
+        refreshToken,
+        user: { id: user.id, email: user.email, role: user.role },
+      };
+    } catch (err) {
+      throw new UnauthorizedException('Invalid or expired magic link');
+    }
+  }
+
+  /**
+   * DEV helper: return a magic link URL for the last unused magic link for an email.
+   * Only available in non-production.
+   */
+  async getDevMagicLinkByEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+
+    const record = await this.prisma.magicLink.findFirst({
+      where: { userId: user.id, used: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!record) throw new NotFoundException('No unused magic link found');
+
+    const remainingSec = Math.max(
+      0,
+      Math.floor((record.expiresAt.getTime() - Date.now()) / 1000),
+    );
+    if (remainingSec <= 0) throw new BadRequestException('Magic link expired');
+
+    const token = await this.jwtService.signAsync(
+      { sub: user.id, type: 'MAGIC', jti: record.jti },
+      { expiresIn: `${remainingSec}s` },
+    );
+
+    const frontend =
+      this.configService.get<string>('FRONTEND_URL') ||
+      this.configService.get<string>('CORS_ORIGIN') ||
+      'http://localhost:3001';
+    const magicUrl = `${frontend}/auth/magic?token=${encodeURIComponent(token)}`;
+
+    return { magicUrl, expiresAt: record.expiresAt };
   }
 }

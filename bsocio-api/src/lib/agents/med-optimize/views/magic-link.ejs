@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Magic Sign-In Link</title>
+    <style>
+      body {
+        font-family: Inter, Roboto, Arial, sans-serif;
+        background: #f6f8fb;
+        color: #111827;
+      }
+      .card {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 28px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 20px;
+        background: #2563eb;
+        color: #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .muted {
+        color: #6b7280;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Sign in to your account</h2>
+      <p class="muted">Hello <%= email %>,</p>
+      <p>
+        Click the button below to sign in. This link expires in <%=
+        expiresInMinutes %> minutes.
+      </p>
+      <p style="text-align: center; margin: 28px 0">
+        <a class="btn" href="<%= magicUrl %>">Sign in now</a>
+      </p>
+      <p class="muted">
+        If you did not request this link, you can safely ignore this email.
+      </p>
+      <hr />
+      <p class="muted">— The BSocio Team</p>
+    </div>
+  </body>
+</html>

@@ -18,6 +18,7 @@ model User {
   isPermanentUser Boolean         @default(false)
   isTermsAccepted Boolean
   adminActivities AdminActivity[]
+  magicLinks      MagicLink[]
 }
 
 model Faq {
@@ -64,24 +65,74 @@ model LegalDocument {
   updatedAt     DateTime           @updatedAt
 }
 
-
 model ContactInquiry {
-  id        String               @id @default(cuid())
+  id        String        @id @default(cuid())
   reason    ContactReason
   fullName  String
   email     String
   phone     String?
   country   String
   message   String
-
-  status    ContactStatus        @default(NEW)
-
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+  status    ContactStatus @default(NEW)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([status])
   @@index([reason])
   @@index([createdAt])
+}
+
+model NewsArticle {
+  id              String       @id @default(cuid())
+  title           String
+  author          String
+  category        NewsCategory
+  excerpt         String
+  content         String
+  featuredImage   String
+  publicationDate DateTime
+  tags            String[]
+  status          NewsStatus   @default(DRAFT)
+  views           Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([status])
+  @@index([publicationDate])
+}
+
+model MagicLink {
+  id        String        @id @default(cuid())
+  jti       String        @unique
+  userId    String
+  type      MagicLinkType @default(MAGIC)
+  expiresAt DateTime
+  used      Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([jti])
+}
+
+model EmailCampaign {
+  id          String              @id @default(cuid())
+  name        String
+  subject     String
+  content     String
+  audience    EmailAudience       @default(ALL_USERS)
+  sendType    EmailSendType
+  scheduledAt DateTime?
+  status      EmailCampaignStatus @default(DRAFT)
+  totalSent   Int                 @default(0)
+  delivered   Int                 @default(0)
+  openRate    Float               @default(0)
+  clickRate   Float               @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
 }
 
 enum ContactReason {
@@ -96,7 +147,6 @@ enum ContactStatus {
   IN_PROGRESS
   RESOLVED
 }
-
 
 enum OAuthProvider {
   GOOGLE
@@ -164,27 +214,11 @@ enum AdminActivityType {
   LEGAL_CREATED
   LEGAL_UPDATED
   SYSTEM
-}
-
-model NewsArticle {
-  id              String              @id @default(cuid())
-  title           String
-  author          String
-  category        NewsCategory
-  excerpt         String
-  content         String              // Markdown
-  featuredImage   String
-  publicationDate DateTime
-
-  tags            String[]            // stored as text[]
-  status          NewsStatus           @default(DRAFT)
-  views           Int                 @default(0)
-
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-
-  @@index([status])
-  @@index([publicationDate])
+  NEWS_CREATED
+  NEWS_UPDATED
+  NEWS_ARCHIVED
+  LEGAL_CREATED
+  LEGAL_UPDATED
 }
 
 enum NewsStatus {
@@ -201,28 +235,9 @@ enum NewsCategory {
   PARTNERSHIP
 }
 
-model EmailCampaign {
-  id            String              @id @default(cuid())
-  name          String
-  subject       String
-  content       String              // HTML or Markdown
-  audience      EmailAudience       @default(ALL_USERS)
-
-  sendType      EmailSendType
-  scheduledAt   DateTime?
-
-  status        EmailCampaignStatus @default(DRAFT)
-
-  totalSent     Int                 @default(0)
-  delivered     Int                 @default(0)
-  openRate      Float               @default(0)
-  clickRate     Float               @default(0)
-
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-
-  @@index([status])
-  @@index([scheduledAt])
+enum MagicLinkType {
+  MAGIC
+  SIGNUP
 }
 
 enum EmailAudience {
@@ -240,5 +255,3 @@ enum EmailCampaignStatus {
   SCHEDULED
   SENT
 }
-
-

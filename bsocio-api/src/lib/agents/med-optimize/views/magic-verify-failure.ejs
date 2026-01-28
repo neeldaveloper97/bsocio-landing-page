@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Magic Link Invalid</title>
+    <style>
+      body {
+        font-family: Inter, Roboto, Arial, sans-serif;
+        background: #fff7f7;
+        color: #7f1d1d;
+      }
+      .card {
+        max-width: 680px;
+        margin: 60px auto;
+        padding: 28px;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #fee2e2;
+      }
+      .muted {
+        color: #7f1d1d;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Magic link invalid or expired</h2>
+      <p class="muted">Error: <%= error %></p>
+      <p class="muted">Request a new magic link from the app.</p>
+      <p style="margin-top: 18px"><a href="<%= frontend %>">Go to app</a></p>
+    </div>
+  </body>
+</html>

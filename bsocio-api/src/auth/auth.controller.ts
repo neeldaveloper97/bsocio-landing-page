@@ -1,4 +1,18 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Query,
+  ForbiddenException,
+  Res,
+} from '@nestjs/common';
+import { Response } from 'express';
+import * as ejs from 'ejs';
+import * as path from 'path';
+import { MailService } from 'src/lib/mail/mail.service';
 import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from 'src/users/dto/login.dto';
@@ -8,7 +22,10 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly mailService: MailService,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password (JWT Bearer)' })
@@ -16,6 +33,90 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
+  }
+
+  @Get('magic/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify magic link token and return auth tokens' })
+  async verifyMagic(@Query('token') token: string) {
+    return this.authService.verifyMagicToken(token);
+  }
+
+  @Get('magic')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Magic link landing page (verifies token and renders a page)',
+  })
+  async magicLanding(
+    @Query('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const frontend =
+      process.env.FRONTEND_URL ||
+      process.env.CORS_ORIGIN ||
+      'http://localhost:3001';
+    const cookieDomain = process.env.MAIL_DOMAIN || undefined; // e.g. specsto.online
+
+    try {
+      const result = await this.authService.verifyMagicToken(token);
+
+      // set httpOnly cookies for access and refresh tokens
+      const secure = process.env.NODE_ENV === 'production';
+      const maxAge = 1000 * 60 * 60 * 24 * 30; // 30 days for refresh cookie
+
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure,
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 15, // 15 minutes
+        domain: cookieDomain,
+        path: '/',
+      });
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure,
+        sameSite: 'lax',
+        maxAge,
+        domain: cookieDomain,
+        path: '/',
+      });
+
+      // render success page and auto-redirect to frontend
+      const templatePath = path.join(
+        process.cwd(),
+        'src',
+        'lib',
+        'agents',
+        'med-optimize',
+        'views',
+        'magic-verify-success.ejs',
+      );
+
+      const html = await ejs.renderFile(templatePath, {
+        frontend,
+        email: result.user.email,
+        redirectDelay: 3000,
+      });
+
+      res.setHeader('Content-Type', 'text/html');
+      return res.send(html);
+    } catch (err) {
+      const templatePath = path.join(
+        process.cwd(),
+        'src',
+        'lib',
+        'agents',
+        'med-optimize',
+        'views',
+        'magic-verify-failure.ejs',
+      );
+      const html = await ejs.renderFile(templatePath, {
+        frontend,
+        error: (err as Error).message,
+      });
+      res.setHeader('Content-Type', 'text/html');
+      return res.status(401).send(html);
+    }
   }
 
   @Post('refresh')
@@ -50,5 +151,43 @@ export class AuthController {
     },
   ) {
     return this.authService.googleAuthWithUserData(dto);
+  }
+
+  @Get('dev/magic-link')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'DEV: Get last unused magic link URL for an email (non-production only)',
+  })
+  async getDevMagicLink(@Query('email') email: string) {
+    if (process.env.NODE_ENV === 'production')
+      throw new ForbiddenException('Not allowed in production');
+    return this.authService.getDevMagicLinkByEmail(email);
+  }
+
+  @Post('dev/send-test-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'DEV: Send a test email to the given address (non-production only)',
+  })
+  async sendTestEmail() {
+    if (process.env.NODE_ENV === 'production')
+      throw new ForbiddenException('Not allowed in production');
+
+    const frontend =
+      process.env.FRONTEND_URL ||
+      process.env.CORS_ORIGIN ||
+      'http://localhost:3001';
+    const subject = `Test email from ${frontend}`;
+    const text = `This is a test email from ${frontend} sent to vikramsahran72056@gmail.com`;
+
+    const info = await this.mailService.sendMail({
+      to: 'vikramsaharan72056@gmail.com',
+      subject,
+      text,
+    } as any);
+
+    return { success: true, info };
   }
 }
