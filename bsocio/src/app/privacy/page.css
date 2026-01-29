@@ -61,6 +61,131 @@
   width: 896px;
 }
 
+/* Styles for dynamic HTML content from API */
+.legal-content h1 {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 40px;
+  color: var(--heading-primary);
+  margin: 32px 0 16px;
+}
+
+.legal-content h2 {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 32px;
+  color: var(--heading-primary);
+  margin: 28px 0 12px;
+}
+
+.legal-content h3 {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--heading-primary);
+  margin: 24px 0 10px;
+}
+
+.legal-content h4 {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--heading-primary);
+  margin: 20px 0 8px;
+}
+
+.legal-content p {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px;
+  color: var(--text-body);
+  margin: 0 0 16px;
+}
+
+.legal-content strong,
+.legal-content b {
+  font-weight: 700;
+  color: var(--heading-primary);
+}
+
+.legal-content em,
+.legal-content i {
+  font-style: italic;
+}
+
+.legal-content u {
+  text-decoration: underline;
+}
+
+.legal-content ul,
+.legal-content ol {
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.legal-content li {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px;
+  color: var(--text-body);
+}
+
+.legal-content li strong {
+  font-weight: 700;
+}
+
+.legal-content a {
+  color: var(--primary-blue);
+  text-decoration: none;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+
+.legal-content blockquote {
+  border-left: 4px solid var(--primary-blue);
+  padding-left: 16px;
+  margin: 16px 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.legal-content hr {
+  border: none;
+  border-top: 1px solid var(--divider);
+  margin: 32px 0;
+}
+
+.legal-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.legal-content th,
+.legal-content td {
+  border: 1px solid var(--divider);
+  padding: 12px;
+  text-align: left;
+  font-family: 'Arimo', sans-serif;
+  font-size: 14px;
+}
+
+.legal-content th {
+  background: var(--section-bg-alt);
+  font-weight: 700;
+}
+
 .legal-intro {
   font-family: 'Arimo', sans-serif;
   font-weight: 400;
@@ -192,8 +317,19 @@
     line-height: 36px;
   }
 
-  .legal-section h2 {
+  .legal-section h2,
+  .legal-content h2 {
     font-size: 20px;
     line-height: 28px;
+  }
+
+  .legal-content h1 {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .legal-content h3 {
+    font-size: 18px;
+    line-height: 26px;
   }
 }

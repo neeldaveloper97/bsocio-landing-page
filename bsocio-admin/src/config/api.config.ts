@@ -54,7 +54,7 @@ export const API_ENDPOINTS = {
 
   // Legal Documents
   LEGAL: {
-    BY_TYPE: (type: 'TERMS' | 'PRIVACY') => `/admin-dashboard/legal/${type}`,
+    BY_TYPE: (type: 'TERMS_OF_USE' | 'PRIVACY_POLICY') => `/admin-dashboard/legal/${type}`,
   },
 
   // News & Media Management

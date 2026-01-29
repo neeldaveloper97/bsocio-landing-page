@@ -46,7 +46,7 @@ export function useLegal(type: LegalDocumentType, options: UseLegalOptions = {})
   const { enabled = true } = options;
 
   const [data, setData] = useState<LegalDocument | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start as loading
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<ApiException | null>(null);
   const [isMutating, setIsMutating] = useState(false);

@@ -52,14 +52,14 @@ class LegalService {
    * Get Terms of Service
    */
   async getTerms(): Promise<LegalDocument> {
-    return this.getByType('TERMS');
+    return this.getByType('TERMS_OF_USE');
   }
 
   /**
    * Get Privacy Policy
    */
   async getPrivacy(): Promise<LegalDocument> {
-    return this.getByType('PRIVACY');
+    return this.getByType('PRIVACY_POLICY');
   }
 
   /**
@@ -83,14 +83,14 @@ class LegalService {
    * Update Terms of Service
    */
   async updateTerms(data: UpdateLegalDocumentRequest): Promise<LegalDocument> {
-    return this.update('TERMS', data);
+    return this.update('TERMS_OF_USE', data);
   }
 
   /**
    * Update Privacy Policy
    */
   async updatePrivacy(data: UpdateLegalDocumentRequest): Promise<LegalDocument> {
-    return this.update('PRIVACY', data);
+    return this.update('PRIVACY_POLICY', data);
   }
 }
 

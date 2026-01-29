@@ -1,233 +1,286 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLegal } from '@/hooks';
-import type { LegalDocument, LegalDocumentType } from '@/types';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import type { LegalDocumentType, LegalDocumentState, LegalDocument } from '@/types';
+import './legal.css';
+
+/**
+ * Format date string for display
+ */
+function formatDate(dateString: string | undefined): string {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+/**
+ * Get version info from document
+ */
+function getVersionInfo(doc: LegalDocument | null) {
+    if (!doc) return null;
+    
+    return {
+        version: 'v1.0', // Single version since we don't have history
+        date: formatDate(doc.updatedAt),
+        status: doc.state === 'PUBLISHED' ? 'Current' : 'Draft',
+        changes: doc.versionNotes || 'No version notes',
+        effectiveDate: formatDate(doc.effectiveDate),
+    };
+}
 
 export default function LegalPage() {
-    const [activeDoc, setActiveDoc] = useState<LegalDocumentType>('TERMS');
-    const [showModal, setShowModal] = useState(false);
+    const [activeTab, setActiveTab] = useState<LegalDocumentType>('PRIVACY_POLICY');
     
     // Fetch both documents
-    const termsHook = useLegal('TERMS');
-    const privacyHook = useLegal('PRIVACY');
+    const termsHook = useLegal('TERMS_OF_USE');
+    const privacyHook = useLegal('PRIVACY_POLICY');
     
     // Form state
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [version, setVersion] = useState('');
+    const [effectiveDate, setEffectiveDate] = useState('');
+    const [versionNotes, setVersionNotes] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
-    const currentDoc = activeDoc === 'TERMS' ? termsHook.data : privacyHook.data;
-    const currentHook = activeDoc === 'TERMS' ? termsHook : privacyHook;
+    const currentHook = activeTab === 'TERMS_OF_USE' ? termsHook : privacyHook;
+    const currentDoc = currentHook.data;
+    const versionInfo = getVersionInfo(currentDoc);
 
+    // Debug logging
+    useEffect(() => {
+        console.log('Legal Page Debug:', {
+            activeTab,
+            isLoading: currentHook.isLoading,
+            isError: currentHook.isError,
+            error: currentHook.error,
+            currentDoc,
+        });
+    }, [activeTab, currentHook.isLoading, currentHook.isError, currentHook.error, currentDoc]);
+
+    // Load document data when tab changes or document loads
     useEffect(() => {
         if (currentDoc) {
             setTitle(currentDoc.title || '');
             setContent(currentDoc.content || '');
-            setVersion(currentDoc.version || '');
+            setEffectiveDate(currentDoc.effectiveDate ? currentDoc.effectiveDate.split('T')[0] : new Date().toISOString().split('T')[0]);
+            setVersionNotes(currentDoc.versionNotes || '');
+        } else {
+            // Set defaults for new document
+            setTitle(activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use');
+            setContent('');
+            setEffectiveDate(new Date().toISOString().split('T')[0]);
+            setVersionNotes('');
         }
-    }, [currentDoc]);
+    }, [currentDoc, activeTab]);
 
-    const openEditModal = (type: LegalDocumentType) => {
-        setActiveDoc(type);
-        const doc = type === 'TERMS' ? termsHook.data : privacyHook.data;
-        if (doc) {
-            setTitle(doc.title);
-            setContent(doc.content);
-            setVersion(doc.version);
+    const handleSave = useCallback(async (state: LegalDocumentState) => {
+        if (!title.trim() || !content.trim() || !effectiveDate) {
+            alert('Please fill in all required fields');
+            return;
         }
-        setShowModal(true);
-    };
 
-    const closeModal = () => {
-        setShowModal(false);
-    };
-
-    const handleSave = async () => {
-        if (!title.trim() || !content.trim()) return;
-
-        await currentHook.updateDocument({
-            title,
-            content,
-            version,
-        });
-        closeModal();
-    };
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString();
-    };
-
-    const getStatusBadge = (isActive?: boolean) => {
-        if (isActive) {
-            return <span className="status-badge status-published">Published</span>;
+        setIsSaving(true);
+        try {
+            await currentHook.updateDocument({
+                title: title.trim(),
+                content: content.trim(),
+                effectiveDate,
+                versionNotes: versionNotes.trim() || undefined,
+                state,
+            });
+            alert(state === 'PUBLISHED' ? 'Document published successfully!' : 'Document saved as draft!');
+        } catch (error) {
+            console.error('Failed to save document:', error);
+            alert('Failed to save document. Please try again.');
+        } finally {
+            setIsSaving(false);
         }
-        return <span className="status-badge status-draft">Draft</span>;
-    };
+    }, [title, content, effectiveDate, versionNotes, currentHook]);
 
     const isLoading = termsHook.isLoading || privacyHook.isLoading;
-    const isError = termsHook.isError || privacyHook.isError;
 
-    const documents = [
-        { type: 'TERMS' as LegalDocumentType, data: termsHook.data, hook: termsHook },
-        { type: 'PRIVACY' as LegalDocumentType, data: privacyHook.data, hook: privacyHook },
-    ].filter(d => d.data);
+    if (isLoading) {
+        return (
+            <div className="legal-page">
+                <div className="legal-loading">
+                    <div className="legal-loading-spinner"></div>
+                    <p>Loading documents...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="content-section active">
-            {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>Legal Documents</h1>
-                    <p>Manage terms, policies, and legal content</p>
-                </div>
+        <div className="legal-page">
+            {/* Tabs */}
+            <div className="legal-tabs">
+                <button
+                    className={`legal-tab ${activeTab === 'PRIVACY_POLICY' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('PRIVACY_POLICY')}
+                >
+                    Privacy Policy
+                </button>
+                <button
+                    className={`legal-tab ${activeTab === 'TERMS_OF_USE' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('TERMS_OF_USE')}
+                >
+                    Terms of Use
+                </button>
             </div>
 
-            {/* Stats */}
-            <div className="stats-cards-grid cols-3">
-                <div className="stat-card">
-                    <div className="stat-icon">📋</div>
-                    <div className="stat-value">2</div>
-                    <div className="stat-label">Total Documents</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">{documents.filter(d => d.data?.isActive).length}</div>
-                    <div className="stat-label">Published</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">📝</div>
-                    <div className="stat-value">{documents.filter(d => !d.data?.isActive).length}</div>
-                    <div className="stat-label">Drafts</div>
-                </div>
-            </div>
-
-            {/* Documents Table */}
-            <div className="table-container">
-                <div className="table-header">
-                    <h2>All Documents</h2>
-                </div>
-                {isLoading ? (
-                    <div className="loading-state" style={{ padding: '24px' }}>Loading documents...</div>
-                ) : isError ? (
-                    <div className="error-state" style={{ padding: '24px' }}>
-                        Failed to load documents.{' '}
-                        <button onClick={() => { termsHook.refetch(); privacyHook.refetch(); }}>Retry</button>
+            {/* Edit Content Section */}
+            <div className="legal-edit-section">
+                <div className="legal-edit-header">
+                    <h2>Edit Content</h2>
+                    <div className="legal-edit-actions">
+                        <button 
+                            className="legal-btn legal-btn-preview"
+                            onClick={() => setShowPreview(!showPreview)}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Preview
+                        </button>
+                        <button 
+                            className="legal-btn legal-btn-save"
+                            onClick={() => handleSave('DRAFT')}
+                            disabled={isSaving}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Save
+                        </button>
+                        <button 
+                            className="legal-btn legal-btn-publish"
+                            onClick={() => handleSave('PUBLISHED')}
+                            disabled={isSaving}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            Publish
+                        </button>
                     </div>
-                ) : (
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
+                </div>
+
+                <div className="legal-form">
+                    {/* Policy Title */}
+                    <div className="legal-form-group">
+                        <label htmlFor="policyTitle">Policy Title</label>
+                        <input
+                            type="text"
+                            id="policyTitle"
+                            className="legal-input"
+                            placeholder="Enter policy title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Effective Date */}
+                    <div className="legal-form-group">
+                        <label htmlFor="effectiveDate">Effective Date</label>
+                        <input
+                            type="date"
+                            id="effectiveDate"
+                            className="legal-input legal-date-input"
+                            value={effectiveDate}
+                            onChange={(e) => setEffectiveDate(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Content Editor */}
+                    <div className="legal-form-group legal-form-group-full">
+                        <label>{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
+                        {showPreview ? (
+                            <div className="legal-preview">
+                                <div 
+                                    className="legal-preview-content"
+                                    dangerouslySetInnerHTML={{ __html: content }}
+                                />
+                            </div>
+                        ) : (
+                            <RichTextEditor
+                                value={content}
+                                onChange={setContent}
+                                placeholder={`Enter ${activeTab === 'PRIVACY_POLICY' ? 'privacy policy' : 'terms of use'} content...`}
+                            />
+                        )}
+                    </div>
+
+                    {/* Version Notes */}
+                    <div className="legal-form-group legal-form-group-full">
+                        <label htmlFor="versionNotes">Version Notes</label>
+                        <input
+                            type="text"
+                            id="versionNotes"
+                            className="legal-input"
+                            placeholder="Describe what changed in this version"
+                            value={versionNotes}
+                            onChange={(e) => setVersionNotes(e.target.value)}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Version Control Section */}
+            <div className="legal-version-section">
+                <div className="legal-version-header">
+                    <h2>Version Control</h2>
+                    <p>View current version of the {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</p>
+                </div>
+
+                <div className="legal-version-table-wrapper">
+                    <table className="legal-version-table">
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Last Updated</th>
+                                <th>Effective Date</th>
+                                <th>Status</th>
+                                <th>Changes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {versionInfo ? (
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>Version</th>
-                                    <th>Last Updated</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <td className="legal-version-number">{versionInfo.version}</td>
+                                    <td>{versionInfo.date}</td>
+                                    <td>{versionInfo.effectiveDate}</td>
+                                    <td>
+                                        <span className={`legal-status-badge ${versionInfo.status === 'Current' ? 'legal-status-current' : 'legal-status-draft'}`}>
+                                            {versionInfo.status}
+                                        </span>
+                                    </td>
+                                    <td>{versionInfo.changes}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {termsHook.data && (
-                                    <tr>
-                                        <td>{termsHook.data.title || 'Terms of Service'}</td>
-                                        <td>Terms</td>
-                                        <td>{termsHook.data.version || '1.0'}</td>
-                                        <td>{formatDate(termsHook.data.updatedAt)}</td>
-                                        <td>{getStatusBadge(termsHook.data.isActive)}</td>
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button className="action-btn" title="Edit" onClick={() => openEditModal('TERMS')}>
-                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                                {privacyHook.data && (
-                                    <tr>
-                                        <td>{privacyHook.data.title || 'Privacy Policy'}</td>
-                                        <td>Privacy</td>
-                                        <td>{privacyHook.data.version || '1.0'}</td>
-                                        <td>{formatDate(privacyHook.data.updatedAt)}</td>
-                                        <td>{getStatusBadge(privacyHook.data.isActive)}</td>
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button className="action-btn" title="Edit" onClick={() => openEditModal('PRIVACY')}>
-                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                                {!termsHook.data && !privacyHook.data && (
-                                    <tr>
-                                        <td colSpan={6} style={{ textAlign: 'center' }}>No documents found</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-
-            {/* Edit Document Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>Edit {activeDoc === 'TERMS' ? 'Terms of Service' : 'Privacy Policy'}</h2>
-                            <button className="modal-close" onClick={closeModal}>×</button>
-                        </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div className="form-group">
-                                <label htmlFor="docTitle">Document Title</label>
-                                <input 
-                                    type="text" 
-                                    id="docTitle" 
-                                    className="form-input" 
-                                    placeholder="Enter document title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="docVersion">Version</label>
-                                <input 
-                                    type="text" 
-                                    id="docVersion" 
-                                    className="form-input" 
-                                    placeholder="e.g., 1.0.0"
-                                    value={version}
-                                    onChange={(e) => setVersion(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="docContent">Content</label>
-                                <textarea 
-                                    id="docContent" 
-                                    className="form-textarea" 
-                                    placeholder="Enter document content..." 
-                                    rows={12}
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                ></textarea>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                                <button className="btn-secondary" onClick={closeModal}>Cancel</button>
-                                <button className="btn-primary" onClick={handleSave} disabled={currentHook.isMutating}>
-                                    {currentHook.isMutating ? 'Saving...' : 'Save Document'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                            ) : (
+                                <tr>
+                                    <td colSpan={5} style={{ textAlign: 'center', color: '#6B7280' }}>
+                                        No document found. Create a new {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} above.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

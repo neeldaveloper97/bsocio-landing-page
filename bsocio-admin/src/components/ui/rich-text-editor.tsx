@@ -23,6 +23,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Minus,
 } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -178,9 +179,9 @@ export function RichTextEditor({
   const isOverLimit = characterCount > limit;
 
   return (
-    <div className={cn("rich-text-editor-wrapper border border-gray-200 rounded-lg shadow-sm bg-white overflow-hidden w-full", className)}>
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 sm:p-3 border-b border-gray-200 bg-gray-50">
+    <div className={cn("rich-text-editor-wrapper border border-gray-200 rounded-lg shadow-sm bg-white overflow-hidden w-full max-h-[600px] flex flex-col", className)}>
+      {/* Toolbar - Sticky */}
+      <div className="flex flex-wrap items-center gap-1 p-2 sm:p-3 border-b border-gray-200 bg-gray-50 sticky top-0 z-10 flex-shrink-0">
         {/* History */}
         <div className="flex items-center gap-1">
           <ToolbarButton
@@ -284,6 +285,12 @@ export function RichTextEditor({
           >
             <Quote className="h-4 w-4" />
           </ToolbarButton>
+          <ToolbarButton
+            onAction={() => editor.chain().focus().setHorizontalRule().run()}
+            title="Horizontal Line"
+          >
+            <Minus className="h-4 w-4" />
+          </ToolbarButton>
         </div>
 
         <Separator orientation="vertical" className="h-6 mx-1" />
@@ -315,7 +322,7 @@ export function RichTextEditor({
       </div>
 
       {/* Editor */}
-      <div className="relative w-full">
+      <div className="relative w-full flex-1 overflow-y-auto">
         <EditorContent
           editor={editor}
           className="min-h-[250px] [&_.ProseMirror]:p-4 [&_.ProseMirror]:min-h-[250px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:cursor-text"

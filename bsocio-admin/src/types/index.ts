@@ -287,26 +287,27 @@ export interface ReorderFAQRequest {
 // Legal Document Types
 // ============================================
 
-export type LegalDocumentType = 'TERMS' | 'PRIVACY';
+export type LegalDocumentType = 'TERMS_OF_USE' | 'PRIVACY_POLICY';
+export type LegalDocumentState = 'DRAFT' | 'PUBLISHED';
 
 export interface LegalDocument {
   id: string;
   type: LegalDocumentType;
   title: string;
   content: string;
-  version: string;
+  versionNotes?: string;
   effectiveDate: string;
-  isActive: boolean;
+  state: LegalDocumentState;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UpdateLegalDocumentRequest {
-  title?: string;
-  content?: string;
-  version?: string;
-  effectiveDate?: string;
-  isActive?: boolean;
+  title: string;
+  content: string;
+  versionNotes?: string;
+  effectiveDate: string;
+  state: LegalDocumentState;
 }
 
 // ============================================

@@ -26,10 +26,10 @@ const NAV_ITEMS: NavItem[] = [
     // { id: 'awards', label: 'Awards', icon: '🏆', href: '/dashboard/awards' },
     // { id: 'nominees', label: 'Nominees', icon: '⭐', href: '/dashboard/nominees' },
     // { id: 'guests', label: 'Guests', icon: '👥', href: '/dashboard/guests' },
-    // { id: 'faqs', label: 'FAQs', icon: '❓', href: '/dashboard/faqs' },
+    { id: 'faqs', label: 'FAQs', icon: '❓', href: '/dashboard/faqs' },
     // { id: 'campaigns', label: 'Campaigns', icon: '📧', href: '/dashboard/campaigns' },
     // { id: 'communications', label: 'Communications', icon: '✉️', href: '/dashboard/communications' },
-    // { id: 'legal', label: 'Legal Documents', icon: '📋', href: '/dashboard/legal' },
+    { id: 'legal', label: 'Legal Documents', icon: '📋', href: '/dashboard/legal' },
     // { id: 'users', label: 'User & System', icon: '⚙️', href: '/dashboard/users' },
 ];
 
