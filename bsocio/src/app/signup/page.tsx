@@ -331,7 +331,7 @@ export default function SignupPage() {
     
     // Show success or error toast
     if (result) {
-      toast.success("Verification link successfully sent to your registered email. Please check your inbox!");
+      toast.success("Registration successful! Please check your email.", { duration: 5000 });
       // Reset form after successful signup
       setFormData(INITIAL_FORM_STATE);
     } else if (isError && error) {
