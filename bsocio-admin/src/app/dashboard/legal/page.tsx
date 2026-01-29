@@ -105,6 +105,12 @@ export default function LegalPage() {
     }, [title, content, effectiveDate, versionNotes, currentHook]);
 
     const isLoading = termsHook.isLoading || privacyHook.isLoading;
+    const hasError = currentHook.isError;
+
+    // Handle retry
+    const handleRetry = useCallback(() => {
+        currentHook.refetch();
+    }, [currentHook]);
 
     if (isLoading) {
         return (
@@ -112,6 +118,48 @@ export default function LegalPage() {
                 <div className="legal-loading">
                     <div className="legal-loading-spinner"></div>
                     <p>Loading documents...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state with retry button
+    if (hasError && !currentDoc) {
+        return (
+            <div className="legal-page">
+                {/* Tabs */}
+                <div className="legal-tabs">
+                    <button
+                        className={`legal-tab ${activeTab === 'PRIVACY_POLICY' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('PRIVACY_POLICY')}
+                    >
+                        Privacy Policy
+                    </button>
+                    <button
+                        className={`legal-tab ${activeTab === 'TERMS_OF_USE' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('TERMS_OF_USE')}
+                    >
+                        Terms of Use
+                    </button>
+                </div>
+
+                <div className="legal-error">
+                    <div className="legal-error-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <h3>Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
+                    <p>There was an error loading the document. Please check your connection and try again.</p>
+                    <button className="legal-btn legal-btn-publish" onClick={handleRetry}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Retry
+                    </button>
                 </div>
             </div>
         );

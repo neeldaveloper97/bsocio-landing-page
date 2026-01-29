@@ -318,14 +318,14 @@
 }
 
 /* ============================================
-   ACTIVITY ITEM - Enhanced Layout with Avatar
+   ACTIVITY ITEM - Enhanced Layout with Details
    ============================================ */
 
 .activity-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
+    gap: 16px;
+    padding: 20px;
     border-bottom: 1px solid #E5E7EB;
     transition: background-color 0.15s ease;
 }
@@ -336,6 +336,100 @@
 
 .activity-item:hover {
     background-color: #F9FAFB;
+}
+
+.activity-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-icon {
+    font-size: 20px;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activity-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.activity-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: 'Arimo', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.activity-admin {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 18px;
+    color: #6B7280;
+}
+
+.activity-desc {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 22px;
+    color: #101828;
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.activity-time-full {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.activity-email {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Legacy support */
+.activity-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
 }
 
 .activity-avatar {
@@ -352,19 +446,6 @@
     font-size: 14px;
     flex-shrink: 0;
     text-transform: uppercase;
-}
-
-.activity-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.activity-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
 }
 
 .activity-admin-name {
@@ -384,18 +465,6 @@
     text-transform: capitalize;
 }
 
-.activity-desc {
-    font-family: 'Arimo', sans-serif;
-    font-weight: 400;
-    font-size: 13px;
-    line-height: 18px;
-    color: #6A7282;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
-}
-
 .activity-time {
     font-family: 'Arimo', sans-serif;
     font-weight: 500;
@@ -408,44 +477,65 @@
 
 @media screen and (max-width: 768px) {
     .activity-item {
-        padding: 12px;
+        padding: 16px;
+        gap: 12px;
     }
 
-    .activity-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
+    .activity-icon-wrapper {
+        width: 40px;
+        height: 40px;
     }
 
-    .activity-title {
+    .activity-icon {
+        font-size: 18px;
+    }
+
+    .activity-header-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 2px;
+        gap: 6px;
     }
 
     .activity-desc {
-        white-space: normal;
+        font-size: 13px;
+        line-height: 20px;
     }
 
-    .activity-time {
-        position: absolute;
-        top: 12px;
-        right: 12px;
+    .activity-meta {
+        gap: 12px;
     }
 
-    .activity-item {
-        position: relative;
-        padding-right: 80px;
+    .activity-time-full,
+    .activity-email {
+        font-size: 11px;
     }
 }
 
 @media screen and (max-width: 480px) {
-    .activity-admin-name,
-    .activity-action {
-        font-size: 13px;
+    .activity-item {
+        padding: 14px;
+    }
+
+    .activity-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
+
+    .activity-icon {
+        font-size: 16px;
+    }
+
+    .activity-type-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+
+    .activity-admin {
+        font-size: 12px;
     }
 
     .activity-desc {
-        font-size: 12px;
+        font-size: 13px;
     }
 }

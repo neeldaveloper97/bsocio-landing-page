@@ -78,6 +78,18 @@ export default function ClientDashboard() {
         return date.toLocaleDateString();
     };
 
+    // Format full date and time
+    const formatFullDateTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
     return (
         <div className="content-section active">
             {/* Dashboard Intro */}
@@ -180,13 +192,15 @@ export default function ClientDashboard() {
                         <div className="activity-list">
                             {activities.map((activity) => (
                                 <div key={activity.id} className="activity-item">
-                                    <div className="activity-content">
-                                        <div className="activity-title">{activity.type.replace(/_/g, ' ')}</div>
-                                        <div className="activity-desc">
-                                            {activity.message || activity.title} by {activity.adminName}
-                                        </div>
+                                    <div className="activity-info">
+                                        <span className="activity-title">{activity.title}</span>
+                                        <span className="activity-desc">
+                                            {activity.message || `Action performed`} by <strong>{activity.adminName}</strong>
+                                        </span>
                                     </div>
-                                    <span className="activity-time">{formatRelativeTime(activity.createdAt)}</span>
+                                    <span className="activity-time" title={formatFullDateTime(activity.createdAt)}>
+                                        {formatRelativeTime(activity.createdAt)}
+                                    </span>
                                 </div>
                             ))}
                         </div>

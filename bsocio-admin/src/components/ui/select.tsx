@@ -86,7 +86,7 @@ const SelectContent = React.forwardRef<
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className="select-viewport w-full min-w-[var(--radix-select-trigger-width)]"
-        style={{ padding: '12px 8px' }}
+        style={{ padding: '12px' }}
       >
         {children}
       </SelectPrimitive.Viewport>
@@ -115,9 +115,10 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-md py-3 px-3 pr-9 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700",
       className
     )}
+    style={{ padding: '12px 40px 12px 16px', marginBottom: '4px' }}
     {...props}
   >
     <span className="absolute right-3 flex h-4 w-4 items-center justify-center">

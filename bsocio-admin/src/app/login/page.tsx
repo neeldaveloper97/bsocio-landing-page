@@ -62,9 +62,10 @@ export default function LoginPage() {
             <div className="login-container">
                 {/* Header */}
                 <div className="login-header">
-                    <div className="bsocio-logo" style={{ textAlign: 'center', width: '100%', fontSize: '32px' }}>
-                        <span className="b">B</span>socio
-                        <span className="dot"></span>
+                    <div className="bsocio-logo-wrapper">
+                        <span className="bsocio-logo" style={{ fontSize: '32px' }}>
+                            <span className="b">B</span>socio<span className="dot"></span>
+                        </span>
                     </div>
                     <p className="subtitle">Admin Dashboard</p>
                 </div>

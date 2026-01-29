@@ -171,6 +171,18 @@ export function RichTextEditor({
     }
   }, [editor, updateActiveStates]);
 
+  // Sync external value changes to editor
+  useEffect(() => {
+    if (editor && value !== undefined) {
+      const currentContent = editor.getHTML();
+      // Only update if the external value is different from editor content
+      // This prevents cursor jumping during typing
+      if (value !== currentContent) {
+        editor.commands.setContent(value);
+      }
+    }
+  }, [editor, value]);
+
   if (!editor) {
     return null;
   }

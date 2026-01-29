@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AdminActivityType } from '@prisma/client';
+import { AdminActivityType, Role } from '@prisma/client';
 
 @Injectable()
 export class AdminActivityService {
@@ -49,9 +49,15 @@ export class AdminActivityService {
 
     const dateFrom = this.getDateFilter(filter);
 
+    // Only get activities from ADMIN role users (exclude USER_LOGIN type and non-admin actors)
     const where = {
+      // Exclude USER_LOGIN type
       type: {
         not: AdminActivityType.USER_LOGIN,
+      },
+      // Only include activities from users with ADMIN role
+      actor: {
+        role: Role.ADMIN,
       },
       ...(dateFrom ? { createdAt: { gte: dateFrom } } : {}),
     };
@@ -70,6 +76,7 @@ export class AdminActivityService {
           actor: {
             select: {
               email: true,
+              role: true,
             },
           },
         },

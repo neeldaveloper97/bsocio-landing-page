@@ -40,6 +40,41 @@
     font-size: 14px;
 }
 
+/* Error State */
+.legal-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 16px;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.legal-error-icon {
+    margin-bottom: 8px;
+}
+
+.legal-error h3 {
+    font-family: 'Arimo', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0;
+}
+
+.legal-error p {
+    font-family: 'Arimo', sans-serif;
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+    max-width: 400px;
+}
+
 /* ============================================
    TABS
    ============================================ */
