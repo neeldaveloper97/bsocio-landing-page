@@ -265,7 +265,7 @@ export class AuthService {
   /**
    * Generate a short-lived magic link JWT and send to user's email.
    */
-  private async sendMagicLinkEmail(user: { id: string; email: string }) {
+  async sendMagicLinkEmail(user: { id: string; email: string }) {
     // create a unique jti and persist as single-use record
     const jti = randomUUID();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
@@ -317,6 +317,24 @@ export class AuthService {
       // eslint-disable-next-line no-console
       console.log(`[DEV] Magic sign-in URL for ${user.email}: ${magicUrl}`);
     }
+  }
+
+  /**
+   * Post-signup actions: log registration and send magic link email.
+   * Non-blocking send (errors are logged).
+   */
+  async handleNewUserSignup(user: { id: string; email: string }) {
+    await this.adminActivityService.log({
+      type: AdminActivityType.SYSTEM,
+      title: 'New User Signup',
+      message: `${user.email} registered via Email`,
+      actorId: user.id,
+    });
+
+    // fire-and-forget magic link send
+    this.sendMagicLinkEmail(user).catch((err) => {
+      console.error('Failed to send magic link after signup:', err);
+    });
   }
 
   /**
