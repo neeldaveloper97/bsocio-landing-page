@@ -54,9 +54,9 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 const CONTACT_REASONS = [
   { value: "MEDIA_PRESS", label: "Media & Press" },
-  { value: "PARTNERSHIP", label: "Partnerships & Collaborations" },
-  { value: "REPORT", label: "Report Scams or Misuse" },
-  { value: "GENERAL", label: "General Inquiry / Other" },
+  { value: "PARTNERSHIPS", label: "Partnerships & Collaborations" },
+  { value: "REPORT_SCAM", label: "Report Scams or Misuse" },
+  { value: "GENERAL_INQUIRY", label: "General Inquiry / Other" },
 ];
 
 const COUNTRIES = [
@@ -140,7 +140,7 @@ export default function ContactPage() {
     try {
       // Map form data to API payload format
       const payload = {
-        reason: data.reason.toUpperCase().replace(/-/g, "_"), // Convert to MEDIA_PRESS, PARTNERSHIP, etc.
+        reason: data.reason, // Already in correct format: MEDIA_PRESS, PARTNERSHIPS, REPORT_SCAM, GENERAL_INQUIRY
         fullName: data.fullName,
         email: data.email,
         phone: data.phone || "",

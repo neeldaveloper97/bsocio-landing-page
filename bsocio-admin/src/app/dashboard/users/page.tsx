@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { PlusIcon, EditIcon, DeleteIcon, LockIcon } from '@/components/ui/admin-icons';
 
 interface User {
     id: number;
@@ -19,9 +21,31 @@ const mockUsers: User[] = [
     { id: 5, name: 'David Brown', email: 'david@bsocio.com', role: 'Support', lastLogin: '2025-01-10 08:00', status: 'suspended' },
 ];
 
+const PAGE_SIZE = 10;
+
 export default function UsersPage() {
     const [users] = useState<User[]>(mockUsers);
     const [showModal, setShowModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal]);
+
+    // Pagination
+    const totalPages = Math.ceil(users.length / PAGE_SIZE);
+    const paginatedUsers = useMemo(() => {
+        const start = currentPage * PAGE_SIZE;
+        return users.slice(start, start + PAGE_SIZE);
+    }, [users, currentPage]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -45,9 +69,7 @@ export default function UsersPage() {
                     <p>Manage admin users and system settings</p>
                 </div>
                 <button className="btn-create" onClick={() => setShowModal(true)}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 4V16M4 10H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <PlusIcon />
                     Add User
                 </button>
             </div>
@@ -78,8 +100,9 @@ export default function UsersPage() {
 
             {/* Users Table */}
             <div className="table-container">
-                <div className="table-header">
+                <div className="table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2>Admin Users</h2>
+                    <span style={{ fontSize: '14px', color: '#6B7280' }}>{users.length} total</span>
                 </div>
                 <div className="table-wrapper">
                     <table className="data-table">
@@ -89,43 +112,70 @@ export default function UsersPage() {
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Last Login</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th style={{ textAlign: 'center' }}>Status</th>
+                                <th style={{ textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.name}</td>
-                                    <td>{user.email}</td>
-                                    <td>{user.role}</td>
-                                    <td>{user.lastLogin}</td>
-                                    <td>{getStatusBadge(user.status)}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button className="action-btn" title="Edit">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Reset Password">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M12.6667 7.33333H3.33333C2.59695 7.33333 2 7.93029 2 8.66667V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V8.66667C14 7.93029 13.403 7.33333 12.6667 7.33333Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    <path d="M4.66699 7.33333V4.66667C4.66699 3.78261 5.01818 2.93477 5.64329 2.30964C6.26842 1.68452 7.11627 1.33333 8.00033 1.33333C8.88438 1.33333 9.73223 1.68452 10.3574 2.30964C10.9825 2.93477 11.3337 3.78261 11.3337 4.66667V7.33333" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Delete">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
+                            {paginatedUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} style={{ textAlign: 'center', padding: '48px 24px' }}>
+                                        <div className="empty-state">
+                                            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👤</span>
+                                            <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No users found</h3>
+                                            <p style={{ margin: 0, color: '#6B7280' }}>Add your first admin user</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                paginatedUsers.map((user) => (
+                                    <tr key={user.id}>
+                                        <td data-label="Name">{user.name}</td>
+                                        <td data-label="Email">{user.email}</td>
+                                        <td data-label="Role">{user.role}</td>
+                                        <td data-label="Last Login">{user.lastLogin}</td>
+                                        <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(user.status)}</td>
+                                        <td data-label="Actions" style={{ textAlign: 'center' }}>
+                                            <div className="action-buttons" style={{ justifyContent: 'center' }}>
+                                                <button className="action-btn" title="Edit">
+                                                    <EditIcon />
+                                                </button>
+                                                <button className="action-btn" title="Reset Password">
+                                                    <LockIcon />
+                                                </button>
+                                                <button className="action-btn" title="Delete">
+                                                    <DeleteIcon />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="table-pagination">
+                        <button
+                            className="pagination-btn"
+                            disabled={currentPage === 0}
+                            onClick={() => setCurrentPage(p => p - 1)}
+                        >
+                            Previous
+                        </button>
+                        <span className="pagination-info">
+                            Page {currentPage + 1} of {totalPages}
+                        </span>
+                        <button
+                            className="pagination-btn"
+                            disabled={currentPage >= totalPages - 1}
+                            onClick={() => setCurrentPage(p => p + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* System Settings Section */}
@@ -170,14 +220,14 @@ export default function UsersPage() {
             </div>
 
             {/* Add User Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
+            {showModal && typeof window !== 'undefined' && createPortal(
+                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+                    <div className="modal-dialog">
                         <div className="modal-header">
                             <h2>Add Admin User</h2>
                             <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
                         </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div className="modal-body">
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="userName">Full Name</label>
@@ -218,7 +268,8 @@ export default function UsersPage() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

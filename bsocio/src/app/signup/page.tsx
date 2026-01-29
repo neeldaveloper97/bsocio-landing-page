@@ -233,6 +233,7 @@ export default function SignupPage() {
       isError: false,
       error: null,
     });
+    toast.success("Account created successfully! Please check your email for verification.");
   }, []);
 
   const handleGoogleError = useCallback((err: Error) => {
@@ -328,13 +329,15 @@ export default function SignupPage() {
       isTermsAccepted: formData.acceptTerms,
     });
     
-    // Show success toast if signup was successful
+    // Show success or error toast
     if (result) {
-      toast.success("Verification link successfully sent to your registered email!");
+      toast.success("Verification link successfully sent to your registered email. Please check your inbox!");
+      // Reset form after successful signup
+      setFormData(INITIAL_FORM_STATE);
+    } else if (isError && error) {
+      toast.error(error.message || "Failed to create account. Please try again.");
     }
-    
-    // Note: Redirect is handled by useEffect when isSuccess becomes true
-  }, [formData, validateForm, signup]);
+  }, [formData, validateForm, signup, isError, error]);
 
   return (
     <section className="flex flex-1 items-center justify-center py-12 sm:py-16">
@@ -347,34 +350,11 @@ export default function SignupPage() {
           </CardHeader>
           
           <CardContent>
-            {/* API Error Display */}
-            {isError && error && (
-              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-600">
-                  {error.message || "An error occurred during signup. Please try again."}
-                </p>
-                {error.errors && Object.entries(error.errors).map(([field, messages]) => (
-                  <p key={field} className="text-xs text-red-500 mt-1">
-                    {field}: {messages.join(", ")}
-                  </p>
-                ))}
-              </div>
-            )}
-
             {/* Google Auth Error */}
             {googleAuthState.isError && googleAuthState.error && (
               <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
                 <p className="text-sm text-red-600">
                   {googleAuthState.error}
-                </p>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {(isSuccess || googleAuthState.isSuccess) && (
-              <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
-                <p className="text-sm text-green-600">
-                  Account created successfully! Redirecting...
                 </p>
               </div>
             )}
