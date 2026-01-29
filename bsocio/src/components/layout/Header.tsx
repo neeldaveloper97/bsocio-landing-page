@@ -36,11 +36,11 @@ function CloseIcon() {
 // ============================================
 
 const NAV_ITEMS = [
-  { label: "About", href: "/about" },
-  { label: "How it works", href: "/how-it-works" },
-  { label: "News & Media", href: "/news-media" },
-  { label: "Festivals", href: "/festivals" },
-  { label: "FAQs", href: "/faqs" },
+  { label: "About", href: "/about", disabled: false },
+  { label: "How it works", href: "/how-it-works", disabled: false },
+  { label: "News & Media", href: "/news-media", disabled: true },
+  { label: "Festivals", href: "/festivals", disabled: true },
+  { label: "FAQs", href: "/faqs", disabled: false },
 ] as const;
 
 // ============================================
@@ -53,21 +53,34 @@ interface NavLinkProps {
   isActive: boolean;
   onClick?: () => void;
   variant?: "desktop" | "mobile";
+  disabled?: boolean;
 }
 
-const NavLink = memo(function NavLink({ href, label, isActive, onClick, variant = "desktop" }: NavLinkProps) {
+const NavLink = memo(function NavLink({ href, label, isActive, onClick, variant = "desktop", disabled = false }: NavLinkProps) {
   // Pre-computed class strings to avoid cn() calls on every render
   const className = variant === "desktop"
     ? `font-medium transition-colors duration-200 rounded-lg px-4 py-2 text-sm ${
-        isActive
+        disabled
+          ? "text-muted-foreground/50 cursor-not-allowed"
+          : isActive
           ? "bg-primary text-primary-foreground"
           : "text-foreground hover:bg-primary/10 hover:text-primary"
       }`
     : `font-medium transition-colors duration-200 rounded-lg px-4 py-3 text-base ${
-        isActive
+        disabled
+          ? "text-muted-foreground/50 cursor-not-allowed"
+          : isActive
           ? "bg-primary text-primary-foreground"
           : "text-foreground hover:bg-primary/10 hover:text-primary"
       }`;
+
+  if (disabled) {
+    return (
+      <span className={className} title="Coming Soon">
+        {label}
+      </span>
+    );
+  }
 
   return (
     <Link href={href} onClick={onClick} className={className}>
@@ -137,6 +150,7 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
                 isActive={pathname === item.href}
                 onClick={onClose}
                 variant="mobile"
+                disabled={item.disabled}
               />
             ))}
           </div>
@@ -196,6 +210,7 @@ export default function Header() {
                 href={item.href}
                 label={item.label}
                 isActive={pathname === item.href}
+                disabled={item.disabled}
               />
             ))}
           </nav>

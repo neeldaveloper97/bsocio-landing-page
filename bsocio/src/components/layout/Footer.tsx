@@ -22,7 +22,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 
 interface FooterSection {
   title: string;
-  links: { href: string; label: string }[];
+  links: { href: string; label: string; disabled?: boolean }[];
 }
 
 const FOOTER_SECTIONS: FooterSection[] = [
@@ -32,13 +32,13 @@ const FOOTER_SECTIONS: FooterSection[] = [
       { href: "/", label: "Home" },
       { href: "/about", label: "About Us" },
       { href: "/how-it-works", label: "How It Works" },
-      { href: "/festivals", label: "Festivals" },
+      { href: "/festivals", label: "Festivals", disabled: true },
     ],
   },
   {
     title: "Resources",
     links: [
-      { href: "/news-media", label: "News & Media" },
+      { href: "/news-media", label: "News & Media", disabled: true },
       { href: "/faqs", label: "FAQs" },
       { href: "/our-structure", label: "Our Structure" },
       { href: "/leadership", label: "Leadership Team" },
@@ -98,10 +98,27 @@ function FooterColumn({
 function FooterLink({
   href,
   children,
+  disabled,
 }: {
   href: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }) {
+  if (disabled) {
+    return (
+      <li>
+        <span
+          className={cn(
+            "text-sm text-gray-500 cursor-not-allowed"
+          )}
+          title="Coming Soon"
+        >
+          {children}
+        </span>
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
@@ -148,7 +165,7 @@ export default function Footer() {
           {FOOTER_SECTIONS.map((section) => (
             <FooterColumn key={section.title} title={section.title}>
               {section.links.map((link) => (
-                <FooterLink key={link.href} href={link.href}>
+                <FooterLink key={link.href} href={link.href} disabled={link.disabled}>
                   {link.label}
                 </FooterLink>
               ))}

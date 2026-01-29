@@ -68,47 +68,112 @@ export default function AnalyticsPage() {
         return false;
     };
 
-    // Export signup data as CSV
-    const handleExportSignups = useCallback(() => {
-        if (!data?.signupTrend) return;
+    // Helper function to format date properly
+    const formatDateForCSV = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = MONTHS[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+    };
 
-        const headers = ['Date', 'Sign-ups'];
-        const rows = data.signupTrend.map(item => [item.date, item.count.toString()]);
+    // Export ALL analytics data as CSV (signups + birthdays)
+    const handleExportSignups = useCallback(() => {
+        if (!data) return;
+
+        const rows: string[][] = [];
         
-        // Add summary row
+        // Title
+        rows.push([`Analytics Report - ${MONTHS[selectedMonth - 1]} ${selectedYear}`]);
         rows.push([]);
-        rows.push(['Summary']);
-        rows.push(['Total Sign-ups', data.signups?.monthlyTotal?.toString() || '0']);
+        
+        // ===== SIGNUP METRICS SECTION =====
+        rows.push(['=== SIGN-UP METRICS ===']);
+        rows.push([]);
+        
+        // Signup Summary
+        rows.push(['Sign-Up Summary']);
+        rows.push(['Metric', 'Value']);
+        rows.push(['Total Sign-ups (All Time)', data.signups?.total?.toString() || '0']);
+        rows.push(['Monthly Total', data.signups?.monthlyTotal?.toString() || '0']);
         rows.push(['Today', data.signups?.today?.toString() || '0']);
         rows.push(['This Week', data.signups?.thisWeek?.toString() || '0']);
         rows.push(['This Month', data.signups?.thisMonth?.toString() || '0']);
         rows.push(['Last Month', data.signups?.lastMonth?.toString() || '0']);
-        rows.push(['Growth %', data.signups?.growthPercent?.toFixed(2) + '%' || '0%']);
+        rows.push(['Growth %', (data.signups?.growthPercent?.toFixed(2) || '0') + '%']);
+        rows.push([]);
+        
+        // Daily Signup Trend
+        if (data.signupTrend && data.signupTrend.length > 0) {
+            rows.push(['Daily Sign-up Trend']);
+            rows.push(['Date', 'Sign-ups']);
+            data.signupTrend.forEach(item => {
+                rows.push([formatDateForCSV(item.date), item.count.toString()]);
+            });
+            rows.push([]);
+        }
+        
+        // Monthly Signups (All 12 months)
+        if (data.monthlySignups && data.monthlySignups.length > 0) {
+            rows.push(['Monthly Sign-ups Overview']);
+            rows.push(['Month', 'Sign-ups']);
+            data.monthlySignups.forEach(item => {
+                rows.push([`${item.month} ${selectedYear}`, item.value.toString()]);
+            });
+            rows.push([]);
+        }
+        
+        // ===== BIRTHDAY METRICS SECTION =====
+        rows.push(['=== BIRTHDAY METRICS ===']);
+        rows.push([]);
+        
+        rows.push(['Birthday Summary']);
+        rows.push(['Total Birthdays This Month', data.birthdays?.totalThisMonth?.toString() || '0']);
+        rows.push([]);
+        
+        if (data.birthdays?.calendar && data.birthdays.calendar.length > 0) {
+            rows.push(['Birthdays by Day of Week']);
+            rows.push(['Day', 'Count']);
+            data.birthdays.calendar.forEach(day => {
+                rows.push([day.dayName, day.count.toString()]);
+            });
+        }
 
-        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const csvContent = rows.map(row => row.join(',')).join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `signups_${MONTHS[selectedMonth - 1]}_${selectedYear}.csv`;
+        link.download = `analytics_${MONTHS[selectedMonth - 1]}_${selectedYear}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }, [data, selectedMonth, selectedYear]);
 
-    // Export birthday data as CSV
+    // Export birthday data only as CSV
     const handleExportBirthdays = useCallback(() => {
         if (!data?.birthdays) return;
 
-        const headers = ['Day of Week', 'Birthday Count'];
-        const rows = data.birthdays.calendar.map(day => [day.dayName, day.count.toString()]);
+        const rows: string[][] = [];
         
-        // Add summary
+        // Title
+        rows.push([`Birthday Report - ${MONTHS[selectedMonth - 1]} ${selectedYear}`]);
         rows.push([]);
-        rows.push(['Total Birthdays This Month', data.birthdays.totalThisMonth?.toString() || '0']);
+        
+        // Summary
+        rows.push(['Period', `${MONTHS[selectedMonth - 1]} ${selectedYear}`]);
+        rows.push(['Total Birthdays', data.birthdays.totalThisMonth?.toString() || '0']);
+        rows.push([]);
+        
+        // Birthdays by day of week
+        rows.push(['Birthdays by Day of Week']);
+        rows.push(['Day', 'Count']);
+        data.birthdays.calendar.forEach(day => {
+            rows.push([day.dayName, day.count.toString()]);
+        });
 
-        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const csvContent = rows.map(row => row.join(',')).join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');

@@ -362,6 +362,11 @@ export default function NewsPage() {
         });
     };
 
+    const truncateText = (text: string, maxLength: number) => {
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    };
+
     const wordCount = formData.content.trim().split(/\s+/).filter(Boolean).length;
 
     return (
@@ -540,11 +545,11 @@ export default function NewsPage() {
                                                         fontSize: '14px',
                                                     }}>📰</div>
                                                 )}
-                                                <span>{article.title}</span>
+                                                <span title={article.title}>{truncateText(article.title, 20)}</span>
                                             </div>
                                         </td>
                                         <td data-label="Category">{getCategoryLabel(article.category)}</td>
-                                        <td data-label="Author">{article.author}</td>
+                                        <td data-label="Author" title={article.author}>{truncateText(article.author, 20)}</td>
                                         <td data-label="Date">{formatDate(article.publicationDate)}</td>
                                         <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(article.status)}</td>
                                         <td data-label="Views" style={{ textAlign: 'center' }}>{article.views || 0}</td>

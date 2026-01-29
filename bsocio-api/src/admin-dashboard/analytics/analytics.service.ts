@@ -33,6 +33,12 @@ export class AnalyticsService {
 
   async getOverview(year: number, month: number) {
     const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-indexed
+
+    // Determine if we're viewing current period or historical data
+    const isCurrentYear = year === currentYear;
+    const isCurrentMonth = isCurrentYear && month === currentMonth;
 
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
@@ -48,11 +54,19 @@ export class AnalyticsService {
 
     /* ---------------- SIGNUPS ---------------- */
 
-    const [total, today, thisWeek, thisMonthCount, lastMonthCount] =
+    // For historical periods (past year or past month), show 0 for today/thisWeek
+    // since those are relative to "now" and wouldn't make sense for past periods
+    const [total, todayCount, thisWeekCount, thisMonthCount, lastMonthCount] =
       await Promise.all([
         this.prisma.user.count(),
-        this.prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
-        this.prisma.user.count({ where: { createdAt: { gte: weekStart } } }),
+        // Only count "today" if viewing current month
+        isCurrentMonth
+          ? this.prisma.user.count({ where: { createdAt: { gte: todayStart } } })
+          : Promise.resolve(0),
+        // Only count "this week" if viewing current month
+        isCurrentMonth
+          ? this.prisma.user.count({ where: { createdAt: { gte: weekStart } } })
+          : Promise.resolve(0),
         this.prisma.user.count({
           where: { createdAt: { gte: thisMonth.start, lt: thisMonth.end } },
         }),
@@ -145,8 +159,8 @@ export class AnalyticsService {
     return {
       signups: {
         total,
-        today,
-        thisWeek,
+        today: todayCount,
+        thisWeek: thisWeekCount,
         thisMonth: thisMonthCount,
         lastMonth: lastMonthCount,
         growthPercent,

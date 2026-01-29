@@ -316,3 +316,136 @@
         font-size: 12px;
     }
 }
+
+/* ============================================
+   ACTIVITY ITEM - Enhanced Layout with Avatar
+   ============================================ */
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #E5E7EB;
+    transition: background-color 0.15s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background-color: #F9FAFB;
+}
+
+.activity-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1F6AE1 0%, #4F46E5 100%);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arimo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.activity-admin-name {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101828;
+}
+
+.activity-action {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #6A7282;
+    text-transform: capitalize;
+}
+
+.activity-desc {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 18px;
+    color: #6A7282;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.activity-time {
+    font-family: 'Arimo', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 16px;
+    color: #9CA3AF;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .activity-item {
+        padding: 12px;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .activity-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .activity-desc {
+        white-space: normal;
+    }
+
+    .activity-time {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+    }
+
+    .activity-item {
+        position: relative;
+        padding-right: 80px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .activity-admin-name,
+    .activity-action {
+        font-size: 13px;
+    }
+
+    .activity-desc {
+        font-size: 12px;
+    }
+}
