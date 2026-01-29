@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Hooks
 import { useSignup } from "@/hooks";
@@ -209,7 +209,6 @@ function Divider() {
 // ============================================
 
 export default function SignupPage() {
-  const router = useRouter();
   const { signup, isLoading, isError, error, isSuccess } = useSignup();
   
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
@@ -225,13 +224,6 @@ export default function SignupPage() {
     isError: false,
     error: null,
   });
-
-  // Redirect on successful signup (email or Google)
-  useEffect(() => {
-    if (isSuccess || googleAuthState.isSuccess) {
-      router.push("/");
-    }
-  }, [isSuccess, googleAuthState.isSuccess, router]);
 
   // Google auth handlers
   const handleGoogleSuccess = useCallback(() => {
@@ -328,13 +320,18 @@ export default function SignupPage() {
     const dob = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDate}`;
     
     // Call signup API
-    await signup({
+    const result = await signup({
       email: formData.email,
       password: formData.password,
       role: DEFAULT_ROLE,
       dob,
       isTermsAccepted: formData.acceptTerms,
     });
+    
+    // Show success toast if signup was successful
+    if (result) {
+      toast.success("Verification link successfully sent to your registered email!");
+    }
     
     // Note: Redirect is handled by useEffect when isSuccess becomes true
   }, [formData, validateForm, signup]);

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useFAQs } from '@/hooks';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SortableHeader } from '@/components/ui/SortableHeader';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibility, FAQFilters } from '@/types';
 
 const PAGE_SIZE = 10;
@@ -25,6 +26,17 @@ export default function FAQsPage() {
     const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     
+    // Confirmation modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        faqId: string | null;
+        faqQuestion: string;
+    }>({
+        isOpen: false,
+        faqId: null,
+        faqQuestion: '',
+    });
+    
     // Form state
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
@@ -39,6 +51,18 @@ export default function FAQsPage() {
         const start = currentPage * PAGE_SIZE;
         return faqs.slice(start, start + PAGE_SIZE);
     }, [faqs, currentPage]);
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal]);
 
     // Handle sort
     const handleSort = useCallback((field: string, order: 'asc' | 'desc') => {
@@ -99,10 +123,26 @@ export default function FAQsPage() {
         closeModal();
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this FAQ?')) {
-            await deleteFAQ(id);
-        }
+    const openDeleteConfirm = (faq: FAQ) => {
+        setConfirmModal({
+            isOpen: true,
+            faqId: faq.id,
+            faqQuestion: faq.question,
+        });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal({
+            isOpen: false,
+            faqId: null,
+            faqQuestion: '',
+        });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!confirmModal.faqId) return;
+        await deleteFAQ(confirmModal.faqId);
+        closeConfirmModal();
     };
 
     const getStatusBadge = (faqStatus: FAQStatus) => {
@@ -217,7 +257,7 @@ export default function FAQsPage() {
                                                         <button className="action-btn" title="Edit" onClick={() => openModal(faq)}>
                                                             <EditIcon />
                                                         </button>
-                                                        <button className="action-btn" title="Delete" onClick={() => handleDelete(faq.id)} disabled={isMutating}>
+                                                        <button className="action-btn" title="Delete" onClick={() => openDeleteConfirm(faq)} disabled={isMutating}>
                                                             <DeleteIcon />
                                                         </button>
                                                     </div>
@@ -321,6 +361,18 @@ export default function FAQsPage() {
                 </div>,
                 document.body
             )}
+
+            {/* Confirmation Modal */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={handleConfirmDelete}
+                title="Delete FAQ"
+                message={`Are you sure you want to delete this FAQ? "${confirmModal.faqQuestion.substring(0, 50)}${confirmModal.faqQuestion.length > 50 ? '...' : ''}"`}
+                confirmText="Delete"
+                variant="danger"
+                isLoading={isMutating}
+            />
         </div>
     );
 }
