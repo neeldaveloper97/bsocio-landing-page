@@ -130,8 +130,9 @@ export class MailService implements OnApplicationBootstrap {
     text?: string;
   }): Promise<SentMessageInfo> {
     const templatePath = path.join(
-      process.cwd(),
-      'src',
+      __dirname,
+      '..',
+      '..',
       'lib',
       'agents',
       'med-optimize',
