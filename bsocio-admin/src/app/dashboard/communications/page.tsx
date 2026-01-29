@@ -1,40 +1,152 @@
 "use client";
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useContacts } from '@/hooks';
+import { ViewIcon } from '@/components/ui/admin-icons';
+import type { ContactInquiry, ContactStatus, ContactReason } from '@/types';
+import './communications.css';
 
-interface Message {
-    id: number;
-    subject: string;
-    sender: string;
-    email: string;
-    date: string;
-    status: 'unread' | 'read' | 'replied';
-}
-
-const mockMessages: Message[] = [
-    { id: 1, subject: 'Event Registration Query', sender: 'John Smith', email: 'john@email.com', date: '2025-01-15', status: 'unread' },
-    { id: 2, subject: 'Partnership Proposal', sender: 'ABC Corp', email: 'contact@abc.com', date: '2025-01-14', status: 'read' },
-    { id: 3, subject: 'Award Nomination Help', sender: 'Mary Johnson', email: 'mary@email.com', date: '2025-01-13', status: 'replied' },
-    { id: 4, subject: 'Sponsorship Inquiry', sender: 'XYZ Ltd', email: 'info@xyz.com', date: '2025-01-12', status: 'unread' },
-    { id: 5, subject: 'Feedback on Platform', sender: 'David Brown', email: 'david@email.com', date: '2025-01-10', status: 'read' },
-];
+const REASON_LABELS: Record<ContactReason, string> = {
+    'MEDIA_PRESS': 'Media/Press',
+    'PARTNERSHIPS': 'Partnerships',
+    'REPORT_SCAM': 'Report Scam',
+    'GENERAL_INQUIRY': 'General Inquiry',
+};
 
 export default function CommunicationsPage() {
-    const [messages] = useState<Message[]>(mockMessages);
-    const [showModal, setShowModal] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<ContactStatus | ''>('');
+    const [reasonFilter, setReasonFilter] = useState<ContactReason | ''>('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [selectedInquiry, setSelectedInquiry] = useState<ContactInquiry | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const pageSize = 20;
 
-    const getStatusBadge = (status: string) => {
+    // Hooks
+    const { data: contactsData, isLoading } = useContacts({
+        status: statusFilter || undefined,
+        reason: reasonFilter || undefined,
+        skip: currentPage * pageSize,
+        take: pageSize,
+    });
+
+    const contacts = contactsData?.items || [];
+    const total = contactsData?.total || 0;
+
+    // Calculate stats (client-side estimate based on current filters)
+    const newCount = contacts.filter((c: ContactInquiry) => c.status === 'NEW').length;
+    const inProgressCount = contacts.filter((c: ContactInquiry) => c.status === 'IN_PROGRESS').length;
+    const resolvedCount = contacts.filter((c: ContactInquiry) => c.status === 'RESOLVED').length;
+
+    const getStatusBadge = (status: ContactStatus) => {
         switch (status) {
-            case 'unread':
-                return <span className="status-badge status-draft">Unread</span>;
-            case 'read':
-                return <span className="status-badge status-upcoming">Read</span>;
-            case 'replied':
-                return <span className="status-badge status-active">Replied</span>;
+            case 'NEW':
+                return <span className="status-badge status-draft">New</span>;
+            case 'IN_PROGRESS':
+                return <span className="status-badge status-upcoming">In Progress</span>;
+            case 'RESOLVED':
+                return <span className="status-badge status-active">Resolved</span>;
             default:
                 return null;
         }
     };
+
+    const getReasonBadge = (reason: ContactReason) => {
+        const colors: Record<ContactReason, string> = {
+            'MEDIA_PRESS': '#8b5cf6',
+            'PARTNERSHIPS': '#3b82f6',
+            'REPORT_SCAM': '#ef4444',
+            'GENERAL_INQUIRY': '#6b7280',
+        };
+        
+        return (
+            <span 
+                className="reason-badge"
+                style={{ 
+                    backgroundColor: `${colors[reason]}15`,
+                    color: colors[reason],
+                    border: `1px solid ${colors[reason]}30`,
+                }}
+            >
+                {REASON_LABELS[reason]}
+            </span>
+        );
+    };
+
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+    const handleViewDetails = (inquiry: ContactInquiry) => {
+        setSelectedInquiry(inquiry);
+        setShowDetailModal(true);
+    };
+
+    const closeDetailModal = () => {
+        setSelectedInquiry(null);
+        setShowDetailModal(false);
+    };
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    // Loading skeleton
+    if (isLoading) {
+        return (
+            <div className="content-section active">
+                <div className="section-header-with-btn">
+                    <div className="section-intro">
+                        <h1>Communications</h1>
+                        <p>Manage contact inquiries from users</p>
+                    </div>
+                </div>
+                <div className="stats-cards-grid">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="stat-card skeleton-card">
+                            <div className="skeleton-box" style={{ width: '40px', height: '40px', borderRadius: '8px' }}></div>
+                            <div className="skeleton-box" style={{ width: '60px', height: '32px', marginTop: '8px' }}></div>
+                            <div className="skeleton-box" style={{ width: '80px', height: '14px', marginTop: '8px' }}></div>
+                        </div>
+                    ))}
+                </div>
+                <div className="table-container">
+                    <div className="table-wrapper">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Reason</th>
+                                    <th>Country</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <tr key={i}>
+                                        <td><div className="skeleton-box" style={{ width: '120px', height: '16px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '180px', height: '16px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '100px', height: '24px', borderRadius: '12px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '80px', height: '16px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '80px', height: '24px', borderRadius: '12px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '120px', height: '16px' }}></div></td>
+                                        <td><div className="skeleton-box" style={{ width: '60px', height: '24px' }}></div></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="content-section active">
@@ -42,135 +154,215 @@ export default function CommunicationsPage() {
             <div className="section-header-with-btn">
                 <div className="section-intro">
                     <h1>Communications</h1>
-                    <p>Manage contact messages and announcements</p>
+                    <p>Manage contact inquiries and messages from users</p>
                 </div>
-                <button className="btn-create" onClick={() => setShowModal(true)}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 4V16M4 10H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    New Announcement
-                </button>
             </div>
 
             {/* Stats */}
             <div className="stats-cards-grid">
                 <div className="stat-card">
                     <div className="stat-icon">✉️</div>
-                    <div className="stat-value">256</div>
-                    <div className="stat-label">Total Messages</div>
+                    <div className="stat-value">{total}</div>
+                    <div className="stat-label">Total Inquiries</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-icon stat-icon-red">🔴</div>
-                    <div className="stat-value">34</div>
-                    <div className="stat-label">Unread</div>
+                    <div className="stat-value">{newCount}</div>
+                    <div className="stat-label">New</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-icon">⏳</div>
+                    <div className="stat-value">{inProgressCount}</div>
+                    <div className="stat-label">In Progress</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">198</div>
-                    <div className="stat-label">Replied</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">📢</div>
-                    <div className="stat-value">12</div>
-                    <div className="stat-label">Announcements Sent</div>
+                    <div className="stat-value">{resolvedCount}</div>
+                    <div className="stat-label">Resolved</div>
                 </div>
             </div>
 
-            {/* Messages Table */}
+            {/* Filters */}
+            <div className="table-filters" style={{ marginBottom: '16px' }}>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                        setStatusFilter(e.target.value as ContactStatus | '');
+                        setCurrentPage(0);
+                    }}
+                    className="form-select"
+                    style={{ maxWidth: '180px' }}
+                >
+                    <option value="">All Statuses</option>
+                    <option value="NEW">New</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                </select>
+                <select
+                    value={reasonFilter}
+                    onChange={(e) => {
+                        setReasonFilter(e.target.value as ContactReason | '');
+                        setCurrentPage(0);
+                    }}
+                    className="form-select"
+                    style={{ maxWidth: '180px' }}
+                >
+                    <option value="">All Reasons</option>
+                    <option value="MEDIA_PRESS">Media/Press</option>
+                    <option value="PARTNERSHIPS">Partnerships</option>
+                    <option value="REPORT_SCAM">Report Scam</option>
+                    <option value="GENERAL_INQUIRY">General Inquiry</option>
+                </select>
+            </div>
+
+            {/* Contact Inquiries Table */}
             <div className="table-container">
                 <div className="table-header">
-                    <h2>Recent Messages</h2>
+                    <h2>Contact Inquiries</h2>
+                    <span className="table-count">{total} total</span>
                 </div>
                 <div className="table-wrapper">
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Subject</th>
-                                <th>Sender</th>
+                                <th>Name</th>
                                 <th>Email</th>
-                                <th>Date</th>
+                                <th>Reason</th>
+                                <th>Country</th>
                                 <th>Status</th>
+                                <th>Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {messages.map((message) => (
-                                <tr key={message.id}>
-                                    <td style={{ fontWeight: message.status === 'unread' ? 700 : 400 }}>{message.subject}</td>
-                                    <td>{message.sender}</td>
-                                    <td>{message.email}</td>
-                                    <td>{message.date}</td>
-                                    <td>{getStatusBadge(message.status)}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button className="action-btn" title="View">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M1 8C1 8 3.54545 3 8 3C12.4545 3 15 8 15 8C15 8 12.4545 13 8 13C3.54545 13 1 8 1 8Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Reply">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M6 8L2 4M2 4L6 0M2 4H10C11.0609 4 12.0783 4.42143 12.8284 5.17157C13.5786 5.92172 14 6.93913 14 8C14 9.06087 13.5786 10.0783 12.8284 10.8284C12.0783 11.5786 11.0609 12 10 12H8" stroke="#1F6AE1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Delete">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
+                            {contacts && contacts.length > 0 ? (
+                                contacts.map((inquiry: ContactInquiry) => (
+                                    <tr key={inquiry.id}>
+                                        <td style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}>
+                                            {inquiry.fullName}
+                                        </td>
+                                        <td>{inquiry.email}</td>
+                                        <td>{getReasonBadge(inquiry.reason)}</td>
+                                        <td>{inquiry.country}</td>
+                                        <td>{getStatusBadge(inquiry.status)}</td>
+                                        <td>{formatDate(inquiry.createdAt)}</td>
+                                        <td>
+                                            <div className="action-buttons">
+                                                <button 
+                                                    className="action-btn" 
+                                                    title="View Details"
+                                                    onClick={() => handleViewDetails(inquiry)}
+                                                >
+                                                    <ViewIcon />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '48px 24px', color: '#6b7280' }}>
+                                        <div className="empty-state">
+                                            <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>✉️</span>
+                                            <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No inquiries found</h3>
+                                            <p style={{ margin: 0 }}>No contact inquiries match your filters</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="table-pagination">
+                        <button
+                            className="pagination-btn"
+                            disabled={currentPage === 0}
+                            onClick={() => setCurrentPage(p => p - 1)}
+                        >
+                            Previous
+                        </button>
+                        <span className="pagination-info">
+                            Page {currentPage + 1} of {totalPages}
+                        </span>
+                        <button
+                            className="pagination-btn"
+                            disabled={currentPage >= totalPages - 1}
+                            onClick={() => setCurrentPage(p => p + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {/* New Announcement Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
+            {/* Detail Modal */}
+            {showDetailModal && selectedInquiry && typeof window !== 'undefined' && createPortal(
+                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
+                    <div className="modal-dialog modal-md">
                         <div className="modal-header">
-                            <h2>Create Announcement</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+                            <h2>Inquiry Details</h2>
+                            <button className="modal-close" onClick={closeDetailModal}>×</button>
                         </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div className="form-group">
-                                <label htmlFor="title">Title</label>
-                                <input type="text" id="title" className="form-input" placeholder="Announcement title" />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="audience">Audience</label>
-                                    <select id="audience" className="form-select">
-                                        <option value="all">All Users</option>
-                                        <option value="members">Members Only</option>
-                                        <option value="nominees">Nominees</option>
-                                        <option value="guests">Guests</option>
-                                    </select>
+                        <div className="modal-body">
+                            <div className="inquiry-detail">
+                                <div className="detail-row">
+                                    <span className="detail-label">Name</span>
+                                    <span className="detail-value">{selectedInquiry.fullName}</span>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="priority">Priority</label>
-                                    <select id="priority" className="form-select">
-                                        <option value="normal">Normal</option>
-                                        <option value="high">High</option>
-                                        <option value="urgent">Urgent</option>
-                                    </select>
+                                <div className="detail-row">
+                                    <span className="detail-label">Email</span>
+                                    <span className="detail-value">
+                                        <a href={`mailto:${selectedInquiry.email}`}>{selectedInquiry.email}</a>
+                                    </span>
+                                </div>
+                                {selectedInquiry.phone && (
+                                    <div className="detail-row">
+                                        <span className="detail-label">Phone</span>
+                                        <span className="detail-value">{selectedInquiry.phone}</span>
+                                    </div>
+                                )}
+                                <div className="detail-row">
+                                    <span className="detail-label">Country</span>
+                                    <span className="detail-value">{selectedInquiry.country}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label">Reason</span>
+                                    <span className="detail-value">{getReasonBadge(selectedInquiry.reason)}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label">Status</span>
+                                    <span className="detail-value">{getStatusBadge(selectedInquiry.status)}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label">Submitted</span>
+                                    <span className="detail-value">{formatDate(selectedInquiry.createdAt)}</span>
+                                </div>
+                                <div className="detail-message">
+                                    <span className="detail-label">Message</span>
+                                    <div className="message-content">
+                                        {selectedInquiry.message}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="message">Message</label>
-                                <textarea id="message" className="form-textarea" placeholder="Write your announcement..." rows={5}></textarea>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                                <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button className="btn-primary">Send Announcement</button>
+                            <div className="modal-actions">
+                                <button className="btn-secondary" onClick={closeDetailModal}>
+                                    Close
+                                </button>
+                                <a 
+                                    href={`mailto:${selectedInquiry.email}?subject=Re: ${REASON_LABELS[selectedInquiry.reason]}`}
+                                    className="btn-primary"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    Reply via Email
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
