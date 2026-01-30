@@ -14,6 +14,7 @@ import {
 import { PlusIcon, EditIcon, DeleteIcon, ArchiveIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SortableHeader } from '@/components/ui/SortableHeader';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import {
     Select,
     SelectContent,
@@ -66,6 +67,31 @@ export default function NewsPage() {
     const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Confirmation modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        type: 'archive' | 'delete' | null;
+        articleId: string | null;
+        articleTitle: string;
+    }>({
+        isOpen: false,
+        type: null,
+        articleId: null,
+        articleTitle: '',
+    });
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal]);
 
     // Sorting state
     const [sortBy, setSortBy] = useState<string>('publicationDate');
@@ -315,25 +341,48 @@ export default function NewsPage() {
         }
     };
 
-    const handleArchive = async (id: string) => {
-        if (!confirm('Are you sure you want to archive this article?')) return;
-        try {
-            await archiveNews.mutateAsync(id);
-            refetch();
-        } catch (error) {
-            console.error('Failed to archive:', error);
-            alert('Failed to archive article');
-        }
+    const openArchiveConfirm = (article: NewsArticle) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'archive',
+            articleId: article.id,
+            articleTitle: article.title,
+        });
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) return;
+    const openDeleteConfirm = (article: NewsArticle) => {
+        setConfirmModal({
+            isOpen: true,
+            type: 'delete',
+            articleId: article.id,
+            articleTitle: article.title,
+        });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal({
+            isOpen: false,
+            type: null,
+            articleId: null,
+            articleTitle: '',
+        });
+    };
+
+    const handleConfirmAction = async () => {
+        if (!confirmModal.articleId) return;
+
         try {
-            await deleteNews.mutateAsync(id);
+            if (confirmModal.type === 'archive') {
+                await archiveNews.mutateAsync(confirmModal.articleId);
+            } else if (confirmModal.type === 'delete') {
+                await deleteNews.mutateAsync(confirmModal.articleId);
+            }
             refetch();
         } catch (error) {
-            console.error('Failed to delete:', error);
-            alert('Failed to delete article');
+            console.error(`Failed to ${confirmModal.type}:`, error);
+            alert(`Failed to ${confirmModal.type} article`);
+        } finally {
+            closeConfirmModal();
         }
     };
 
@@ -563,21 +612,20 @@ export default function NewsPage() {
                                                 >
                                                     <EditIcon />
                                                 </button>
-                                                {article.status !== 'ARCHIVED' && (
-                                                    <button
-                                                        className="action-btn"
-                                                        title="Archive"
-                                                        aria-label={`Archive ${article.title}`}
-                                                        onClick={() => handleArchive(article.id)}
-                                                    >
-                                                        <ArchiveIcon />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    className="action-btn"
+                                                    title={article.status === 'ARCHIVED' ? 'Already Archived' : 'Archive'}
+                                                    aria-label={`Archive ${article.title}`}
+                                                    onClick={() => openArchiveConfirm(article)}
+                                                    disabled={article.status === 'ARCHIVED'}
+                                                >
+                                                    <ArchiveIcon />
+                                                </button>
                                                 <button
                                                     className="action-btn"
                                                     title="Delete"
                                                     aria-label={`Delete ${article.title}`}
-                                                    onClick={() => handleDelete(article.id)}
+                                                    onClick={() => openDeleteConfirm(article)}
                                                 >
                                                     <DeleteIcon />
                                                 </button>
@@ -836,6 +884,22 @@ export default function NewsPage() {
                 </div>,
                 document.body
             )}
+
+            {/* Confirmation Modal */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={handleConfirmAction}
+                title={confirmModal.type === 'archive' ? 'Archive Article' : 'Delete Article'}
+                message={
+                    confirmModal.type === 'archive'
+                        ? `Are you sure you want to archive "${confirmModal.articleTitle}"?`
+                        : `Are you sure you want to delete "${confirmModal.articleTitle}"? This action cannot be undone.`
+                }
+                confirmText={confirmModal.type === 'archive' ? 'Archive' : 'Delete'}
+                variant={confirmModal.type === 'delete' ? 'danger' : 'warning'}
+                isLoading={archiveNews.isPending || deleteNews.isPending}
+            />
         </div>
     );
 }

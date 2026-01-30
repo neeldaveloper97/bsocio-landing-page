@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Hooks
 import { useSignup } from "@/hooks";
@@ -209,7 +209,6 @@ function Divider() {
 // ============================================
 
 export default function SignupPage() {
-  const router = useRouter();
   const { signup, isLoading, isError, error, isSuccess } = useSignup();
   
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
@@ -226,13 +225,6 @@ export default function SignupPage() {
     error: null,
   });
 
-  // Redirect on successful signup (email or Google)
-  useEffect(() => {
-    if (isSuccess || googleAuthState.isSuccess) {
-      router.push("/");
-    }
-  }, [isSuccess, googleAuthState.isSuccess, router]);
-
   // Google auth handlers
   const handleGoogleSuccess = useCallback(() => {
     setGoogleAuthState({
@@ -241,6 +233,7 @@ export default function SignupPage() {
       isError: false,
       error: null,
     });
+    toast.success("Account created successfully! Please check your email for verification.");
   }, []);
 
   const handleGoogleError = useCallback((err: Error) => {
@@ -328,7 +321,7 @@ export default function SignupPage() {
     const dob = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDate}`;
     
     // Call signup API
-    await signup({
+    const result = await signup({
       email: formData.email,
       password: formData.password,
       role: DEFAULT_ROLE,
@@ -336,8 +329,15 @@ export default function SignupPage() {
       isTermsAccepted: formData.acceptTerms,
     });
     
-    // Note: Redirect is handled by useEffect when isSuccess becomes true
-  }, [formData, validateForm, signup]);
+    // Show success or error toast
+    if (result) {
+      toast.success("Registration successful! Please check your email.", { duration: 5000 });
+      // Reset form after successful signup
+      setFormData(INITIAL_FORM_STATE);
+    } else if (isError && error) {
+      toast.error(error.message || "Failed to create account. Please try again.");
+    }
+  }, [formData, validateForm, signup, isError, error]);
 
   return (
     <section className="flex flex-1 items-center justify-center py-12 sm:py-16">
@@ -350,34 +350,11 @@ export default function SignupPage() {
           </CardHeader>
           
           <CardContent>
-            {/* API Error Display */}
-            {isError && error && (
-              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-600">
-                  {error.message || "An error occurred during signup. Please try again."}
-                </p>
-                {error.errors && Object.entries(error.errors).map(([field, messages]) => (
-                  <p key={field} className="text-xs text-red-500 mt-1">
-                    {field}: {messages.join(", ")}
-                  </p>
-                ))}
-              </div>
-            )}
-
             {/* Google Auth Error */}
             {googleAuthState.isError && googleAuthState.error && (
               <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
                 <p className="text-sm text-red-600">
                   {googleAuthState.error}
-                </p>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {(isSuccess || googleAuthState.isSuccess) && (
-              <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
-                <p className="text-sm text-green-600">
-                  Account created successfully! Redirecting...
                 </p>
               </div>
             )}
