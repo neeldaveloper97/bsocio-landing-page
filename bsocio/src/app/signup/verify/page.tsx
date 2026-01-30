@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -49,7 +49,6 @@ const inputStyles = [
 
 export default function VerifyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   
   const [formData, setFormData] = useState<VerificationFormData>(INITIAL_FORM_STATE);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -58,12 +57,15 @@ export default function VerifyPage() {
 
   // Get email from URL params (passed from signup)
   useEffect(() => {
-    const email = searchParams.get("email");
+    let email: string | null = null;
+    if (typeof window !== "undefined") {
+      email = new URLSearchParams(window.location.search).get("email");
+    }
     if (email) {
       setFormData(prev => ({ ...prev, email: decodeURIComponent(email) }));
       setEmailFromUrl(true);
     }
-  }, [searchParams]);
+  }, []);
 
   // Handle input changes
   const handleChange = useCallback((
