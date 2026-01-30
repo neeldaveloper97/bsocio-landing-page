@@ -12,6 +12,10 @@ model User {
   password        String?
   role            Role
   dob             DateTime
+  gender          Gender?
+  phone           String?
+  invitationLink  String?
+  isPhoneVerified Boolean         @default(false)
   createdAt       DateTime        @default(now())
   oauthProvider   OAuthProvider?
   oauthId         String?         @unique
@@ -115,6 +119,27 @@ model MagicLink {
   @@index([jti])
 }
 
+model Event {
+  id               String          @id @default(cuid())
+  title            String
+  eventDate        DateTime
+  eventTime        String?
+  venue            String
+  maxAttendees     Int?
+  currentAttendees Int             @default(0)
+  imageUrl         String?
+  description      String?
+  status           EventStatus     @default(DRAFT)
+  visibility       EventVisibility @default(PUBLIC)
+  state            EventState      @default(UPCOMING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([eventDate])
+  @@index([status])
+  @@index([state])
+}
+
 model EmailCampaign {
   id          String              @id @default(cuid())
   name        String
@@ -208,12 +233,15 @@ enum AdminActivityType {
   FAQ_CREATED
   FAQ_UPDATED
   FAQ_ARCHIVED
+  SYSTEM
   NEWS_CREATED
   NEWS_UPDATED
   NEWS_ARCHIVED
   LEGAL_CREATED
   LEGAL_UPDATED
-  SYSTEM
+  EVENT_CREATED
+  EVENT_UPDATED
+  EVENT_DELETED
 }
 
 enum NewsStatus {
@@ -249,4 +277,27 @@ enum EmailCampaignStatus {
   DRAFT
   SCHEDULED
   SENT
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum EventState {
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  PREFER_NOT_TO_SAY
 }

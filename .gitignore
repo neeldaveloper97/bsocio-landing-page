@@ -18,7 +18,12 @@ out/
 .env
 .env.*
 !.env.example
+cert.pem
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local development files
+bsocio-api/src/admin-dashboard/admin-users/
+
