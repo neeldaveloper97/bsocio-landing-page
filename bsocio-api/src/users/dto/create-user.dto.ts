@@ -10,7 +10,10 @@ import {
 } from 'class-validator';
 
 export enum UserRoleDto {
-  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  CONTENT_ADMIN = 'CONTENT_ADMIN',
+  COMMUNICATIONS_ADMIN = 'COMMUNICATIONS_ADMIN',
+  ANALYTICS_VIEWER = 'ANALYTICS_VIEWER',
   USER = 'USER',
 }
 

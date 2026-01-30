@@ -8,6 +8,7 @@ import { NewsModule } from './news/news.module';
 import { CampaignModule } from './Email Campaign/campaign.module';
 // import { AdminUsersModule } from './admin-users/admin-users.module';
 import { EventsModule } from './events/events.module';
+import { AwardsModule } from './awards/awards.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EventsModule } from './events/events.module';
     CampaignModule,
     // AdminUsersModule,
     EventsModule,
+    AwardsModule,
   ],
   controllers: [],
   providers: [],

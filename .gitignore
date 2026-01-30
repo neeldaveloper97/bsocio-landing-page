@@ -26,4 +26,11 @@ Thumbs.db
 
 # Local development files
 bsocio-api/src/admin-dashboard/admin-users/
-
+MIGRATION_GUIDE.md
+RBAC_CHECKLIST.md
+RBAC_IMPLEMENTATION_COMPLETE.md
+RBAC_IMPLEMENTATION_GUIDE.md
+RBAC_QUICK_REFERENCE.md
+README_RBAC.md
+setup-rbac.bat
+START_HERE.md

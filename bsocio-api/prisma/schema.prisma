@@ -12,15 +12,15 @@ model User {
   password        String?
   role            Role
   dob             DateTime
-  gender          Gender?
-  phone           String?
-  invitationLink  String?
-  isPhoneVerified Boolean         @default(false)
   createdAt       DateTime        @default(now())
   oauthProvider   OAuthProvider?
   oauthId         String?         @unique
   isPermanentUser Boolean         @default(false)
   isTermsAccepted Boolean
+  gender          Gender?
+  invitationLink  String?
+  isPhoneVerified Boolean         @default(false)
+  phone           String?
   adminActivities AdminActivity[]
   magicLinks      MagicLink[]
 }
@@ -160,6 +160,71 @@ model EmailCampaign {
   @@index([scheduledAt])
 }
 
+model AwardCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  nominees    Nominee[]
+
+  @@index([status])
+}
+
+model Nominee {
+  id              String        @id @default(cuid())
+  name            String
+  title           String?
+  organization    String?
+  categoryId      String
+  imageUrl        String?
+  about           String?
+  keyAchievements String[]
+  impactStory     String?
+  quote           String?
+  status          String        @default("PENDING")
+  isWinner        Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  category        AwardCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([isWinner])
+}
+
+model Ceremony {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  location    String
+  venue       String?
+  description String?
+  imageUrl    String?
+  status      String   @default("UPCOMING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([status])
+}
+
+model SpecialGuest {
+  id        String   @id @default(cuid())
+  name      String
+  title     String?
+  bio       String?
+  imageUrl  String?
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
 enum ContactReason {
   MEDIA_PRESS
   PARTNERSHIPS
@@ -183,7 +248,10 @@ enum OAuthProvider {
 }
 
 enum Role {
-  ADMIN
+  SUPER_ADMIN
+  CONTENT_ADMIN
+  COMMUNICATIONS_ADMIN
+  ANALYTICS_VIEWER
   USER
 }
 
@@ -242,6 +310,18 @@ enum AdminActivityType {
   EVENT_CREATED
   EVENT_UPDATED
   EVENT_DELETED
+  AWARD_CATEGORY_CREATED
+  AWARD_CATEGORY_UPDATED
+  AWARD_CATEGORY_DELETED
+  NOMINEE_CREATED
+  NOMINEE_UPDATED
+  NOMINEE_DELETED
+  CEREMONY_CREATED
+  CEREMONY_UPDATED
+  CEREMONY_DELETED
+  SPECIAL_GUEST_CREATED
+  SPECIAL_GUEST_UPDATED
+  SPECIAL_GUEST_DELETED
 }
 
 enum NewsStatus {

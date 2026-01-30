@@ -4,7 +4,7 @@ import { AdminActivityType, Role } from '@prisma/client';
 
 @Injectable()
 export class AdminActivityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async log(params: {
     type: AdminActivityType;
@@ -49,15 +49,17 @@ export class AdminActivityService {
 
     const dateFrom = this.getDateFilter(filter);
 
-    // Only get activities from ADMIN role users (exclude USER_LOGIN type and non-admin actors)
+    // Only get activities from admin role users (exclude USER_LOGIN type and non-admin actors)
     const where = {
       // Exclude USER_LOGIN type
       type: {
         not: AdminActivityType.USER_LOGIN,
       },
-      // Only include activities from users with ADMIN role
+      // Only include activities from users with admin roles (exclude USER role)
       actor: {
-        role: Role.ADMIN,
+        role: {
+          not: Role.USER,
+        },
       },
       ...(dateFrom ? { createdAt: { gte: dateFrom } } : {}),
     };
@@ -96,7 +98,7 @@ export class AdminActivityService {
         adminEmail: a.actor?.email ?? 'System',
         adminName: a.actor?.email
           ? a.actor.email.split('@')[0].charAt(0).toUpperCase() +
-            a.actor.email.split('@')[0].slice(1)
+          a.actor.email.split('@')[0].slice(1)
           : 'System',
         createdAt: a.createdAt.toISOString(),
       })),
