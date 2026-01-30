@@ -459,9 +459,8 @@ body {
   margin-bottom: 8px;
 }
 
-about.card.mission .card-icon { background: rgba(31, 106, 225, 0.15); }
-.card.vision .card-icon { background: rgba(131, 195, 3, 0.15); }
-.card.belief .card-icon { background: rgba(246, 83, 20, 0.15); }
+/* about.card.mission .card-icon { background: rgba(165, 165, 166, 0.15); } */
+
 
 .card h2 {
   font-family: 'DM Sans', sans-serif;
