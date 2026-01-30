@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 
@@ -34,8 +35,7 @@ import {
 
 interface FormData {
   email: string;
-  password: string;
-  confirmPassword: string;
+  gender: string;
   birthMonth: string;
   birthDate: string;
   birthYear: string;
@@ -86,10 +86,16 @@ const MONTHS: SelectOption[] = [
   { value: "12", label: "December" },
 ];
 
+const GENDER_OPTIONS: SelectOption[] = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "NON_BINARY", label: "Non-binary" },
+  { value: "PREFER_NOT_TO_SAY", label: "Prefer not to say" },
+];
+
 const INITIAL_FORM_STATE: FormData = {
   email: "",
-  password: "",
-  confirmPassword: "",
+  gender: "",
   birthMonth: "",
   birthDate: "",
   birthYear: "",
@@ -209,7 +215,8 @@ function Divider() {
 // ============================================
 
 export default function SignupPage() {
-  const { signup, isLoading, isError, error, isSuccess } = useSignup();
+  const router = useRouter();
+  const { signup, isLoading, isError, error } = useSignup();
   
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -282,16 +289,9 @@ export default function SignupPage() {
       errors.email = "Please enter a valid email address";
     }
     
-    // Password validation
-    if (!formData.password) {
-      errors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters";
-    }
-    
-    // Confirm password validation
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
+    // Gender validation
+    if (!formData.gender) {
+      errors.gender = "Please select your gender";
     }
     
     // Birthday validation
@@ -320,24 +320,28 @@ export default function SignupPage() {
     // Format date as YYYY-MM-DD
     const dob = `${formData.birthYear}-${formData.birthMonth}-${formData.birthDate}`;
     
-    // Call signup API
-    const result = await signup({
-      email: formData.email,
-      password: formData.password,
-      role: DEFAULT_ROLE,
-      dob,
-      isTermsAccepted: formData.acceptTerms,
-    });
-    
-    // Show success or error toast
-    if (result) {
-      toast.success("Registration successful! Please check your email.", { duration: 5000 });
-      // Reset form after successful signup
-      setFormData(INITIAL_FORM_STATE);
-    } else if (isError && error) {
-      toast.error(error.message || "Failed to create account. Please try again.");
+    try {
+      // Call signup API (without password - user will set later)
+      const result = await signup({
+        email: formData.email,
+        role: DEFAULT_ROLE,
+        dob,
+        isTermsAccepted: formData.acceptTerms,
+        gender: formData.gender as "MALE" | "FEMALE" | "NON_BINARY" | "PREFER_NOT_TO_SAY",
+      });
+      
+      // Handle response - only redirect if we got a result
+      if (result) {
+        toast.success("Registration successful! Please complete verification.", { duration: 3000 });
+        // Redirect to verification page with email
+        router.push(`/signup/verify?email=${encodeURIComponent(formData.email)}`);
+      }
+    } catch (err) {
+      // Error is handled by the hook's onError or shown here
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account. Please try again.";
+      toast.error(errorMessage);
     }
-  }, [formData, validateForm, signup, isError, error]);
+  }, [formData, validateForm, signup, router]);
 
   return (
     <section className="flex flex-1 items-center justify-center py-12 sm:py-16">
@@ -372,29 +376,23 @@ export default function SignupPage() {
                 error={validationErrors.email}
               />
 
-              {/* Password */}
-              <FormField
-                id="password"
-                label="Password"
-                type="password"
-                placeholder="Create a password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                error={validationErrors.password}
-              />
-
-              {/* Confirm Password */}
-              <FormField
-                id="confirmPassword"
-                label="Confirm Password"
-                type="password"
-                placeholder="Confirm your password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                error={validationErrors.confirmPassword}
-              />
+              {/* Gender */}
+              <div className="space-y-1.5">
+                <label htmlFor="gender" className="text-sm font-medium text-text-darker">
+                  Gender
+                </label>
+                <SelectField
+                  name="gender"
+                  placeholder="Select your gender"
+                  options={GENDER_OPTIONS}
+                  value={formData.gender}
+                  onChange={handleChange}
+                  required
+                />
+                {validationErrors.gender && (
+                  <p className="text-xs text-red-500 mt-1">{validationErrors.gender}</p>
+                )}
+              </div>
 
               {/* Birthday */}
               <div className="space-y-1.5">

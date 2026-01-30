@@ -43,28 +43,16 @@ export default function AnalyticsPage() {
     const handleYearChange = (year: string) => {
         const newYear = parseInt(year, 10);
         setSelectedYear(newYear);
-        
-        // If selecting current year, ensure month is not in future
-        if (newYear === currentYear && selectedMonth > currentMonth) {
-            setSelectedMonth(currentMonth);
-        }
     };
 
     const handleMonthChange = (monthIndex: number) => {
-        // For current year, only allow months up to current month
-        // For past years, allow all months
-        if (selectedYear < currentYear || monthIndex + 1 <= currentMonth) {
-            setSelectedMonth(monthIndex + 1);
-        }
+        // Allow all months to be selected
+        setSelectedMonth(monthIndex + 1);
     };
 
-    // Check if a month is disabled
-    const isMonthDisabled = (monthIndex: number) => {
-        // For current year, disable future months
-        if (selectedYear === currentYear) {
-            return monthIndex + 1 > currentMonth;
-        }
-        // For past years, all months are enabled
+    // Check if a month is disabled - now all months are enabled
+    const isMonthDisabled = (_monthIndex: number) => {
+        // All months are now enabled for viewing analytics data
         return false;
     };
 

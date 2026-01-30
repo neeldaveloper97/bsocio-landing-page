@@ -82,10 +82,10 @@ class AuthService {
         API_ENDPOINTS.AUTH.SIGNUP,
         {
           email: data.email,
-          password: data.password,
           role: data.role,
           dob: data.dob,
           isTermsAccepted: data.isTermsAccepted,
+          gender: data.gender,
         }
       );
 

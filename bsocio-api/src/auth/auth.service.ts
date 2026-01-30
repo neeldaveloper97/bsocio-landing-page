@@ -49,11 +49,6 @@ export class AuthService {
 
     const { accessToken, refreshToken } = await this.generateTokens(user);
 
-    // Send magic link asynchronously (non-blocking) - 15 minute expiry
-    this.sendMagicLinkEmail(user).catch((err) => {
-      console.error('Failed to send magic link:', err);
-    });
-
     return {
       success: true,
       accessToken,
@@ -320,8 +315,8 @@ export class AuthService {
   }
 
   /**
-   * Post-signup actions: log registration and send magic link email.
-   * Non-blocking send (errors are logged).
+   * Post-signup actions: log registration.
+   * User will receive invitation link separately (not via email).
    */
   async handleNewUserSignup(user: { id: string; email: string }) {
     await this.adminActivityService.log({
@@ -330,11 +325,8 @@ export class AuthService {
       message: `${user.email} registered via Email`,
       actorId: user.id,
     });
-
-    // fire-and-forget magic link send
-    this.sendMagicLinkEmail(user).catch((err) => {
-      console.error('Failed to send magic link after signup:', err);
-    });
+    
+    // No magic link - invitation links are shared individually with customers
   }
 
   /**

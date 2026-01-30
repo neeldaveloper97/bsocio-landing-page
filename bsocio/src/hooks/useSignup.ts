@@ -73,13 +73,15 @@ export function useSignup(options: UseSignupOptions = {}): UseSignupReturn {
     mutationFn: (data) => authService.signup(data),
     onSuccess: options.onSuccess,
     onError: options.onError,
+    retry: false, // Don't retry on error - prevents duplicate calls
   });
 
   const signup = async (signupData: SignupRequest): Promise<SignupResponse | null> => {
     try {
       return await mutation.mutateAsync(signupData);
-    } catch {
-      return null;
+    } catch (error) {
+      // Re-throw the error so the caller can handle it
+      throw error;
     }
   };
 

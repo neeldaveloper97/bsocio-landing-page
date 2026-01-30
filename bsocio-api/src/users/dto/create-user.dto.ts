@@ -1,9 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsDateString,
   IsEmail,
   IsEnum,
+  IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -13,17 +14,24 @@ export enum UserRoleDto {
   USER = 'USER',
 }
 
+export enum GenderDto {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  NON_BINARY = 'NON_BINARY',
+  PREFER_NOT_TO_SAY = 'PREFER_NOT_TO_SAY',
+}
+
 export class CreateUserDto {
   @ApiProperty({ example: 'admin@bsocio.com' })
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: 'StrongPassword123!' })
+  @ApiProperty({ example: 'StrongPassword123!', required: false })
   @IsString()
-  @MinLength(8)
-  password!: string;
+  @IsOptional()
+  password?: string;
 
-  @ApiProperty({ enum: UserRoleDto, default: UserRoleDto.ADMIN })
+  @ApiProperty({ enum: UserRoleDto, default: UserRoleDto.USER })
   @IsEnum(UserRoleDto)
   role!: UserRoleDto;
 
@@ -33,6 +41,11 @@ export class CreateUserDto {
   })
   @IsDateString()
   dob!: string;
+
+  @ApiPropertyOptional({ enum: GenderDto, example: 'MALE' })
+  @IsOptional()
+  @IsEnum(GenderDto)
+  gender?: GenderDto;
 
   @ApiProperty({ example: true })
   @IsBoolean()

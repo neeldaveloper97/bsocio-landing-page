@@ -19,12 +19,18 @@ export class UsersController {
   async create(@Body() dto: CreateUserDto) {
     const user = await this.usersService.create(dto);
 
-    // trigger post-signup actions (log + magic link email) asynchronously
+    // trigger post-signup actions (log) asynchronously
     this.authService.handleNewUserSignup(user).catch((err) => {
       console.error('Post-signup actions failed:', err);
     });
 
-    return user;
+    return {
+      success: true,
+      data: {
+        user,
+        message: 'Registration successful',
+      },
+    };
   }
 
   @Get()

@@ -14,7 +14,8 @@ export class UsersService {
     });
     if (existing) throw new BadRequestException('Email already exists');
 
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+    // Password is now optional - hash only if provided
+    const passwordHash = dto.password ? await bcrypt.hash(dto.password, 12) : null;
 
     const user = await this.prisma.user.create({
       data: {
@@ -23,9 +24,10 @@ export class UsersService {
         password: passwordHash,
         role: dto.role,
         dob: new Date(dto.dob),
+        gender: dto.gender,
         isTermsAccepted: dto.isTermsAccepted,
       },
-      select: { id: true, email: true, role: true, createdAt: true },
+      select: { id: true, email: true, role: true, gender: true, createdAt: true },
     });
 
     return user;
@@ -33,7 +35,7 @@ export class UsersService {
 
   async findAll() {
     return this.prisma.user.findMany({
-      select: { id: true, email: true, role: true, createdAt: true },
+      select: { id: true, email: true, role: true, gender: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -44,5 +46,17 @@ export class UsersService {
 
   async findById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async updatePhoneVerification(userId: string, phone: string, invitationLink: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone,
+        invitationLink,
+        isPhoneVerified: true,
+      },
+      select: { id: true, email: true, role: true, phone: true, isPhoneVerified: true },
+    });
   }
 }

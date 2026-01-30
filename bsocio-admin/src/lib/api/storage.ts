@@ -4,7 +4,7 @@
  * ============================================
  * Centralized token and user data storage management
  * 
- * Uses localStorage for persistence across page reloads
+ * Uses cookies for secure token storage
  */
 
 import type { User, LoginUser } from '@/types';
@@ -30,14 +30,60 @@ export const STORAGE_KEYS = {
 const isBrowser = typeof window !== 'undefined';
 
 /**
+ * Cookie utility functions
+ */
+const cookieUtils = {
+  /**
+   * Set a cookie
+   */
+  set(name: string, value: string, days: number = 7, secure: boolean = true): void {
+    if (!isBrowser) return;
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    const sameSite = secure ? 'Strict' : 'Lax';
+    const secureFlag = secure && location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=${sameSite}${secureFlag}`;
+  },
+
+  /**
+   * Get a cookie value
+   */
+  get(name: string): string | null {
+    if (!isBrowser) return null;
+    const nameEQ = `${name}=`;
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = cookies[i].trim();
+      if (cookie.indexOf(nameEQ) === 0) {
+        return decodeURIComponent(cookie.substring(nameEQ.length));
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Delete a cookie
+   */
+  delete(name: string): void {
+    if (!isBrowser) return;
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  },
+};
+
+/**
  * Token Storage Class
- * Manages authentication tokens and user data
- * Uses localStorage for persistence across page reloads
+ * Manages authentication tokens and user data using cookies
  */
 class TokenStorageService {
   private static instance: TokenStorageService;
+  private rememberMe: boolean = false;
 
-  private constructor() {}
+  private constructor() {
+    // Initialize rememberMe from cookie
+    if (isBrowser) {
+      this.rememberMe = cookieUtils.get(STORAGE_KEYS.REMEMBER_ME) === 'true';
+    }
+  }
 
   /**
    * Get singleton instance
@@ -50,19 +96,18 @@ class TokenStorageService {
   }
 
   /**
-   * Get storage - always use localStorage for reliability
+   * Get cookie expiration days based on remember me preference
    */
-  private getStorage(): Storage | null {
-    if (!isBrowser) return null;
-    return localStorage;
+  private getExpirationDays(): number {
+    return this.rememberMe ? 30 : 1; // 30 days if remember me, else 1 day (session-like)
   }
 
   /**
-   * Set remember me preference (kept for API compatibility)
+   * Set remember me preference
    */
   setRememberMe(remember: boolean): void {
-    if (!isBrowser) return;
-    localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, String(remember));
+    this.rememberMe = remember;
+    cookieUtils.set(STORAGE_KEYS.REMEMBER_ME, String(remember), 365, false);
   }
 
   /**
@@ -70,7 +115,9 @@ class TokenStorageService {
    */
   getRememberMe(): boolean {
     if (!isBrowser) return false;
-    return localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
+    const value = cookieUtils.get(STORAGE_KEYS.REMEMBER_ME);
+    this.rememberMe = value === 'true';
+    return this.rememberMe;
   }
 
   // ============================================
@@ -81,27 +128,21 @@ class TokenStorageService {
    * Get access token from storage
    */
   getAccessToken(): string | null {
-    const storage = this.getStorage();
-    if (!storage) return null;
-    return storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return cookieUtils.get(STORAGE_KEYS.ACCESS_TOKEN);
   }
 
   /**
    * Set access token in storage
    */
   setAccessToken(token: string): void {
-    const storage = this.getStorage();
-    if (!storage) return;
-    storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    cookieUtils.set(STORAGE_KEYS.ACCESS_TOKEN, token, this.getExpirationDays(), true);
   }
 
   /**
    * Remove access token from storage
    */
   removeAccessToken(): void {
-    if (!isBrowser) return;
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    cookieUtils.delete(STORAGE_KEYS.ACCESS_TOKEN);
   }
 
   // ============================================
@@ -112,27 +153,21 @@ class TokenStorageService {
    * Get refresh token from storage
    */
   getRefreshToken(): string | null {
-    const storage = this.getStorage();
-    if (!storage) return null;
-    return storage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    return cookieUtils.get(STORAGE_KEYS.REFRESH_TOKEN);
   }
 
   /**
    * Set refresh token in storage
    */
   setRefreshToken(token: string): void {
-    const storage = this.getStorage();
-    if (!storage) return;
-    storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+    cookieUtils.set(STORAGE_KEYS.REFRESH_TOKEN, token, this.getExpirationDays(), true);
   }
 
   /**
    * Remove refresh token from storage
    */
   removeRefreshToken(): void {
-    if (!isBrowser) return;
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    cookieUtils.delete(STORAGE_KEYS.REFRESH_TOKEN);
   }
 
   // ============================================
@@ -143,10 +178,7 @@ class TokenStorageService {
    * Get user data from storage
    */
   getUser(): StoredUser | null {
-    const storage = this.getStorage();
-    if (!storage) return null;
-    
-    const userData = storage.getItem(STORAGE_KEYS.USER);
+    const userData = cookieUtils.get(STORAGE_KEYS.USER);
     if (!userData) return null;
     
     try {
@@ -160,18 +192,14 @@ class TokenStorageService {
    * Set user data in storage
    */
   setUser(user: StoredUser): void {
-    const storage = this.getStorage();
-    if (!storage) return;
-    storage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    cookieUtils.set(STORAGE_KEYS.USER, JSON.stringify(user), this.getExpirationDays(), false);
   }
 
   /**
    * Remove user data from storage
    */
   removeUser(): void {
-    if (!isBrowser) return;
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    sessionStorage.removeItem(STORAGE_KEYS.USER);
+    cookieUtils.delete(STORAGE_KEYS.USER);
   }
 
   // ============================================
@@ -192,9 +220,8 @@ class TokenStorageService {
     this.removeAccessToken();
     this.removeRefreshToken();
     this.removeUser();
-    if (isBrowser) {
-      localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
-    }
+    cookieUtils.delete(STORAGE_KEYS.REMEMBER_ME);
+    this.rememberMe = false;
   }
 
   /**

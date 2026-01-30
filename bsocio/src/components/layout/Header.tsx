@@ -38,7 +38,7 @@ function CloseIcon() {
 const NAV_ITEMS = [
   { label: "About", href: "/about", disabled: false },
   { label: "How it works", href: "/how-it-works", disabled: false },
-  { label: "News & Media", href: "/news-media", disabled: true },
+  { label: "News & Media", href: "/news-media", disabled: false},
   { label: "Festivals", href: "/festivals", disabled: true },
   { label: "FAQs", href: "/faqs", disabled: false },
 ] as const;

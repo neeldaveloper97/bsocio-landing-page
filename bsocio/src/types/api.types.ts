@@ -67,12 +67,15 @@ export interface UserProfile {
 // Auth Request/Response Types
 // ============================================
 
+export type Gender = 'MALE' | 'FEMALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY';
+
 export interface SignupRequest {
   email: string;
-  password: string;
+  password?: string;
   role: UserRole;
   dob: string; // Format: YYYY-MM-DD
   isTermsAccepted: boolean;
+  gender?: Gender;
 }
 
 export interface SignupResponse {

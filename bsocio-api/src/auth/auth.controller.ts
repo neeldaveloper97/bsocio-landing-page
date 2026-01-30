@@ -1,5 +1,3 @@
-// bsocio-api/src/auth/auth.controller.ts
-
 import {
   Body,
   Controller,
@@ -10,6 +8,7 @@ import {
   Query,
   ForbiddenException,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import * as ejs from 'ejs';
@@ -20,6 +19,8 @@ import { AuthService } from './auth.service';
 import { LoginDto } from 'src/users/dto/login.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { VerifySignupDto } from './dto/verify-signup.dto';
+import { UsersService } from 'src/users/users.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,6 +28,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly mailService: MailService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post('login')
@@ -128,6 +130,42 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   async refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto.refreshToken);
+  }
+
+  @Post('verify-signup')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify signup with phone number and invitation link' })
+  @ApiResponse({ status: 200, description: 'Verification successful' })
+  @ApiResponse({ status: 400, description: 'Invalid phone number or invitation link' })
+  async verifySignup(@Body() dto: VerifySignupDto) {
+    // Find user by email
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) {
+      throw new BadRequestException('User not found. Please sign up first.');
+    }
+
+    // Validate invitation link format (basic validation)
+    if (!dto.invitationLink || dto.invitationLink.length < 5) {
+      throw new BadRequestException('Invalid invitation link');
+    }
+
+    // Update user with phone and invitation link
+    const updatedUser = await this.usersService.updatePhoneVerification(
+      user.id,
+      dto.phoneNumber,
+      dto.invitationLink,
+    );
+
+    return {
+      success: true,
+      message: 'Verification successful',
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        isPhoneVerified: updatedUser.isPhoneVerified,
+      },
+    };
   }
 
   @Post('google')
