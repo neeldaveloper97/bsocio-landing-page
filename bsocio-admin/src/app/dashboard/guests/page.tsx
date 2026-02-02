@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
 
 interface Guest {
     id: number;
@@ -23,6 +26,18 @@ export default function GuestsPage() {
     const [guests] = useState<Guest[]>(mockGuests);
     const [showModal, setShowModal] = useState(false);
 
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal]);
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'confirmed':
@@ -37,109 +52,98 @@ export default function GuestsPage() {
     };
 
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>Guests</h1>
-                    <p>Manage event guests and VIPs</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">Guests</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage event guests and VIPs</p>
                 </div>
-                <button className="btn-create" onClick={() => setShowModal(true)}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 4V16M4 10H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                <button className="btn-primary-responsive" onClick={() => setShowModal(true)}>
+                    <PlusIcon />
                     Add Guest
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid cols-3">
-                <div className="stat-card">
-                    <div className="stat-icon">👥</div>
-                    <div className="stat-value">156</div>
-                    <div className="stat-label">Total Guests</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">👥</div>
+                    <div className="stat-value-responsive">156</div>
+                    <div className="stat-label-responsive">Total Guests</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">124</div>
-                    <div className="stat-label">Confirmed</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">✅</div>
+                    <div className="stat-value-responsive">124</div>
+                    <div className="stat-label-responsive">Confirmed</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">⏳</div>
-                    <div className="stat-value">32</div>
-                    <div className="stat-label">Pending</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#F59E0B]">⏳</div>
+                    <div className="stat-value-responsive">32</div>
+                    <div className="stat-label-responsive">Pending</div>
                 </div>
             </div>
 
             {/* Guests Table */}
-            <div className="table-container">
-                <div className="table-header">
-                    <h2>All Guests</h2>
-                </div>
-                <div className="table-wrapper">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Guest Name</th>
-                                <th>Title</th>
-                                <th>Event</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {guests.map((guest) => (
-                                <tr key={guest.id}>
-                                    <td>{guest.name}</td>
-                                    <td>{guest.title}</td>
-                                    <td>{guest.event}</td>
-                                    <td>{guest.email}</td>
-                                    <td>{getStatusBadge(guest.status)}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button className="action-btn" title="Edit">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Delete">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <DataTable<Guest>
+                data={guests}
+                columns={[
+                    { key: 'name', header: 'Guest Name' },
+                    { key: 'title', header: 'Title' },
+                    { key: 'event', header: 'Event' },
+                    { key: 'email', header: 'Email' },
+                    { 
+                        key: 'status', 
+                        header: 'Status',
+                        render: (guest) => getStatusBadge(guest.status)
+                    },
+                    {
+                        key: 'actions',
+                        header: 'Actions',
+                        align: 'center',
+                        render: (guest) => (
+                            <div className="action-buttons">
+                                <button className="action-btn" title="Edit">
+                                    <EditIcon />
+                                </button>
+                                <button className="action-btn" title="Delete">
+                                    <DeleteIcon />
+                                </button>
+                            </div>
+                        )
+                    }
+                ] as DataTableColumn<Guest>[]}
+                keyExtractor={(guest) => guest.id}
+                title="All Guests"
+                totalCount={guests.length}
+                emptyIcon="👥"
+                emptyTitle="No guests found"
+                emptyDescription="Add your first guest to get started"
+            />
 
             {/* Add Guest Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>Add New Guest</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            {showModal && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Add New Guest</h2>
+                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828] text-2xl" onClick={() => setShowModal(false)}>×</button>
                         </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="guestName">Guest Name</label>
-                                    <input type="text" id="guestName" className="form-input" placeholder="Enter guest name" />
+                        <div className="p-6 max-sm:p-4 flex flex-col gap-4">
+                            <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="guestName" className="font-sans text-sm font-semibold text-[#374151]">Guest Name</label>
+                                    <input type="text" id="guestName" className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" placeholder="Enter guest name" />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="title">Title/Position</label>
-                                    <input type="text" id="title" className="form-input" placeholder="Enter title" />
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="title" className="font-sans text-sm font-semibold text-[#374151]">Title/Position</label>
+                                    <input type="text" id="title" className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" placeholder="Enter title" />
                                 </div>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="event">Event</label>
-                                    <select id="event" className="form-select">
+                            <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="event" className="font-sans text-sm font-semibold text-[#374151]">Event</label>
+                                    <select id="event" className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10">
                                         <option value="">Select event</option>
                                         <option value="1">Annual Cultural Festival</option>
                                         <option value="2">Community Leadership Summit</option>
@@ -147,22 +151,23 @@ export default function GuestsPage() {
                                         <option value="4">Heritage Month Gala</option>
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="email">Email</label>
-                                    <input type="email" id="email" className="form-input" placeholder="Enter email" />
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="email" className="font-sans text-sm font-semibold text-[#374151]">Email</label>
+                                    <input type="email" id="email" className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" placeholder="Enter email" />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="notes">Notes</label>
-                                <textarea id="notes" className="form-textarea" placeholder="Additional notes..." rows={3}></textarea>
+                            <div className="flex flex-col gap-2">
+                                <label htmlFor="notes" className="font-sans text-sm font-semibold text-[#374151]">Notes</label>
+                                <textarea id="notes" className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-none" placeholder="Additional notes..." rows={3}></textarea>
                             </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                                <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button className="btn-primary">Add Guest</button>
+                            <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-2">
+                                <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={() => setShowModal(false)}>Cancel</button>
+                                <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8]">Add Guest</button>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

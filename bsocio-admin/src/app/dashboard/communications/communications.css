@@ -198,10 +198,13 @@
 
     .modal-body {
         max-height: calc(100vh - 120px);
+        gap: 16px;
+        padding: 20px 16px;
     }
 
     .modal-actions {
         flex-direction: column;
+        gap: 10px;
     }
 
     .modal-actions button,
@@ -236,5 +239,57 @@
 
     .table-pagination {
         flex-wrap: wrap;
+    }
+
+    .reason-badge {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 640px) {
+    .modal-body {
+        gap: 12px;
+        padding: 16px 12px;
+    }
+
+    .modal-actions {
+        gap: 8px;
+        padding-top: 12px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+    }
+
+    .detail-value {
+        font-size: 12px;
+    }
+
+    .message-content {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .table-count {
+        font-size: 12px;
+    }
+
+    .pagination-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .pagination-info {
+        font-size: 12px;
+    }
+
+    .table-filters {
+        gap: 8px;
+    }
+
+    .reason-badge {
+        padding: 2px 6px;
+        font-size: 10px;
     }
 }

@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import "./page.css";
 import PrivacyContent from "./PrivacyContent";
 
 export const metadata: Metadata = {

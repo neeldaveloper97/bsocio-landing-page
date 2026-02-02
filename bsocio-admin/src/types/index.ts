@@ -478,3 +478,66 @@ export interface ContactInquiryListResponse {
   skip: number;
   take: number;
 }
+
+// ============================================
+// Event Types
+// ============================================
+
+export type EventStatus = 'DRAFT' | 'PUBLISHED';
+export type EventVisibility = 'PUBLIC' | 'PRIVATE';
+export type EventState = 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+
+export interface Event {
+  id: string;
+  title: string;
+  eventDate: string;
+  eventTime?: string;
+  venue: string;
+  maxAttendees?: number;
+  currentAttendees: number;
+  imageUrl?: string;
+  description?: string;
+  status: EventStatus;
+  visibility: EventVisibility;
+  state: EventState;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventRequest {
+  title: string;
+  eventDate: string;
+  eventTime?: string;
+  venue: string;
+  maxAttendees?: number;
+  imageUrl?: string;
+  description?: string;
+  status?: EventStatus;
+  visibility?: EventVisibility;
+}
+
+export interface UpdateEventRequest {
+  title?: string;
+  eventDate?: string;
+  eventTime?: string;
+  venue?: string;
+  maxAttendees?: number;
+  imageUrl?: string;
+  description?: string;
+  status?: EventStatus;
+  visibility?: EventVisibility;
+}
+
+export interface EventFilters {
+  filter?: 'upcoming' | 'past' | 'all';
+  status?: EventStatus;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface EventStatistics {
+  upcomingEvents: number;
+  pastEvents: number;
+  totalAttendees: number;
+}
+

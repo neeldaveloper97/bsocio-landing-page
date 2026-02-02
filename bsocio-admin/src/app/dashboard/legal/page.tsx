@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLegal } from '@/hooks';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { LegalDocumentType, LegalDocumentState, LegalDocument } from '@/types';
-import './legal.css';
+import { cn } from '@/lib/utils';
 
 /**
  * Format date string for display
@@ -114,10 +114,10 @@ export default function LegalPage() {
 
     if (isLoading) {
         return (
-            <div className="legal-page">
-                <div className="legal-loading">
-                    <div className="legal-loading-spinner"></div>
-                    <p>Loading documents...</p>
+            <div className="flex flex-col gap-6 w-full max-w-full">
+                <div className="flex flex-col items-center justify-center min-h-100 gap-4">
+                    <div className="w-10 h-10 border-[3px] border-[#E5E7EB] border-t-[#2563EB] rounded-full animate-spin"></div>
+                    <p className="text-[#6B7280] text-sm">Loading documents...</p>
                 </div>
             </div>
         );
@@ -126,34 +126,40 @@ export default function LegalPage() {
     // Show error state with retry button
     if (hasError && !currentDoc) {
         return (
-            <div className="legal-page">
+            <div className="flex flex-col gap-6 w-full max-w-full">
                 {/* Tabs */}
-                <div className="legal-tabs">
+                <div className="flex gap-0 border-b border-[#E5E7EB] bg-transparent">
                     <button
-                        className={`legal-tab ${activeTab === 'PRIVACY_POLICY' ? 'active' : ''}`}
+                        className={cn(
+                            "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB]",
+                            activeTab === 'PRIVACY_POLICY' && "text-[#2563EB] border-b-[#2563EB] font-semibold"
+                        )}
                         onClick={() => setActiveTab('PRIVACY_POLICY')}
                     >
                         Privacy Policy
                     </button>
                     <button
-                        className={`legal-tab ${activeTab === 'TERMS_OF_USE' ? 'active' : ''}`}
+                        className={cn(
+                            "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB]",
+                            activeTab === 'TERMS_OF_USE' && "text-[#2563EB] border-b-[#2563EB] font-semibold"
+                        )}
                         onClick={() => setActiveTab('TERMS_OF_USE')}
                     >
                         Terms of Use
                     </button>
                 </div>
 
-                <div className="legal-error">
-                    <div className="legal-error-icon">
+                <div className="flex flex-col items-center justify-center min-h-100 gap-4 bg-white border border-[#E5E7EB] rounded-xl py-12 px-6 text-center">
+                    <div>
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
                     </div>
-                    <h3>Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
-                    <p>There was an error loading the document. Please check your connection and try again.</p>
-                    <button className="legal-btn legal-btn-publish" onClick={handleRetry}>
+                    <h3 className="font-sans text-xl font-bold text-[#101828] m-0">Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
+                    <p className="font-sans text-sm text-[#6B7280] m-0 max-w-100">There was an error loading the document. Please check your connection and try again.</p>
+                    <button className="inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#2563EB] text-white hover:bg-[#1D4ED8]" onClick={handleRetry}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="23 4 23 10 17 10"></polyline>
                             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
@@ -166,17 +172,31 @@ export default function LegalPage() {
     }
 
     return (
-        <div className="legal-page">
+        <div className="page-content">
+            {/* Page Header */}
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">Legal Documents</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage privacy policy and terms of use</p>
+                </div>
+            </div>
+
             {/* Tabs */}
-            <div className="legal-tabs">
+            <div className="flex gap-1 border-b border-[#E5E7EB] bg-transparent">
                 <button
-                    className={`legal-tab ${activeTab === 'PRIVACY_POLICY' ? 'active' : ''}`}
+                    className={cn(
+                        "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
+                        activeTab === 'PRIVACY_POLICY' && "text-[#2563EB] border-b-[#2563EB] font-semibold bg-[#EFF6FF]"
+                    )}
                     onClick={() => setActiveTab('PRIVACY_POLICY')}
                 >
                     Privacy Policy
                 </button>
                 <button
-                    className={`legal-tab ${activeTab === 'TERMS_OF_USE' ? 'active' : ''}`}
+                    className={cn(
+                        "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
+                        activeTab === 'TERMS_OF_USE' && "text-[#2563EB] border-b-[#2563EB] font-semibold bg-[#EFF6FF]"
+                    )}
                     onClick={() => setActiveTab('TERMS_OF_USE')}
                 >
                     Terms of Use
@@ -184,12 +204,12 @@ export default function LegalPage() {
             </div>
 
             {/* Edit Content Section */}
-            <div className="legal-edit-section">
-                <div className="legal-edit-header">
-                    <h2>Edit Content</h2>
-                    <div className="legal-edit-actions">
+            <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
+                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+                    <h2 className="font-sans text-xl font-bold text-[#101828] m-0">Edit Content</h2>
+                    <div className="flex gap-3 flex-wrap">
                         <button 
-                            className="legal-btn legal-btn-preview"
+                            className="inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border border-[#2563EB] cursor-pointer transition-all duration-200 bg-white text-[#2563EB] hover:bg-[#EFF6FF]"
                             onClick={() => setShowPreview(!showPreview)}
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -199,7 +219,10 @@ export default function LegalPage() {
                             Preview
                         </button>
                         <button 
-                            className="legal-btn legal-btn-save"
+                            className={cn(
+                                "inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#84CC16] text-white hover:bg-[#65A30D]",
+                                isSaving && "opacity-60 cursor-not-allowed"
+                            )}
                             onClick={() => handleSave('DRAFT')}
                             disabled={isSaving}
                         >
@@ -211,7 +234,10 @@ export default function LegalPage() {
                             Save
                         </button>
                         <button 
-                            className="legal-btn legal-btn-publish"
+                            className={cn(
+                                "inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#2563EB] text-white hover:bg-[#1D4ED8]",
+                                isSaving && "opacity-60 cursor-not-allowed"
+                            )}
                             onClick={() => handleSave('PUBLISHED')}
                             disabled={isSaving}
                         >
@@ -227,14 +253,14 @@ export default function LegalPage() {
                     </div>
                 </div>
 
-                <div className="legal-form">
+                <div className="grid grid-cols-2 max-md:grid-cols-1 gap-5">
                     {/* Policy Title */}
-                    <div className="legal-form-group">
-                        <label htmlFor="policyTitle">Policy Title</label>
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="policyTitle" className="font-sans text-sm font-semibold text-[#374151]">Policy Title</label>
                         <input
                             type="text"
                             id="policyTitle"
-                            className="legal-input"
+                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full box-border focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                             placeholder="Enter policy title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
@@ -242,24 +268,24 @@ export default function LegalPage() {
                     </div>
 
                     {/* Effective Date */}
-                    <div className="legal-form-group">
-                        <label htmlFor="effectiveDate">Effective Date</label>
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="effectiveDate" className="font-sans text-sm font-semibold text-[#374151]">Effective Date</label>
                         <input
                             type="date"
                             id="effectiveDate"
-                            className="legal-input legal-date-input"
+                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full box-border focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                             value={effectiveDate}
                             onChange={(e) => setEffectiveDate(e.target.value)}
                         />
                     </div>
 
                     {/* Content Editor */}
-                    <div className="legal-form-group legal-form-group-full">
-                        <label>{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
+                    <div className="flex flex-col gap-2 col-span-full">
+                        <label className="font-sans text-sm font-semibold text-[#374151]">{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
                         {showPreview ? (
-                            <div className="legal-preview">
+                            <div className="min-h-80 p-6 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg overflow-auto">
                                 <div 
-                                    className="legal-preview-content"
+                                    className="font-sans text-sm text-[#374151] leading-relaxed"
                                     dangerouslySetInnerHTML={{ __html: content }}
                                 />
                             </div>
@@ -273,12 +299,12 @@ export default function LegalPage() {
                     </div>
 
                     {/* Version Notes */}
-                    <div className="legal-form-group legal-form-group-full">
-                        <label htmlFor="versionNotes">Version Notes</label>
+                    <div className="flex flex-col gap-2 col-span-full">
+                        <label htmlFor="versionNotes" className="font-sans text-sm font-semibold text-[#374151]">Version Notes</label>
                         <input
                             type="text"
                             id="versionNotes"
-                            className="legal-input"
+                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full box-border focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                             placeholder="Describe what changed in this version"
                             value={versionNotes}
                             onChange={(e) => setVersionNotes(e.target.value)}
@@ -288,39 +314,42 @@ export default function LegalPage() {
             </div>
 
             {/* Version Control Section */}
-            <div className="legal-version-section">
-                <div className="legal-version-header">
-                    <h2>Version Control</h2>
-                    <p>View current version of the {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</p>
+            <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
+                <div className="mb-6">
+                    <h2 className="font-sans text-xl font-bold text-[#101828] m-0 mb-2">Version Control</h2>
+                    <p className="font-sans text-sm text-[#6B7280] m-0">View current version of the {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</p>
                 </div>
 
-                <div className="legal-version-table-wrapper">
-                    <table className="legal-version-table">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th>Version</th>
-                                <th>Last Updated</th>
-                                <th>Effective Date</th>
-                                <th>Status</th>
-                                <th>Changes</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Version</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Last Updated</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Effective Date</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Status</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Changes</th>
                             </tr>
                         </thead>
                         <tbody>
                             {versionInfo ? (
                                 <tr>
-                                    <td className="legal-version-number">{versionInfo.version}</td>
-                                    <td>{versionInfo.date}</td>
-                                    <td>{versionInfo.effectiveDate}</td>
-                                    <td>
-                                        <span className={`legal-status-badge ${versionInfo.status === 'Current' ? 'legal-status-current' : 'legal-status-draft'}`}>
+                                    <td className="px-4 py-4 font-sans text-sm border-b border-[#E5E7EB] font-semibold text-[#111827]">{versionInfo.version}</td>
+                                    <td className="px-4 py-4 font-sans text-sm text-[#374151] border-b border-[#E5E7EB]">{versionInfo.date}</td>
+                                    <td className="px-4 py-4 font-sans text-sm text-[#374151] border-b border-[#E5E7EB]">{versionInfo.effectiveDate}</td>
+                                    <td className="px-4 py-4 font-sans text-sm text-[#374151] border-b border-[#E5E7EB]">
+                                        <span className={cn(
+                                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                                            versionInfo.status === 'Current' ? "bg-[#DCFCE7] text-[#166534]" : "bg-[#FEF3C7] text-[#92400E]"
+                                        )}>
                                             {versionInfo.status}
                                         </span>
                                     </td>
-                                    <td>{versionInfo.changes}</td>
+                                    <td className="px-4 py-4 font-sans text-sm text-[#374151] border-b border-[#E5E7EB]">{versionInfo.changes}</td>
                                 </tr>
                             ) : (
                                 <tr>
-                                    <td colSpan={5} style={{ textAlign: 'center', color: '#6B7280' }}>
+                                    <td colSpan={5} className="px-4 py-4 font-sans text-sm text-[#6B7280] border-b border-[#E5E7EB] text-center">
                                         No document found. Create a new {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} above.
                                     </td>
                                 </tr>

@@ -9,3 +9,4 @@ export { default as DashboardLayout } from './DashboardLayout';
 
 // UI Components
 export * from './ui/admin-icons';
+export * from './ui/data-table';

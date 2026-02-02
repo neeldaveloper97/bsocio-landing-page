@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useContacts } from '@/hooks';
 import { ViewIcon } from '@/components/ui/admin-icons';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import type { ContactInquiry, ContactStatus, ContactReason } from '@/types';
 import './communications.css';
 
@@ -21,6 +22,18 @@ export default function CommunicationsPage() {
     const [selectedInquiry, setSelectedInquiry] = useState<ContactInquiry | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const pageSize = 20;
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showDetailModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showDetailModal]);
 
     // Hooks
     const { data: contactsData, isLoading } = useContacts({
@@ -149,164 +162,146 @@ export default function CommunicationsPage() {
     }
 
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>Communications</h1>
-                    <p>Manage contact inquiries and messages from users</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">Communications</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage contact inquiries and messages from users</p>
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">✉️</div>
-                    <div className="stat-value">{total}</div>
-                    <div className="stat-label">Total Inquiries</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">✉️</div>
+                    <div className="stat-value-responsive">{total}</div>
+                    <div className="stat-label-responsive">Total Inquiries</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-red">🔴</div>
-                    <div className="stat-value">{newCount}</div>
-                    <div className="stat-label">New</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#EF4444]">🔴</div>
+                    <div className="stat-value-responsive">{newCount}</div>
+                    <div className="stat-label-responsive">New</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">⏳</div>
-                    <div className="stat-value">{inProgressCount}</div>
-                    <div className="stat-label">In Progress</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#F59E0B]">⏳</div>
+                    <div className="stat-value-responsive">{inProgressCount}</div>
+                    <div className="stat-label-responsive">In Progress</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">{resolvedCount}</div>
-                    <div className="stat-label">Resolved</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">✅</div>
+                    <div className="stat-value-responsive">{resolvedCount}</div>
+                    <div className="stat-label-responsive">Resolved</div>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="table-filters" style={{ marginBottom: '16px' }}>
-                <select
-                    value={statusFilter}
-                    onChange={(e) => {
-                        setStatusFilter(e.target.value as ContactStatus | '');
-                        setCurrentPage(0);
-                    }}
-                    className="form-select"
-                    style={{ maxWidth: '180px' }}
-                >
-                    <option value="">All Statuses</option>
-                    <option value="NEW">New</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                </select>
-                <select
-                    value={reasonFilter}
-                    onChange={(e) => {
-                        setReasonFilter(e.target.value as ContactReason | '');
-                        setCurrentPage(0);
-                    }}
-                    className="form-select"
-                    style={{ maxWidth: '180px' }}
-                >
-                    <option value="">All Reasons</option>
-                    <option value="MEDIA_PRESS">Media/Press</option>
-                    <option value="PARTNERSHIPS">Partnerships</option>
-                    <option value="REPORT_SCAM">Report Scam</option>
-                    <option value="GENERAL_INQUIRY">General Inquiry</option>
-                </select>
-            </div>
-
-            {/* Contact Inquiries Table */}
-            <div className="table-container">
-                <div className="table-header">
-                    <h2>Contact Inquiries</h2>
-                    <span className="table-count">{total} total</span>
-                </div>
-                <div className="table-wrapper">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Reason</th>
-                                <th>Country</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {contacts && contacts.length > 0 ? (
-                                contacts.map((inquiry: ContactInquiry) => (
-                                    <tr key={inquiry.id}>
-                                        <td style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}>
-                                            {inquiry.fullName}
-                                        </td>
-                                        <td>{inquiry.email}</td>
-                                        <td>{getReasonBadge(inquiry.reason)}</td>
-                                        <td>{inquiry.country}</td>
-                                        <td>{getStatusBadge(inquiry.status)}</td>
-                                        <td>{formatDate(inquiry.createdAt)}</td>
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button 
-                                                    className="action-btn" 
-                                                    title="View Details"
-                                                    onClick={() => handleViewDetails(inquiry)}
-                                                >
-                                                    <ViewIcon />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={7} style={{ textAlign: 'center', padding: '48px 24px', color: '#6b7280' }}>
-                                        <div className="empty-state">
-                                            <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>✉️</span>
-                                            <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No inquiries found</h3>
-                                            <p style={{ margin: 0 }}>No contact inquiries match your filters</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="table-pagination">
-                        <button
-                            className="pagination-btn"
-                            disabled={currentPage === 0}
-                            onClick={() => setCurrentPage(p => p - 1)}
+            {/* Contact Inquiries Table - Using DataTable Component */}
+            <DataTable<ContactInquiry>
+                data={contacts || []}
+                columns={[
+                    {
+                        key: 'fullName',
+                        header: 'Name',
+                        render: (inquiry) => (
+                            <span style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}>
+                                {inquiry.fullName}
+                            </span>
+                        ),
+                    },
+                    {
+                        key: 'email',
+                        header: 'Email',
+                        render: (inquiry) => inquiry.email,
+                    },
+                    {
+                        key: 'reason',
+                        header: 'Reason',
+                        render: (inquiry) => getReasonBadge(inquiry.reason),
+                    },
+                    {
+                        key: 'country',
+                        header: 'Country',
+                        render: (inquiry) => inquiry.country,
+                    },
+                    {
+                        key: 'status',
+                        header: 'Status',
+                        render: (inquiry) => getStatusBadge(inquiry.status),
+                    },
+                    {
+                        key: 'createdAt',
+                        header: 'Date',
+                        render: (inquiry) => formatDate(inquiry.createdAt),
+                    },
+                    {
+                        key: 'actions',
+                        header: 'Actions',
+                        render: (inquiry) => (
+                            <div className="action-buttons">
+                                <button 
+                                    className="action-btn" 
+                                    title="View Details"
+                                    onClick={() => handleViewDetails(inquiry)}
+                                >
+                                    <ViewIcon />
+                                </button>
+                            </div>
+                        ),
+                    },
+                ]}
+                keyExtractor={(inquiry) => inquiry.id}
+                title="Contact Inquiries"
+                totalCount={total}
+                headerActions={
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value as ContactStatus | '');
+                                setCurrentPage(0);
+                            }}
+                            className="form-select"
+                            style={{ maxWidth: '180px' }}
                         >
-                            Previous
-                        </button>
-                        <span className="pagination-info">
-                            Page {currentPage + 1} of {totalPages}
-                        </span>
-                        <button
-                            className="pagination-btn"
-                            disabled={currentPage >= totalPages - 1}
-                            onClick={() => setCurrentPage(p => p + 1)}
+                            <option value="">All Statuses</option>
+                            <option value="NEW">New</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="RESOLVED">Resolved</option>
+                        </select>
+                        <select
+                            value={reasonFilter}
+                            onChange={(e) => {
+                                setReasonFilter(e.target.value as ContactReason | '');
+                                setCurrentPage(0);
+                            }}
+                            className="form-select"
+                            style={{ maxWidth: '180px' }}
                         >
-                            Next
-                        </button>
+                            <option value="">All Reasons</option>
+                            <option value="MEDIA_PRESS">Media/Press</option>
+                            <option value="PARTNERSHIPS">Partnerships</option>
+                            <option value="REPORT_SCAM">Report Scam</option>
+                            <option value="GENERAL_INQUIRY">General Inquiry</option>
+                        </select>
                     </div>
-                )}
-            </div>
+                }
+                emptyIcon="✉️"
+                emptyTitle="No inquiries found"
+                emptyDescription="No contact inquiries match your filters"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
             {/* Detail Modal */}
             {showDetailModal && selectedInquiry && typeof window !== 'undefined' && createPortal(
-                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
-                    <div className="modal-dialog modal-md">
-                        <div className="modal-header">
-                            <h2>Inquiry Details</h2>
-                            <button className="modal-close" onClick={closeDetailModal}>×</button>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
+                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Inquiry Details</h2>
+                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828] text-2xl" onClick={closeDetailModal}>×</button>
                         </div>
-                        <div className="modal-body">
+                        <div className="p-6 max-sm:p-4">
                             <div className="inquiry-detail">
                                 <div className="detail-row">
                                     <span className="detail-label">Name</span>
@@ -347,14 +342,13 @@ export default function CommunicationsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="modal-actions">
-                                <button className="btn-secondary" onClick={closeDetailModal}>
+                            <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-4">
+                                <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeDetailModal}>
                                     Close
                                 </button>
                                 <a 
                                     href={`mailto:${selectedInquiry.email}?subject=Re: ${REASON_LABELS[selectedInquiry.reason]}`}
-                                    className="btn-primary"
-                                    style={{ textDecoration: 'none' }}
+                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] no-underline"
                                 >
                                     Reply via Email
                                 </a>

@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import "./page.css";
 import TermsContent from "./TermsContent";
 
 export const metadata: Metadata = {

@@ -87,7 +87,7 @@ export default function CtaImpactSection() {
       )}
       aria-labelledby="cta-heading"
     >
-      <div className="container-site">
+      <div className="mx-auto max-w-[1200px] w-full px-4 sm:px-6 lg:px-8">
         <div
           className={cn(
             "mx-auto max-w-4xl",

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusIcon, EditIcon, DeleteIcon, LockIcon } from '@/components/ui/admin-icons';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 
 interface User {
     id: number;
@@ -22,6 +23,19 @@ const mockUsers: User[] = [
 ];
 
 const PAGE_SIZE = 10;
+
+const getStatusBadge = (status: string) => {
+    switch (status) {
+        case 'active':
+            return <span className="status-badge status-active">Active</span>;
+        case 'inactive':
+            return <span className="status-badge status-archived">Inactive</span>;
+        case 'suspended':
+            return <span className="status-badge status-draft">Suspended</span>;
+        default:
+            return null;
+    }
+};
 
 export default function UsersPage() {
     const [users] = useState<User[]>(mockUsers);
@@ -47,136 +61,106 @@ export default function UsersPage() {
         return users.slice(start, start + PAGE_SIZE);
     }, [users, currentPage]);
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'active':
-                return <span className="status-badge status-active">Active</span>;
-            case 'inactive':
-                return <span className="status-badge status-archived">Inactive</span>;
-            case 'suspended':
-                return <span className="status-badge status-draft">Suspended</span>;
-            default:
-                return null;
-        }
-    };
+    // Define table columns
+    const columns: DataTableColumn<User>[] = useMemo(() => [
+        {
+            key: 'name',
+            header: 'Name',
+            render: (user) => user.name,
+        },
+        {
+            key: 'email',
+            header: 'Email',
+            render: (user) => user.email,
+        },
+        {
+            key: 'role',
+            header: 'Role',
+            render: (user) => user.role,
+        },
+        {
+            key: 'lastLogin',
+            header: 'Last Login',
+            render: (user) => user.lastLogin,
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            align: 'center',
+            render: (user) => getStatusBadge(user.status),
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'center',
+            render: () => (
+                <div className="action-buttons" style={{ justifyContent: 'center' }}>
+                    <button className="action-btn" title="Edit">
+                        <EditIcon />
+                    </button>
+                    <button className="action-btn" title="Reset Password">
+                        <LockIcon />
+                    </button>
+                    <button className="action-btn" title="Delete">
+                        <DeleteIcon />
+                    </button>
+                </div>
+            ),
+        },
+    ], []);
 
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>User & System</h1>
-                    <p>Manage admin users and system settings</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">User & System</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage admin users and system settings</p>
                 </div>
-                <button className="btn-create" onClick={() => setShowModal(true)}>
+                <button className="btn-primary-responsive" onClick={() => setShowModal(true)}>
                     <PlusIcon />
                     Add User
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">👤</div>
-                    <div className="stat-value">15</div>
-                    <div className="stat-label">Admin Users</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">👤</div>
+                    <div className="stat-value-responsive">15</div>
+                    <div className="stat-label-responsive">Admin Users</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">12</div>
-                    <div className="stat-label">Active</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">✅</div>
+                    <div className="stat-value-responsive">12</div>
+                    <div className="stat-label-responsive">Active</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">🔐</div>
-                    <div className="stat-value">5</div>
-                    <div className="stat-label">Roles</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">🔐</div>
+                    <div className="stat-value-responsive">5</div>
+                    <div className="stat-label-responsive">Roles</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-red">⚙️</div>
-                    <div className="stat-value">v2.5</div>
-                    <div className="stat-label">System Version</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#EF4444]">⚙️</div>
+                    <div className="stat-value-responsive">v2.5</div>
+                    <div className="stat-label-responsive">System Version</div>
                 </div>
             </div>
 
-            {/* Users Table */}
-            <div className="table-container">
-                <div className="table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2>Admin Users</h2>
-                    <span style={{ fontSize: '14px', color: '#6B7280' }}>{users.length} total</span>
-                </div>
-                <div className="table-wrapper">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Last Login</th>
-                                <th style={{ textAlign: 'center' }}>Status</th>
-                                <th style={{ textAlign: 'center' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedUsers.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} style={{ textAlign: 'center', padding: '48px 24px' }}>
-                                        <div className="empty-state">
-                                            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>👤</span>
-                                            <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No users found</h3>
-                                            <p style={{ margin: 0, color: '#6B7280' }}>Add your first admin user</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginatedUsers.map((user) => (
-                                    <tr key={user.id}>
-                                        <td data-label="Name">{user.name}</td>
-                                        <td data-label="Email">{user.email}</td>
-                                        <td data-label="Role">{user.role}</td>
-                                        <td data-label="Last Login">{user.lastLogin}</td>
-                                        <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(user.status)}</td>
-                                        <td data-label="Actions" style={{ textAlign: 'center' }}>
-                                            <div className="action-buttons" style={{ justifyContent: 'center' }}>
-                                                <button className="action-btn" title="Edit">
-                                                    <EditIcon />
-                                                </button>
-                                                <button className="action-btn" title="Reset Password">
-                                                    <LockIcon />
-                                                </button>
-                                                <button className="action-btn" title="Delete">
-                                                    <DeleteIcon />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="table-pagination">
-                        <button
-                            className="pagination-btn"
-                            disabled={currentPage === 0}
-                            onClick={() => setCurrentPage(p => p - 1)}
-                        >
-                            Previous
-                        </button>
-                        <span className="pagination-info">
-                            Page {currentPage + 1} of {totalPages}
-                        </span>
-                        <button
-                            className="pagination-btn"
-                            disabled={currentPage >= totalPages - 1}
-                            onClick={() => setCurrentPage(p => p + 1)}
-                        >
-                            Next
-                        </button>
-                    </div>
-                )}
-            </div>
+            {/* Users Table - Using DataTable Component */}
+            <DataTable<User>
+                data={paginatedUsers}
+                columns={columns}
+                keyExtractor={(user) => user.id}
+                title="Admin Users"
+                totalCount={users.length}
+                emptyIcon="👤"
+                emptyTitle="No users found"
+                emptyDescription="Add your first admin user"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
             {/* System Settings Section */}
             <div className="table-container">

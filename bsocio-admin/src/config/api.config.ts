@@ -91,4 +91,11 @@ export const API_ENDPOINTS = {
     BASE: '/contact',
     BY_ID: (id: string) => `/contact/${id}`,
   },
+
+  // Events Management
+  EVENTS: {
+    BASE: '/admin-dashboard/events',
+    BY_ID: (id: string) => `/admin-dashboard/events/${id}`,
+    STATISTICS: '/admin-dashboard/events/statistics',
+  },
 } as const;

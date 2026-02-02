@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { getErrorMessage } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
     const router = useRouter();
     const { isAuthenticated, isInitialized } = useAuth();
     const { login, isLoading, error: loginError } = useLogin({
         onSuccess: () => {
-            // Use router.push for client-side navigation (no full reload)
             router.push('/dashboard');
         },
     });
@@ -19,7 +19,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [tfaCode, setTfaCode] = useState('');
-    const [rememberMe, setRememberMe] = useState(true); // Default to true for better UX
+    const [rememberMe, setRememberMe] = useState(true);
     const [showTfa, setShowTfa] = useState(false);
     const [error, setError] = useState('');
 
@@ -35,8 +35,6 @@ export default function LoginPage() {
         setError('');
 
         try {
-            // For now, skip 2FA and go directly to login
-            // If 2FA is implemented in backend, handle it here
             if (!showTfa) {
                 const result = await login(
                     { email, password },
@@ -44,48 +42,61 @@ export default function LoginPage() {
                 );
 
                 if (!result) {
-                    // Error is handled by useLogin hook
                     setError(loginError ? getErrorMessage(loginError) : 'Invalid credentials');
                 }
                 return;
             }
-
-            // Handle 2FA verification if needed in the future
-            // For now, this code path is not used
-        } catch (err) {
+        } catch {
             setError('An error occurred. Please try again.');
         }
     };
 
+    const inputStyles = cn(
+        "w-full h-11.5 px-4 py-2.5",
+        "border border-[#D1D5DC] rounded-xl",
+        "font-sans text-base leading-4.5 text-[#0A0A0A]",
+        "placeholder:text-[#0A0A0A]/50",
+        "focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/10",
+        "transition-all duration-200"
+    );
+
     return (
-        <div className="login-screen">
-            <div className="login-container">
+        <div className="min-h-screen flex flex-col justify-center items-center p-8 gap-8 bg-[#F3F4F6]">
+            <div className="flex flex-col items-start gap-8 w-full max-w-125">
                 {/* Header */}
-                <div className="login-header">
-                    <div className="bsocio-logo-wrapper">
-                        <span className="bsocio-logo" style={{ fontSize: '32px' }}>
-                            <span className="b">B</span>socio<span className="dot"></span>
+                <div className="flex flex-col items-start gap-2 w-full">
+                    <div className="flex justify-center items-center w-full">
+                        <span className="font-bold text-3xl leading-9">
+                            <span className="text-primary">B</span>
+                            <span className="text-[#1A1A1A]">socio</span>
+                            <span className="inline-block w-2 h-2 bg-accent rounded-full ml-0.5" />
                         </span>
                     </div>
-                    <p className="subtitle">Admin Dashboard</p>
+                    <p className="font-normal text-base leading-6 text-center text-[#4A5565] w-full">
+                        Admin Dashboard
+                    </p>
                 </div>
 
                 {/* Login Card */}
-                <div className="login-card">
-                    <h2>{showTfa ? 'Two-Factor Authentication' : 'Sign In'}</h2>
+                <div className="flex flex-col items-start p-8 gap-6 w-full bg-white shadow-md rounded-xl">
+                    <h2 className="font-bold text-2xl leading-8 text-[#101828] w-full">
+                        {showTfa ? 'Two-Factor Authentication' : 'Sign In'}
+                    </h2>
 
                     {error && (
-                        <div className="error-message">
+                        <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                             {error}
                         </div>
                     )}
 
-                    <form className="login-form" onSubmit={handleSubmit}>
+                    <form className="flex flex-col items-end gap-4.5 w-full" onSubmit={handleSubmit}>
                         {!showTfa ? (
                             <>
                                 {/* Email Field */}
-                                <div className="form-group">
-                                    <label htmlFor="email">Email Address</label>
+                                <div className="flex flex-col items-start gap-2 w-full">
+                                    <label htmlFor="email" className="font-bold text-sm leading-5 text-[#364153] w-full">
+                                        Email Address
+                                    </label>
                                     <input
                                         type="email"
                                         id="email"
@@ -93,12 +104,15 @@ export default function LoginPage() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter your email"
                                         required
+                                        className={inputStyles}
                                     />
                                 </div>
 
                                 {/* Password Field */}
-                                <div className="form-group">
-                                    <label htmlFor="password">Password</label>
+                                <div className="flex flex-col items-start gap-2 w-full">
+                                    <label htmlFor="password" className="font-bold text-sm leading-5 text-[#364153] w-full">
+                                        Password
+                                    </label>
                                     <input
                                         type="password"
                                         id="password"
@@ -106,30 +120,39 @@ export default function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Enter your password"
                                         required
+                                        className={inputStyles}
                                     />
                                 </div>
 
                                 {/* Remember Me */}
-                                <div className="checkbox-group">
+                                <div className="flex flex-row items-center gap-2 w-full">
                                     <input
                                         type="checkbox"
                                         id="rememberMe"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}
+                                        className="w-4 h-4 border border-[#D1D5DC] rounded-sm cursor-pointer shrink-0"
                                     />
-                                    <label htmlFor="rememberMe">Remember me</label>
+                                    <label htmlFor="rememberMe" className="font-normal text-sm leading-5 text-[#364153] cursor-pointer m-0">
+                                        Remember me
+                                    </label>
                                 </div>
 
                                 {/* Forgot Password */}
-                                <a href="#" className="password-reset">
+                                <a 
+                                    href="#" 
+                                    className="font-bold text-sm leading-5 text-right text-primary no-underline w-full block hover:underline"
+                                >
                                     Forgot password?
                                 </a>
                             </>
                         ) : (
                             <>
                                 {/* 2FA Code Field */}
-                                <div className="form-group tfa-code active">
-                                    <label htmlFor="tfaCode">Authentication Code</label>
+                                <div className="flex flex-col items-start gap-2 w-full">
+                                    <label htmlFor="tfaCode" className="font-bold text-sm leading-5 text-[#364153] w-full">
+                                        Authentication Code
+                                    </label>
                                     <input
                                         type="text"
                                         id="tfaCode"
@@ -138,10 +161,11 @@ export default function LoginPage() {
                                         placeholder="Enter 6-digit code"
                                         maxLength={6}
                                         required
+                                        className={inputStyles}
                                     />
                                 </div>
 
-                                <p style={{ fontSize: '14px', color: '#6A7282', textAlign: 'center', width: '100%' }}>
+                                <p className="text-sm text-[#6A7282] text-center w-full">
                                     Enter the code from your authenticator app
                                 </p>
                             </>
@@ -150,7 +174,13 @@ export default function LoginPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            className="btn-login"
+                            className={cn(
+                                "w-full h-12 bg-primary rounded-xl border-none",
+                                "font-sans font-bold text-base leading-6 text-center text-white",
+                                "cursor-pointer transition-colors duration-200",
+                                "hover:bg-[#1557C7] active:bg-[#0F3E8F]",
+                                "disabled:bg-[#9CA3AF] disabled:cursor-not-allowed"
+                            )}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Please wait...' : (showTfa ? 'Verify' : 'Sign In')}
@@ -159,8 +189,7 @@ export default function LoginPage() {
                         {showTfa && (
                             <button
                                 type="button"
-                                className="btn-secondary"
-                                style={{ width: '100%' }}
+                                className="w-full h-12 bg-transparent border border-[#D1D5DC] rounded-xl font-sans font-bold text-base text-[#364153] cursor-pointer hover:bg-gray-50 transition-colors"
                                 onClick={() => setShowTfa(false)}
                             >
                                 Back to Login
@@ -170,7 +199,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer */}
-                <p className="login-footer">
+                <p className="font-normal text-sm leading-5 text-center text-[#6A7282] w-full">
                     © 2025 Bsocio. All rights reserved.
                 </p>
             </div>

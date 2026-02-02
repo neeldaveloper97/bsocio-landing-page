@@ -13,3 +13,4 @@ export { newsService } from './news.service';
 export { campaignService, CampaignService } from './campaign.service';
 export { contactService, ContactService } from './contact.service';
 export { adminActivityService, AdminActivityService } from './admin-activity.service';
+export { eventsService, EventsService } from './events.service';

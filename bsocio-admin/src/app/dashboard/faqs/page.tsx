@@ -3,9 +3,10 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useFAQs } from '@/hooks';
+import { cn } from '@/lib/utils';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { SortableHeader } from '@/components/ui/SortableHeader';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibility, FAQFilters } from '@/types';
 
@@ -70,6 +71,17 @@ export default function FAQsPage() {
         setSortOrder(order);
         setCurrentPage(0); // Reset to first page
     }, []);
+
+    // Handle sort from DataTable
+    const handleSortColumn = useCallback((key: string) => {
+        if (sortBy === key) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(key);
+            setSortOrder('asc');
+        }
+        setCurrentPage(0);
+    }, [sortBy, sortOrder]);
 
     const resetForm = () => {
         setQuestion('');
@@ -148,9 +160,9 @@ export default function FAQsPage() {
     const getStatusBadge = (faqStatus: FAQStatus) => {
         switch (faqStatus) {
             case 'ACTIVE':
-                return <span className="status-badge status-active">Active</span>;
+                return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#166534]">Active</span>;
             case 'INACTIVE':
-                return <span className="status-badge status-inactive">Inactive</span>;
+                return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E5E7EB] text-[#6B7280]">Inactive</span>;
             default:
                 return null;
         }
@@ -159,202 +171,155 @@ export default function FAQsPage() {
     const activeFaqs = faqs.filter(f => f.status === 'ACTIVE');
 
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>FAQs</h1>
-                    <p>Manage frequently asked questions</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">FAQs</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage frequently asked questions</p>
                 </div>
-                <button className="btn-create" onClick={() => openModal()}>
+                <button className="btn-primary-responsive" onClick={() => openModal()}>
                     <PlusIcon />
                     Add FAQ
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid cols-3">
-                <div className="stat-card">
-                    <div className="stat-icon">❓</div>
-                    <div className="stat-value">{faqs.length}</div>
-                    <div className="stat-label">Total FAQs</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">❓</div>
+                    <div className="stat-value-responsive">{faqs.length}</div>
+                    <div className="stat-label-responsive">Total FAQs</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">{activeFaqs.length}</div>
-                    <div className="stat-label">Active</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">✅</div>
+                    <div className="stat-value-responsive">{activeFaqs.length}</div>
+                    <div className="stat-label-responsive">Active</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">📝</div>
-                    <div className="stat-value">{faqs.length - activeFaqs.length}</div>
-                    <div className="stat-label">Inactive</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#6B7280]">📝</div>
+                    <div className="stat-value-responsive">{faqs.length - activeFaqs.length}</div>
+                    <div className="stat-label-responsive">Inactive</div>
                 </div>
             </div>
 
             {/* FAQs Table */}
-            <div className="table-container">
-                <div className="table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2>All FAQs</h2>
-                    <span style={{ fontSize: '14px', color: '#6B7280' }}>{faqs.length} total</span>
-                </div>
-                {isLoading ? (
-                    <div className="loading-state" style={{ padding: '24px' }}>Loading FAQs...</div>
-                ) : isError ? (
-                    <div className="error-state" style={{ padding: '24px' }}>
-                        Failed to load FAQs.{' '}
-                        <button onClick={refetch}>Retry</button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="table-wrapper">
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <SortableHeader
-                                            label="Question"
-                                            field="question"
-                                            currentSortBy={sortBy}
-                                            currentSortOrder={sortOrder}
-                                            onSort={handleSort}
-                                        />
-                                        <SortableHeader
-                                            label="Category"
-                                            field="category"
-                                            currentSortBy={sortBy}
-                                            currentSortOrder={sortOrder}
-                                            onSort={handleSort}
-                                        />
-                                        <SortableHeader
-                                            label="Status"
-                                            field="status"
-                                            currentSortBy={sortBy}
-                                            currentSortOrder={sortOrder}
-                                            onSort={handleSort}
-                                            style={{ textAlign: 'center' }}
-                                        />
-                                        <th style={{ textAlign: 'center' }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paginatedFaqs.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} style={{ textAlign: 'center', padding: '48px 24px' }}>
-                                                <div className="empty-state">
-                                                    <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>❓</span>
-                                                    <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>No FAQs found</h3>
-                                                    <p style={{ margin: 0, color: '#6B7280' }}>Create your first FAQ to get started</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        paginatedFaqs.map((faq) => (
-                                            <tr key={faq.id}>
-                                                <td data-label="Question">{faq.question}</td>
-                                                <td data-label="Category">{faq.category}</td>
-                                                <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(faq.status)}</td>
-                                                <td data-label="Actions" style={{ textAlign: 'center' }}>
-                                                    <div className="action-buttons" style={{ justifyContent: 'center' }}>
-                                                        <button className="action-btn" title="Edit" onClick={() => openModal(faq)}>
-                                                            <EditIcon />
-                                                        </button>
-                                                        <button className="action-btn" title="Delete" onClick={() => openDeleteConfirm(faq)} disabled={isMutating}>
-                                                            <DeleteIcon />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="table-pagination">
-                                <button
-                                    className="pagination-btn"
-                                    disabled={currentPage === 0}
-                                    onClick={() => setCurrentPage(p => p - 1)}
-                                >
-                                    Previous
+            <DataTable<FAQ>
+                data={paginatedFaqs}
+                columns={[
+                    { 
+                        key: 'question', 
+                        header: 'Question',
+                        sortable: true
+                    },
+                    { 
+                        key: 'category', 
+                        header: 'Category',
+                        sortable: true,
+                        render: (faq) => (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EFF6FF] text-[#1D4ED8]">{faq.category}</span>
+                        )
+                    },
+                    { 
+                        key: 'status', 
+                        header: 'Status',
+                        sortable: true,
+                        align: 'center',
+                        render: (faq) => getStatusBadge(faq.status)
+                    },
+                    {
+                        key: 'actions',
+                        header: 'Actions',
+                        align: 'center',
+                        render: (faq) => (
+                            <div className="flex items-center gap-2 justify-center">
+                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Edit" onClick={() => openModal(faq)}>
+                                    <EditIcon />
                                 </button>
-                                <span className="pagination-info">
-                                    Page {currentPage + 1} of {totalPages}
-                                </span>
-                                <button
-                                    className="pagination-btn"
-                                    disabled={currentPage >= totalPages - 1}
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                >
-                                    Next
+                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Delete" onClick={() => openDeleteConfirm(faq)} disabled={isMutating}>
+                                    <DeleteIcon />
                                 </button>
                             </div>
-                        )}
-                    </>
-                )}
-            </div>
+                        )
+                    }
+                ] as DataTableColumn<FAQ>[]}
+                keyExtractor={(faq) => faq.id}
+                isLoading={isLoading}
+                title="All FAQs"
+                totalCount={faqs.length}
+                emptyIcon="❓"
+                emptyTitle="No FAQs found"
+                emptyDescription="Create your first FAQ to get started"
+                sortConfig={{ key: sortBy, order: sortOrder }}
+                onSort={handleSortColumn}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
             {/* Add/Edit FAQ Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeModal()}>
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-header">
-                            <h2>{editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}</h2>
-                            <button className="modal-close" onClick={closeModal}>×</button>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}</h2>
+                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]" onClick={closeModal}>×</button>
                         </div>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label htmlFor="question">Question</label>
-                                <input 
-                                    type="text" 
-                                    id="question" 
-                                    className="form-input" 
-                                    placeholder="Enter the question"
-                                    value={question}
-                                    onChange={(e) => setQuestion(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="category">Category</label>
-                                    <select 
-                                        id="category" 
-                                        className="form-select"
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value as FAQCategory)}
-                                    >
-                                        <option value="GENERAL">General</option>
-                                        <option value="TECHNICAL">Technical</option>
-                                        <option value="BILLING">Billing</option>
-                                        <option value="OTHER">Other</option>
-                                    </select>
+                        <div className="p-6 max-sm:p-4">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="question" className="font-sans text-sm font-semibold text-[#374151]">Question</label>
+                                    <input 
+                                        type="text" 
+                                        id="question" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                        placeholder="Enter the question"
+                                        value={question}
+                                        onChange={(e) => setQuestion(e.target.value)}
+                                    />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="status">Status</label>
-                                    <select 
-                                        id="status" 
-                                        className="form-select"
-                                        value={status}
-                                        onChange={(e) => setStatus(e.target.value as FAQStatus)}
-                                    >
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="INACTIVE">Inactive</option>
-                                    </select>
+                                <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category</label>
+                                        <select 
+                                            id="category" 
+                                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value as FAQCategory)}
+                                        >
+                                            <option value="GENERAL">General</option>
+                                            <option value="TECHNICAL">Technical</option>
+                                            <option value="BILLING">Billing</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
+                                        <select 
+                                            id="status" 
+                                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
+                                            value={status}
+                                            onChange={(e) => setStatus(e.target.value as FAQStatus)}
+                                        >
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="INACTIVE">Inactive</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="form-group" style={{ width: '100%' }}>
-                                <label htmlFor="answer">Answer</label>
-                                <RichTextEditor
-                                    value={answer}
-                                    onChange={setAnswer}
-                                    placeholder="Enter the answer..."
-                                />
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', flexWrap: 'wrap' }}>
-                                <button className="btn-secondary" onClick={closeModal}>Cancel</button>
-                                <button className="btn-primary" onClick={handleSubmit} disabled={isMutating}>
-                                    {isMutating ? 'Saving...' : (editingFAQ ? 'Update FAQ' : 'Add FAQ')}
-                                </button>
+                                <div className="flex flex-col gap-2 w-full">
+                                    <label htmlFor="answer" className="font-sans text-sm font-semibold text-[#374151]">Answer</label>
+                                    <RichTextEditor
+                                        value={answer}
+                                        onChange={setAnswer}
+                                        placeholder="Enter the answer..."
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-3 max-sm:gap-2 mt-4 flex-wrap border-t border-[#E5E7EB] pt-6 max-sm:pt-4">
+                                    <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeModal}>Cancel</button>
+                                    <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed" onClick={handleSubmit} disabled={isMutating}>
+                                        {isMutating ? 'Saving...' : (editingFAQ ? 'Update FAQ' : 'Add FAQ')}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

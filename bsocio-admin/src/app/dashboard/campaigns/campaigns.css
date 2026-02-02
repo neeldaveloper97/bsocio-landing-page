@@ -112,10 +112,13 @@
 
     .modal-body {
         max-height: calc(100vh - 120px);
+        gap: 16px;
+        padding: 20px 16px;
     }
 
     .modal-actions {
         flex-direction: column;
+        gap: 10px;
     }
 
     .modal-actions button {
@@ -132,5 +135,30 @@
 
     .data-table {
         min-width: 700px;
+    }
+}
+
+@media (max-width: 640px) {
+    .modal-body {
+        gap: 12px;
+        padding: 16px 12px;
+    }
+
+    .modal-actions {
+        gap: 8px;
+        padding-top: 12px;
+    }
+
+    .btn-outline {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .form-help {
+        font-size: 11px;
+    }
+
+    .table-filters {
+        gap: 8px;
     }
 }

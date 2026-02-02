@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Bundle analyzer (enabled with ANALYZE=true)
+const withBundleAnalyzer = require("@next/bundle-analyzer")({ enabled: process.env.ANALYZE === "true" });
+
 const securityHeaders = [
   {
     key: "X-Frame-Options",
@@ -75,4 +78,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

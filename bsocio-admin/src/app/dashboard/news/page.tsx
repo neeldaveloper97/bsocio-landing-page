@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/utils';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
     useNews,
     useCreateNews,
@@ -13,7 +15,6 @@ import {
 } from '@/hooks';
 import { PlusIcon, EditIcon, DeleteIcon, ArchiveIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { SortableHeader } from '@/components/ui/SortableHeader';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import {
     Select,
@@ -103,6 +104,17 @@ export default function NewsPage() {
         setSortOrder(order);
         setCurrentPage(0); // Reset to first page
     }, []);
+
+    // Handle sort from DataTable
+    const handleSortColumn = useCallback((key: string) => {
+        if (sortBy === key) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(key);
+            setSortOrder('asc');
+        }
+        setCurrentPage(0);
+    }, [sortBy, sortOrder]);
 
     // Build filters with sorting
     const buildFilters = useCallback((status?: NewsStatus): NewsFilters => ({
@@ -387,13 +399,14 @@ export default function NewsPage() {
     };
 
     const getStatusBadge = (status: string) => {
+        const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
         switch (status) {
             case 'PUBLISHED':
-                return <span className="status-badge status-published">Published</span>;
+                return <span className={cn(baseClasses, "bg-[#DCFCE7] text-[#166534]")}>Published</span>;
             case 'DRAFT':
-                return <span className="status-badge status-draft">Draft</span>;
+                return <span className={cn(baseClasses, "bg-[#FEF3C7] text-[#92400E]")}>Draft</span>;
             case 'ARCHIVED':
-                return <span className="status-badge status-archived">Archived</span>;
+                return <span className={cn(baseClasses, "bg-[#E5E7EB] text-[#6B7280]")}>Archived</span>;
             default:
                 return null;
         }
@@ -419,53 +432,145 @@ export default function NewsPage() {
     const wordCount = formData.content.trim().split(/\s+/).filter(Boolean).length;
 
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>News & Media</h1>
-                    <p>Manage articles, blog posts, and media content</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1 min-w-0">
+                    <h1 className="page-main-title">News & Media</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage articles, blog posts, and media content</p>
                 </div>
-                <button className="btn-create" onClick={openCreateModal}>
+                <button className="btn-primary-responsive" onClick={openCreateModal}>
                     <PlusIcon />
-                    Create Article
+                    <span>Create Article</span>
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">📰</div>
-                    <div className="stat-value">{totalArticles}</div>
-                    <div className="stat-label">Total Articles</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">📰</div>
+                    <div className="stat-value-responsive">{totalArticles}</div>
+                    <div className="stat-label-responsive">Total Articles</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">✅</div>
-                    <div className="stat-value">{publishedCount}</div>
-                    <div className="stat-label">Published</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">✅</div>
+                    <div className="stat-value-responsive">{publishedCount}</div>
+                    <div className="stat-label-responsive">Published</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">📝</div>
-                    <div className="stat-value">{draftCount}</div>
-                    <div className="stat-label">Drafts</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">📝</div>
+                    <div className="stat-value-responsive">{draftCount}</div>
+                    <div className="stat-label-responsive">Drafts</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-red">📦</div>
-                    <div className="stat-value">{archivedCount}</div>
-                    <div className="stat-label">Archived</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#EF4444]">📦</div>
+                    <div className="stat-value-responsive">{archivedCount}</div>
+                    <div className="stat-label-responsive">Archived</div>
                 </div>
             </div>
 
             {/* Articles Table */}
-            <div className="table-container">
-                <div className="table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2>All Articles</h2>
-                    <div className="table-header-filters" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '14px', color: '#6B7280' }}>
+            <DataTable<NewsArticle>
+                data={paginatedArticles}
+                columns={[
+                    { 
+                        key: 'title', 
+                        header: 'Title',
+                        sortable: true,
+                        render: (article) => (
+                            <div className="flex items-center gap-3">
+                                {article.featuredImage ? (
+                                    <img
+                                        src={article.featuredImage}
+                                        alt=""
+                                        loading="lazy"
+                                        className="w-12 h-8 object-cover rounded-md shrink-0 bg-[#F3F4F6]"
+                                    />
+                                ) : (
+                                    <div className="w-12 h-8 rounded-md bg-[#F3F4F6] shrink-0 flex items-center justify-center text-sm">📰</div>
+                                )}
+                                <span title={article.title}>{truncateText(article.title, 20)}</span>
+                            </div>
+                        )
+                    },
+                    { 
+                        key: 'category', 
+                        header: 'Category',
+                        sortable: true,
+                        render: (article) => getCategoryLabel(article.category)
+                    },
+                    { 
+                        key: 'author', 
+                        header: 'Author',
+                        sortable: true,
+                        render: (article) => <span title={article.author}>{truncateText(article.author, 20)}</span>
+                    },
+                    { 
+                        key: 'publicationDate', 
+                        header: 'Date',
+                        sortable: true,
+                        render: (article) => formatDate(article.publicationDate)
+                    },
+                    { 
+                        key: 'status', 
+                        header: 'Status',
+                        sortable: true,
+                        align: 'center',
+                        render: (article) => getStatusBadge(article.status)
+                    },
+                    { 
+                        key: 'views', 
+                        header: 'Views',
+                        sortable: true,
+                        align: 'center',
+                        render: (article) => article.views || 0
+                    },
+                    {
+                        key: 'actions',
+                        header: 'Actions',
+                        align: 'center',
+                        render: (article) => (
+                            <div className="flex items-center gap-2 justify-center">
+                                <button
+                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    title="Edit"
+                                    aria-label={`Edit ${article.title}`}
+                                    onClick={() => openEditModal(article)}
+                                >
+                                    <EditIcon />
+                                </button>
+                                <button
+                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed"
+                                    title={article.status === 'ARCHIVED' ? 'Already Archived' : 'Archive'}
+                                    aria-label={`Archive ${article.title}`}
+                                    onClick={() => openArchiveConfirm(article)}
+                                    disabled={article.status === 'ARCHIVED'}
+                                >
+                                    <ArchiveIcon />
+                                </button>
+                                <button
+                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    title="Delete"
+                                    aria-label={`Delete ${article.title}`}
+                                    onClick={() => openDeleteConfirm(article)}
+                                >
+                                    <DeleteIcon />
+                                </button>
+                            </div>
+                        )
+                    }
+                ] as DataTableColumn<NewsArticle>[]}
+                keyExtractor={(article) => article.id}
+                isLoading={isLoading}
+                title="All Articles"
+                totalCount={displayArticles.length}
+                headerActions={
+                    <div className="flex items-center gap-3">
+                        <span className="font-sans text-sm text-[#6B7280]">
                             {displayArticles.length} {statusFilter !== 'all' ? statusFilter.toLowerCase() : 'total'}
                         </span>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger style={{ width: '200px' }}>
+                            <SelectTrigger style={{ width: '180px' }}>
                                 <SelectValue placeholder="Filter by status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -482,199 +587,30 @@ export default function NewsPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                </div>
-                <div className="table-wrapper">
-                    {isLoading ? (
-                        <div className="loading-table" role="status" aria-label="Loading articles">
-                            <div className="loading-table-skeleton">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i} className="skeleton-table-row">
-                                        <div className="skeleton-box" style={{ width: '48px', height: '32px', borderRadius: '4px' }}></div>
-                                        <div className="skeleton-box" style={{ flex: 1, height: '20px', borderRadius: '4px' }}></div>
-                                        <div className="skeleton-box" style={{ width: '100px', height: '20px', borderRadius: '4px' }}></div>
-                                        <div className="skeleton-box" style={{ width: '80px', height: '24px', borderRadius: '12px' }}></div>
-                                    </div>
-                                ))}
-                            </div>
-                            <span className="sr-only">Loading articles...</span>
-                        </div>
-                    ) : displayArticles.length === 0 ? (
-                        <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-                            <div className="empty-state">
-                                <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>📰</span>
-                                <h3 style={{ margin: '0 0 8px 0', color: '#111827' }}>
-                                    {statusFilter !== 'all' ? `No ${statusFilter.toLowerCase()} articles` : 'No articles found'}
-                                </h3>
-                                <p style={{ margin: 0, color: '#6B7280' }}>
-                                    {statusFilter !== 'all' ? 'Try selecting a different status filter' : 'Create your first article to get started'}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <SortableHeader
-                                        label="Title"
-                                        field="title"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                    />
-                                    <SortableHeader
-                                        label="Category"
-                                        field="category"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                    />
-                                    <SortableHeader
-                                        label="Author"
-                                        field="author"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                    />
-                                    <SortableHeader
-                                        label="Date"
-                                        field="publicationDate"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                    />
-                                    <SortableHeader
-                                        label="Status"
-                                        field="status"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                        style={{ textAlign: 'center' }}
-                                    />
-                                    <SortableHeader
-                                        label="Views"
-                                        field="views"
-                                        currentSortBy={sortBy}
-                                        currentSortOrder={sortOrder}
-                                        onSort={handleSort}
-                                        style={{ textAlign: 'center' }}
-                                    />
-                                    <th style={{ textAlign: 'center' }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedArticles.map((article: NewsArticle) => (
-                                    <tr key={article.id}>
-                                        <td data-label="Title">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                {article.featuredImage ? (
-                                                    <img
-                                                        src={article.featuredImage}
-                                                        alt=""
-                                                        loading="lazy"
-                                                        style={{
-                                                            width: '48px',
-                                                            height: '32px',
-                                                            objectFit: 'cover',
-                                                            borderRadius: '6px',
-                                                            flexShrink: 0,
-                                                            backgroundColor: '#F3F4F6',
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <div style={{
-                                                        width: '48px',
-                                                        height: '32px',
-                                                        borderRadius: '6px',
-                                                        backgroundColor: '#F3F4F6',
-                                                        flexShrink: 0,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: '14px',
-                                                    }}>📰</div>
-                                                )}
-                                                <span title={article.title}>{truncateText(article.title, 20)}</span>
-                                            </div>
-                                        </td>
-                                        <td data-label="Category">{getCategoryLabel(article.category)}</td>
-                                        <td data-label="Author" title={article.author}>{truncateText(article.author, 20)}</td>
-                                        <td data-label="Date">{formatDate(article.publicationDate)}</td>
-                                        <td data-label="Status" style={{ textAlign: 'center' }}>{getStatusBadge(article.status)}</td>
-                                        <td data-label="Views" style={{ textAlign: 'center' }}>{article.views || 0}</td>
-                                        <td data-label="Actions" style={{ textAlign: 'center' }}>
-                                            <div className="action-buttons" style={{ justifyContent: 'center' }}>
-                                                <button
-                                                    className="action-btn"
-                                                    title="Edit"
-                                                    aria-label={`Edit ${article.title}`}
-                                                    onClick={() => openEditModal(article)}
-                                                >
-                                                    <EditIcon />
-                                                </button>
-                                                <button
-                                                    className="action-btn"
-                                                    title={article.status === 'ARCHIVED' ? 'Already Archived' : 'Archive'}
-                                                    aria-label={`Archive ${article.title}`}
-                                                    onClick={() => openArchiveConfirm(article)}
-                                                    disabled={article.status === 'ARCHIVED'}
-                                                >
-                                                    <ArchiveIcon />
-                                                </button>
-                                                <button
-                                                    className="action-btn"
-                                                    title="Delete"
-                                                    aria-label={`Delete ${article.title}`}
-                                                    onClick={() => openDeleteConfirm(article)}
-                                                >
-                                                    <DeleteIcon />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="table-pagination">
-                                <button
-                                    className="pagination-btn"
-                                    disabled={currentPage === 0}
-                                    onClick={() => setCurrentPage(p => p - 1)}
-                                >
-                                    Previous
-                                </button>
-                                <span className="pagination-info">
-                                    Page {currentPage + 1} of {totalPages}
-                                </span>
-                                <button
-                                    className="pagination-btn"
-                                    disabled={currentPage >= totalPages - 1}
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
-                        </>
-                    )}
-                </div>
-            </div>
+                }
+                emptyIcon="📰"
+                emptyTitle={statusFilter !== 'all' ? `No ${statusFilter.toLowerCase()} articles` : 'No articles found'}
+                emptyDescription={statusFilter !== 'all' ? 'Try selecting a different status filter' : 'Create your first article to get started'}
+                sortConfig={{ key: sortBy, order: sortOrder }}
+                onSort={handleSortColumn}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
             {/* Create/Edit Article Modal - using Portal to render at body level */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-header">
-                            <div style={{ flex: 1 }}>
-                                <h2 id="modal-title">{editingArticle ? 'Edit Article' : 'Create News Article'}</h2>
-                                <p style={{ color: '#6B7280', fontSize: '14px', marginTop: '4px' }}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <div className="flex-1 min-w-0">
+                                <h2 id="modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingArticle ? 'Edit Article' : 'Create News Article'}</h2>
+                                <p className="text-[#6B7280] text-sm max-sm:text-xs mt-1">
                                     Add news, media coverage, and press releases
                                 </p>
                             </div>
                             <button 
-                                className="modal-close" 
+                                className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]" 
                                 onClick={closeModal}
                                 aria-label="Close modal"
                                 type="button"
@@ -682,15 +618,15 @@ export default function NewsPage() {
                                 ×
                             </button>
                         </div>
-                        <div className="modal-body">
+                        <div className="p-6 max-sm:p-4">
                             {/* Article Title */}
-                            <div className="form-group">
-                                <label htmlFor="title">Article Title *</label>
+                            <div className="flex flex-col gap-2 mb-4">
+                                <label htmlFor="title" className="font-sans text-sm font-semibold text-[#374151]">Article Title *</label>
                                 <input
                                     type="text"
                                     id="title"
                                     name="title"
-                                    className="form-input"
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter article title"
                                     value={formData.title}
                                     onChange={handleInputChange}
@@ -698,25 +634,25 @@ export default function NewsPage() {
                             </div>
 
                             {/* Author, Category, Publication Date */}
-                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                                <div className="form-group">
-                                    <label htmlFor="author">Author *</label>
+                            <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 mb-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="author" className="font-sans text-sm font-semibold text-[#374151]">Author *</label>
                                     <input
                                         type="text"
                                         id="author"
                                         name="author"
-                                        className="form-input"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         placeholder="Author name"
                                         value={formData.author}
                                         onChange={handleInputChange}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="category">Category *</label>
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category *</label>
                                     <select
                                         id="category"
                                         name="category"
-                                        className="form-select"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10"
                                         value={formData.category}
                                         onChange={handleInputChange}
                                     >
@@ -726,13 +662,13 @@ export default function NewsPage() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="publicationDate">Publication Date *</label>
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="publicationDate" className="font-sans text-sm font-semibold text-[#374151]">Publication Date *</label>
                                     <input
                                         type="date"
                                         id="publicationDate"
                                         name="publicationDate"
-                                        className="form-input"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10"
                                         value={formData.publicationDate}
                                         onChange={handleInputChange}
                                     />
@@ -740,34 +676,22 @@ export default function NewsPage() {
                             </div>
 
                             {/* Featured Image */}
-                            <div className="form-group">
-                                <label>Featured Image *</label>
+                            <div className="flex flex-col gap-2 mb-4">
+                                <label className="font-sans text-sm font-semibold text-[#374151]">Featured Image *</label>
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
                                     onDrop={handleDrop}
                                     onDragOver={handleDragOver}
-                                    style={{
-                                        border: '2px dashed #D1D5DB',
-                                        borderRadius: '8px',
-                                        padding: '32px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        backgroundColor: '#F9FAFB',
-                                        position: 'relative',
-                                    }}
+                                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#D1D5DB] rounded-xl cursor-pointer transition-all duration-200 hover:border-[#2563EB] hover:bg-[#F9FAFB] bg-[#F9FAFB] relative text-center"
                                 >
                                     {isUploading ? (
-                                        <div style={{ color: '#6B7280' }}>Uploading...</div>
+                                        <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div style={{ position: 'relative' }}>
+                                        <div className="relative">
                                             <img
                                                 src={imagePreview}
                                                 alt="Preview"
-                                                style={{
-                                                    maxWidth: '100%',
-                                                    maxHeight: '200px',
-                                                    borderRadius: '4px',
-                                                }}
+                                                className="max-w-full max-h-50 rounded"
                                             />
                                             <button
                                                 type="button"
@@ -776,29 +700,18 @@ export default function NewsPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, featuredImage: '' }));
                                                 }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '-8px',
-                                                    right: '-8px',
-                                                    background: '#EF4444',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '50%',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    cursor: 'pointer',
-                                                }}
+                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center"
                                             >
                                                 ×
                                             </button>
                                         </div>
                                     ) : (
                                         <>
-                                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🖼️</div>
-                                            <div style={{ color: '#374151', fontWeight: 500 }}>
+                                            <div className="text-[32px] mb-2">🖼️</div>
+                                            <div className="text-[#374151] font-medium">
                                                 Click to upload or drag and drop
                                             </div>
-                                            <div style={{ color: '#9CA3AF', fontSize: '13px', marginTop: '4px' }}>
+                                            <div className="text-[#9CA3AF] text-[13px] mt-1">
                                                 PNG, JPG or GIF (recommended: 1200x630px, max. 5MB)
                                             </div>
                                         </>
@@ -808,50 +721,50 @@ export default function NewsPage() {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleImageUpload}
-                                        style={{ display: 'none' }}
+                                        className="hidden"
                                     />
                                 </div>
                             </div>
 
                             {/* Excerpt / Summary */}
-                            <div className="form-group">
-                                <label htmlFor="excerpt">Excerpt / Summary *</label>
+                            <div className="flex flex-col gap-2 mb-4">
+                                <label htmlFor="excerpt" className="font-sans text-sm font-semibold text-[#374151]">Excerpt / Summary *</label>
                                 <textarea
                                     id="excerpt"
                                     name="excerpt"
-                                    className="form-textarea"
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-y"
                                     placeholder="Write a brief summary of the article (2-3 sentences)"
                                     rows={3}
                                     maxLength={200}
                                     value={formData.excerpt}
                                     onChange={handleInputChange}
                                 />
-                                <div style={{ textAlign: 'right', fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
+                                <div className="text-right text-xs text-[#9CA3AF] mt-1">
                                     {formData.excerpt.length}/200
                                 </div>
                             </div>
 
                             {/* Article Content */}
-                            <div className="form-group" style={{ width: '100%' }}>
-                                <label htmlFor="content">Article Content *</label>
+                            <div className="flex flex-col gap-2 w-full mb-4">
+                                <label htmlFor="content" className="font-sans text-sm font-semibold text-[#374151]">Article Content *</label>
                                 <RichTextEditor
                                     value={formData.content}
                                     onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
                                     placeholder="Write your article content here..."
                                 />
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
+                                <div className="flex justify-end text-xs text-[#9CA3AF] mt-1">
                                     <span>{wordCount} words</span>
                                 </div>
                             </div>
 
                             {/* Tags */}
-                            <div className="form-group">
-                                <label htmlFor="tags">Tags (Optional)</label>
+                            <div className="flex flex-col gap-2 mb-4">
+                                <label htmlFor="tags" className="font-sans text-sm font-semibold text-[#374151]">Tags (Optional)</label>
                                 <input
                                     type="text"
                                     id="tags"
                                     name="tags"
-                                    className="form-input"
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter tags separated by commas (e.g., birthday heroes, impact, festival)"
                                     value={formData.tags}
                                     onChange={handleInputChange}
@@ -859,20 +772,19 @@ export default function NewsPage() {
                             </div>
 
                             {/* Action Buttons */}
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px', flexWrap: 'wrap' }}>
-                                <button className="btn-secondary" onClick={closeModal}>
+                            <div className="flex gap-3 justify-end mt-2 flex-wrap border-t border-[#E5E7EB] pt-6">
+                                <button className="py-2.5 px-5 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeModal}>
                                     Cancel
                                 </button>
                                 <button
-                                    className="btn-primary"
-                                    style={{ backgroundColor: '#16A34A' }}
+                                    className="py-2.5 px-5 font-sans text-sm font-semibold text-white bg-[#16A34A] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#15803D] disabled:opacity-60 disabled:cursor-not-allowed"
                                     onClick={() => handleSubmit('DRAFT')}
                                     disabled={createNews.isPending || updateNews.isPending}
                                 >
                                     💾 Save as Draft
                                 </button>
                                 <button
-                                    className="btn-primary"
+                                    className="py-2.5 px-5 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed"
                                     onClick={() => handleSubmit('PUBLISHED')}
                                     disabled={createNews.isPending || updateNews.isPending}
                                 >

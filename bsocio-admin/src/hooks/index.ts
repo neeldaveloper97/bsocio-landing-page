@@ -31,3 +31,11 @@ export {
   useContacts,
   useContactById,
 } from './useContacts';
+export {
+  useEvents,
+  useEventById,
+  useCreateEvent,
+  useUpdateEvent,
+  useDeleteEvent,
+  useEventStatistics,
+} from './useEvents';

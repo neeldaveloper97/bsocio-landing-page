@@ -32,7 +32,10 @@ export function SortableHeader({
   };
 
   return (
-    <th style={style}>
+    <th 
+      className="px-6 py-4 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]"
+      style={style}
+    >
       <button
         type="button"
         className={`sortable-header ${isActive ? 'active' : ''}`}

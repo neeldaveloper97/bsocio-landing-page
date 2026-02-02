@@ -1,156 +1,477 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useEventStatistics } from '@/hooks';
+import type { Event, CreateEventRequest, UpdateEventRequest, EventStatus, EventVisibility } from '@/types';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { cn } from '@/lib/utils';
 
-interface Event {
-    id: number;
-    name: string;
-    location: string;
-    date: string;
-    attendees: number;
-    status: 'upcoming' | 'ongoing' | 'past';
-}
+const PAGE_SIZE = 10;
 
-const mockEvents: Event[] = [
-    { id: 1, name: 'Annual Cultural Festival', location: 'Lagos, Nigeria', date: '2025-03-15', attendees: 5000, status: 'upcoming' },
-    { id: 2, name: 'Community Leadership Summit', location: 'Accra, Ghana', date: '2025-02-28', attendees: 800, status: 'upcoming' },
-    { id: 3, name: 'Youth Empowerment Workshop', location: 'Nairobi, Kenya', date: '2025-02-10', attendees: 300, status: 'upcoming' },
-    { id: 4, name: 'Heritage Month Gala', location: 'Johannesburg, SA', date: '2025-01-20', attendees: 1200, status: 'ongoing' },
-    { id: 5, name: 'New Year Celebration', location: 'Lagos, Nigeria', date: '2025-01-01', attendees: 3500, status: 'past' },
-];
+// Helper to format date for display
+const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+};
+
+// Helper to format date for input
+const formatDateForInput = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+};
+
+// Determine status based on event date
+const getEventStatus = (eventDate: string): 'upcoming' | 'ongoing' | 'past' => {
+    const date = new Date(eventDate);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (eventDay > today) return 'upcoming';
+    if (eventDay.getTime() === today.getTime()) return 'ongoing';
+    return 'past';
+};
 
 export default function EventsPage() {
-    const [events] = useState<Event[]>(mockEvents);
-    const [showModal, setShowModal] = useState(false);
+    // API Hooks
+    const { data: events, isLoading, isError, refetch } = useEvents();
+    const { data: statistics, isLoading: statsLoading } = useEventStatistics();
+    const { mutateAsync: createEvent, isPending: isCreating } = useCreateEvent();
+    const { mutateAsync: updateEvent, isPending: isUpdating } = useUpdateEvent();
+    const { mutateAsync: deleteEvent, isPending: isDeleting } = useDeleteEvent();
 
-    const getStatusBadge = (status: string) => {
+    // UI State
+    const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+    const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'past'>('all');
+
+    // Form State
+    const [formData, setFormData] = useState({
+        title: '',
+        venue: '',
+        eventDate: '',
+        eventTime: '',
+        description: '',
+        maxAttendees: '',
+        status: 'DRAFT' as EventStatus,
+        visibility: 'PUBLIC' as EventVisibility,
+    });
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (showModal || showDeleteModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showModal, showDeleteModal]);
+
+    // Filter events based on status
+    const filteredEvents = useMemo(() => {
+        if (!events) return [];
+        if (filterStatus === 'all') return events;
+        
+        return events.filter(event => {
+            const status = getEventStatus(event.eventDate);
+            if (filterStatus === 'upcoming') return status === 'upcoming' || status === 'ongoing';
+            return status === 'past';
+        });
+    }, [events, filterStatus]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredEvents.length / PAGE_SIZE);
+    const paginatedEvents = useMemo(() => {
+        const start = currentPage * PAGE_SIZE;
+        return filteredEvents.slice(start, start + PAGE_SIZE);
+    }, [filteredEvents, currentPage]);
+
+    // Stats calculations
+    const totalEvents = events?.length || 0;
+    const upcomingCount = statistics?.upcomingEvents || events?.filter(e => getEventStatus(e.eventDate) !== 'past').length || 0;
+    const totalAttendees = statistics?.totalAttendees || events?.reduce((sum, e) => sum + e.currentAttendees, 0) || 0;
+
+    const getStatusBadge = (eventDate: string, publishStatus: EventStatus) => {
+        if (publishStatus === 'DRAFT') {
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E5E7EB] text-[#6B7280]">Draft</span>;
+        }
+        const status = getEventStatus(eventDate);
         switch (status) {
             case 'upcoming':
-                return <span className="status-badge status-upcoming">Upcoming</span>;
+                return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#166534]">Upcoming</span>;
             case 'ongoing':
-                return <span className="status-badge status-active">Ongoing</span>;
+                return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FEF3C7] text-[#92400E]">Ongoing</span>;
             case 'past':
-                return <span className="status-badge status-past">Past</span>;
+                return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E5E7EB] text-[#6B7280]">Past</span>;
             default:
                 return null;
         }
     };
 
+    const resetForm = () => {
+        setFormData({
+            title: '',
+            venue: '',
+            eventDate: '',
+            eventTime: '',
+            description: '',
+            maxAttendees: '',
+            status: 'DRAFT',
+            visibility: 'PUBLIC',
+        });
+        setEditingEvent(null);
+    };
+
+    const openCreateModal = () => {
+        resetForm();
+        setShowModal(true);
+    };
+
+    const openEditModal = (event: Event) => {
+        setEditingEvent(event);
+        setFormData({
+            title: event.title,
+            venue: event.venue,
+            eventDate: formatDateForInput(event.eventDate),
+            eventTime: event.eventTime || '',
+            description: event.description || '',
+            maxAttendees: event.maxAttendees?.toString() || '',
+            status: event.status,
+            visibility: event.visibility,
+        });
+        setShowModal(true);
+    };
+
+    const openDeleteModal = (event: Event) => {
+        setDeletingEvent(event);
+        setShowDeleteModal(true);
+    };
+
+    const handleSubmit = async () => {
+        try {
+            const payload: CreateEventRequest | UpdateEventRequest = {
+                title: formData.title,
+                venue: formData.venue,
+                eventDate: formData.eventDate,
+                eventTime: formData.eventTime || undefined,
+                description: formData.description || undefined,
+                maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+                status: formData.status,
+                visibility: formData.visibility,
+            };
+
+            if (editingEvent) {
+                await updateEvent({ id: editingEvent.id, data: payload as UpdateEventRequest });
+            } else {
+                await createEvent(payload as CreateEventRequest);
+            }
+
+            setShowModal(false);
+            resetForm();
+            refetch();
+        } catch (error) {
+            console.error('Failed to save event:', error);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!deletingEvent) return;
+        try {
+            await deleteEvent(deletingEvent.id);
+            setShowDeleteModal(false);
+            setDeletingEvent(null);
+            refetch();
+        } catch (error) {
+            console.error('Failed to delete event:', error);
+        }
+    };
+
     return (
-        <div className="content-section active">
+        <div className="page-content">
             {/* Section Header */}
-            <div className="section-header-with-btn">
-                <div className="section-intro">
-                    <h1>Events</h1>
-                    <p>Create and manage platform events</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">Events</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Create and manage platform events</p>
                 </div>
-                <button className="btn-create" onClick={() => setShowModal(true)}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 4V16M4 10H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                <button className="btn-primary-responsive" onClick={openCreateModal}>
+                    <PlusIcon />
                     Create Event
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="stats-cards-grid cols-3">
-                <div className="stat-card">
-                    <div className="stat-icon">🎉</div>
-                    <div className="stat-value">45</div>
-                    <div className="stat-label">Total Events</div>
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">🎉</div>
+                    <div className="stat-value-responsive">{statsLoading ? '...' : totalEvents}</div>
+                    <div className="stat-label-responsive">Total Events</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon stat-icon-green">📅</div>
-                    <div className="stat-value">12</div>
-                    <div className="stat-label">Upcoming</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#10B981]">📅</div>
+                    <div className="stat-value-responsive">{statsLoading ? '...' : upcomingCount}</div>
+                    <div className="stat-label-responsive">Upcoming</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-icon">👥</div>
-                    <div className="stat-value">25,000+</div>
-                    <div className="stat-label">Total Attendees</div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">👥</div>
+                    <div className="stat-value-responsive">{statsLoading ? '...' : totalAttendees.toLocaleString()}</div>
+                    <div className="stat-label-responsive">Total Attendees</div>
                 </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="filter-tabs">
+                <button 
+                    className={cn(
+                        "filter-tab",
+                        filterStatus === 'all' && "active"
+                    )}
+                    onClick={() => { setFilterStatus('all'); setCurrentPage(0); }}
+                >
+                    All Events
+                </button>
+                <button 
+                    className={cn(
+                        "filter-tab",
+                        filterStatus === 'upcoming' && "active"
+                    )}
+                    onClick={() => { setFilterStatus('upcoming'); setCurrentPage(0); }}
+                >
+                    Upcoming
+                </button>
+                <button 
+                    className={cn(
+                        "filter-tab",
+                        filterStatus === 'past' && "active"
+                    )}
+                    onClick={() => { setFilterStatus('past'); setCurrentPage(0); }}
+                >
+                    Past
+                </button>
             </div>
 
             {/* Events Table */}
-            <div className="table-container">
-                <div className="table-header">
-                    <h2>All Events</h2>
-                </div>
-                <div className="table-wrapper">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Event Name</th>
-                                <th>Location</th>
-                                <th>Date</th>
-                                <th>Attendees</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {events.map((event) => (
-                                <tr key={event.id}>
-                                    <td>{event.name}</td>
-                                    <td>{event.location}</td>
-                                    <td>{event.date}</td>
-                                    <td>{event.attendees.toLocaleString()}</td>
-                                    <td>{getStatusBadge(event.status)}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button className="action-btn" title="Edit">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.388 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L4.99967 13.6667L1.33301 14.6667L2.33301 11L11.333 2.00004Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                            <button className="action-btn" title="Delete">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M2 4H14M12.6667 4V13.3333C12.6667 14 12 14.6667 11.3333 14.6667H4.66667C4 14.6667 3.33333 14 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2 6 1.33333 6.66667 1.33333H9.33333C10 1.33333 10.6667 2 10.6667 2.66667V4" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <DataTable<Event>
+                data={paginatedEvents}
+                columns={[
+                    { 
+                        key: 'title', 
+                        header: 'Event Name',
+                        width: '25%',
+                        render: (event) => (
+                            <div>
+                                <strong>{event.title}</strong>
+                                {event.visibility === 'PRIVATE' && (
+                                    <span className="text-xs text-[#6B7280] ml-2">🔒</span>
+                                )}
+                            </div>
+                        )
+                    },
+                    { key: 'venue', header: 'Venue', width: '20%' },
+                    { 
+                        key: 'eventDate', 
+                        header: 'Date',
+                        width: '15%',
+                        render: (event) => (
+                            <div>
+                                {formatDate(event.eventDate)}
+                                {event.eventTime && <span className="text-xs text-[#6B7280] block">{event.eventTime}</span>}
+                            </div>
+                        )
+                    },
+                    { 
+                        key: 'attendees', 
+                        header: 'Attendees',
+                        width: '15%',
+                        render: (event) => (
+                            <div>
+                                {event.currentAttendees.toLocaleString()}
+                                {event.maxAttendees && (
+                                    <span className="text-xs text-[#6B7280]"> / {event.maxAttendees.toLocaleString()}</span>
+                                )}
+                            </div>
+                        )
+                    },
+                    { 
+                        key: 'status', 
+                        header: 'Status',
+                        width: '12%',
+                        render: (event) => getStatusBadge(event.eventDate, event.status)
+                    },
+                    {
+                        key: 'actions',
+                        header: 'Actions',
+                        width: '13%',
+                        render: (event) => (
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Edit" onClick={() => openEditModal(event)}>
+                                    <EditIcon />
+                                </button>
+                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Delete" onClick={() => openDeleteModal(event)}>
+                                    <DeleteIcon />
+                                </button>
+                            </div>
+                        )
+                    }
+                ] as DataTableColumn<Event>[]}
+                keyExtractor={(event) => event.id}
+                isLoading={isLoading}
+                title="All Events"
+                totalCount={filteredEvents.length}
+                emptyIcon="🎉"
+                emptyTitle="No events found"
+                emptyDescription="Create your first event to get started"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
-            {/* Create Event Modal */}
-            {showModal && (
-                <div className="modal active">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>Create New Event</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            {/* Create/Edit Event Modal */}
+            {showModal && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
+                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]" onClick={() => { setShowModal(false); resetForm(); }}>×</button>
                         </div>
-                        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div className="form-group">
-                                <label htmlFor="eventName">Event Name</label>
-                                <input type="text" id="eventName" className="form-input" placeholder="Enter event name" />
+                        <div className="p-6 max-sm:p-4">
+                            <div className="flex flex-col gap-2">
+                                <label htmlFor="eventTitle" className="font-sans text-sm font-semibold text-[#374151]">Event Name *</label>
+                                <input 
+                                    type="text" 
+                                    id="eventTitle" 
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                    placeholder="Enter event name"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="location">Location</label>
-                                    <input type="text" id="location" className="form-input" placeholder="Enter location" />
+                            <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="venue" className="font-sans text-sm font-semibold text-[#374151]">Venue *</label>
+                                    <input 
+                                        type="text" 
+                                        id="venue" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                        placeholder="Enter venue"
+                                        value={formData.venue}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
+                                    />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="eventDate">Date</label>
-                                    <input type="date" id="eventDate" className="form-input" />
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="eventDate" className="font-sans text-sm font-semibold text-[#374151]">Date *</label>
+                                    <input 
+                                        type="date" 
+                                        id="eventDate" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
+                                        value={formData.eventDate}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, eventDate: e.target.value }))}
+                                    />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="description">Description</label>
-                                <textarea id="description" className="form-textarea" placeholder="Describe the event..." rows={4}></textarea>
+                            <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="eventTime" className="font-sans text-sm font-semibold text-[#374151]">Time</label>
+                                    <input 
+                                        type="time" 
+                                        id="eventTime" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
+                                        value={formData.eventTime}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, eventTime: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="maxAttendees" className="font-sans text-sm font-semibold text-[#374151]">Max Attendees</label>
+                                    <input 
+                                        type="number" 
+                                        id="maxAttendees" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                        placeholder="Optional"
+                                        value={formData.maxAttendees}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, maxAttendees: e.target.value }))}
+                                    />
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                                <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button className="btn-primary">Create Event</button>
+                            <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
+                                    <select 
+                                        id="status" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
+                                        value={formData.status}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as EventStatus }))}
+                                    >
+                                        <option value="DRAFT">Draft</option>
+                                        <option value="PUBLISHED">Published</option>
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="visibility" className="font-sans text-sm font-semibold text-[#374151]">Visibility</label>
+                                    <select 
+                                        id="visibility" 
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
+                                        value={formData.visibility}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, visibility: e.target.value as EventVisibility }))}
+                                    >
+                                        <option value="PUBLIC">Public</option>
+                                        <option value="PRIVATE">Private</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 mt-4">
+                                <label htmlFor="description" className="font-sans text-sm font-semibold text-[#374151]">Description</label>
+                                <textarea 
+                                    id="description" 
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-none" 
+                                    placeholder="Describe the event..." 
+                                    rows={4}
+                                    value={formData.description}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                ></textarea>
+                            </div>
+                            <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-6">
+                                <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
+                                <button 
+                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed" 
+                                    onClick={handleSubmit}
+                                    disabled={isCreating || isUpdating || !formData.title || !formData.venue || !formData.eventDate}
+                                >
+                                    {isCreating || isUpdating ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && deletingEvent && (
+                <ConfirmModal
+                    isOpen={showDeleteModal}
+                    title="Delete Event"
+                    message={`Are you sure you want to delete "${deletingEvent.title}"? This action cannot be undone.`}
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                    onConfirm={handleDelete}
+                    onClose={() => {
+                        setShowDeleteModal(false);
+                        setDeletingEvent(null);
+                    }}
+                    isLoading={isDeleting}
+                />
             )}
         </div>
     );

@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   { label: "About", href: "/about", disabled: false },
   { label: "How it works", href: "/how-it-works", disabled: false },
   { label: "News & Media", href: "/news-media", disabled: false},
-  { label: "Festivals", href: "/festivals", disabled: true },
+  { label: "Festivals", href: "/festivals", disabled: false },
   { label: "FAQs", href: "/faqs", disabled: false },
 ] as const;
 
@@ -141,7 +141,7 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
           role="navigation"
           aria-label="Mobile navigation"
         >
-          <div className="container-site flex flex-col gap-1 py-4">
+          <div className="mx-auto max-w-[1200px] w-full px-4 flex flex-col gap-1 py-4">
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.href}
@@ -193,7 +193,7 @@ export default function Header() {
       )}
       role="banner"
     >
-      <div className="container-site">
+      <div className="mx-auto max-w-[1200px] w-full px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Logo />

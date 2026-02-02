@@ -63,6 +63,13 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `admin-dashboard/news/${id}`,
   },
 
+  // Events endpoints (public - no auth required)
+  EVENTS: {
+    LIST: 'admin-dashboard/events',
+    BY_ID: (id: string) => `admin-dashboard/events/${id}`,
+    STATISTICS: 'admin-dashboard/events/statistics',
+  },
+
   // Images (S3)
   IMAGES: {
     SIGNED_URL: '/images/signed-url',
