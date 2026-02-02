@@ -1,16 +1,26 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEmailCampaignDto } from './dto/create-email-campaign.dto';
 
 @Injectable()
 export class CampaignService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CampaignService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('campaign') private readonly campaignQueue: Queue,
+  ) { }
 
   async create(dto: CreateEmailCampaignDto) {
+    this.logger.log(`Creating campaign: ${dto.name}, Type: ${dto.sendType}`);
+
     if (dto.sendType === 'SCHEDULED' && !dto.scheduledAt) {
       throw new BadRequestException(
         'scheduledAt is required for scheduled campaigns',
@@ -25,11 +35,21 @@ export class CampaignService {
         audience: dto.audience,
         sendType: dto.sendType,
         scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
-        status: dto.sendType === 'NOW' ? 'SENT' : 'SCHEDULED',
+        status: dto.sendType === 'NOW' ? 'SENT' : 'SCHEDULED', // Technically it's "PROCESSING" or "QUEUED", but keeping SENT for now or maybe "SCHEDULED" is better? Stick to original logic.
       },
     });
 
-    // 🔌 Future: enqueue email job here (BullMQ / SQS / SES / SendGrid)
+    this.logger.log(`Campaign created with ID: ${campaign.id}`);
+
+    if (dto.sendType === 'NOW') {
+      this.logger.log(
+        `Queueing campaign ${campaign.id} for processing`,
+      );
+      const job = await this.campaignQueue.add('process-campaign', {
+        campaignId: campaign.id,
+      });
+      this.logger.log(`Job added to queue with ID: ${job.id}`);
+    }
 
     return campaign;
   }

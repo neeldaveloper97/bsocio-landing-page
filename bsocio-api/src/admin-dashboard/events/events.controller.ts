@@ -18,15 +18,20 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ListEventQueryDto } from './dto/list-event-query.dto';
 import { EventsService } from './events.service';
 
 @ApiTags('admin-dashboard: events')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(private readonly eventsService: EventsService) { }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')

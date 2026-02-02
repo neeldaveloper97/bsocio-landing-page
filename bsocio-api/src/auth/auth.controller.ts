@@ -29,14 +29,14 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly mailService: MailService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password (JWT Bearer)' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+    return this.authService.login(dto.email, dto.password, dto.isAdminLogin);
   }
 
   @Get('magic/verify')

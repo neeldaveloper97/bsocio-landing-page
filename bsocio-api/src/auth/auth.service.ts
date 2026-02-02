@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -29,15 +29,30 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, isAdminLogin?: boolean) {
     const user = await this.usersService.findByEmail(email);
     if (!user || !user.password)
       throw new UnauthorizedException('Invalid credentials');
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
+
+    // 🔒 Enforce Admin Access Control
+    if (isAdminLogin) {
+      const allowedAdminRoles = [
+        'SUPER_ADMIN',
+        'CONTENT_ADMIN',
+        'COMMUNICATIONS_ADMIN',
+        'ANALYTICS_VIEWER',
+      ];
+      if (!allowedAdminRoles.includes(user.role)) {
+        throw new ForbiddenException(
+          'Access denied. Admin portal is restricted to authorized administrators.',
+        );
+      }
+    }
 
     // 🔔 Log admin activity (non-blocking, safe)
     await this.adminActivityService.log({
@@ -286,11 +301,11 @@ export class AuthService {
     const backend =
       environment === 'production'
         ? this.configService.get<string>('BACKEND_URL_PROD') ||
-          this.configService.get<string>('CORS_ORIGIN') ||
-          'https://api.specsto.online'
+        this.configService.get<string>('CORS_ORIGIN') ||
+        'https://api.specsto.online'
         : this.configService.get<string>('BACKEND_URL_DEV') ||
-          this.configService.get<string>('CORS_ORIGIN') ||
-          'http://localhost:3001';
+        this.configService.get<string>('CORS_ORIGIN') ||
+        'http://localhost:3001';
     const magicUrl = `${backend}/auth/magic?token=${encodeURIComponent(magicToken)}`;
     const subject = 'Your magic sign-in link (valid 15 minutes)';
 
@@ -325,7 +340,7 @@ export class AuthService {
       message: `${user.email} registered via Email`,
       actorId: user.id,
     });
-    
+
     // No magic link - invitation links are shared individually with customers
   }
 

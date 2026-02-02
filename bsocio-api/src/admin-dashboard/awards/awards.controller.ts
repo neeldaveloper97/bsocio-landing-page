@@ -19,6 +19,8 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 import { AwardsService } from './awards.service';
 import { CreateAwardCategoryDto } from './dto/create-award-category.dto';
 import { UpdateAwardCategoryDto } from './dto/update-award-category.dto';
@@ -28,9 +30,12 @@ import { CreateCeremonyDto } from './dto/create-ceremony.dto';
 import { UpdateCeremonyDto } from './dto/update-ceremony.dto';
 
 @ApiTags('admin-dashboard: awards')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/awards')
 export class AwardsController {
-  constructor(private readonly awardsService: AwardsService) {}
+  constructor(private readonly awardsService: AwardsService) { }
 
   // ==================== Award Categories ====================
 

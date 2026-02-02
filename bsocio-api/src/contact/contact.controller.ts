@@ -1,11 +1,16 @@
-import { Body, Controller, Post, Get, Query, Param } from '@nestjs/common';
+import { Body, Controller, Post, Get, Query, Param, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiOperation,
   ApiTags,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { ListContactQueryDto } from './dto/list-contact.query.dto';
@@ -13,8 +18,9 @@ import { ListContactQueryDto } from './dto/list-contact.query.dto';
 @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
-  constructor(private readonly service: ContactService) {}
+  constructor(private readonly service: ContactService) { }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post()
   @ApiOperation({ summary: 'Submit contact inquiry' })
   @ApiCreatedResponse({
@@ -36,6 +42,9 @@ export class ContactController {
     };
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'COMMUNICATIONS_ADMIN')
   @Get()
   @ApiOperation({ summary: 'List contact inquiries (admin)' })
   @ApiOkResponse({
@@ -62,6 +71,9 @@ export class ContactController {
     return this.service.list(query);
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'COMMUNICATIONS_ADMIN')
   @Get(':id')
   @ApiOperation({ summary: 'Get contact inquiry by ID (admin)' })
   @ApiParam({ name: 'id' })

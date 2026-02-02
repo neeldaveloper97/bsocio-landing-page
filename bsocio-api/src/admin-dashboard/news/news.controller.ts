@@ -17,16 +17,19 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 
 @ApiTags('admin-dashboard: news')
 @ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/news')
 export class NewsController {
-  constructor(private readonly service: NewsService) {}
+  constructor(private readonly service: NewsService) { }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create news article' })
   create(@Body() dto: CreateNewsDto, @Request() req: any) {

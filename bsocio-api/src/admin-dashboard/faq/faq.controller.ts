@@ -20,6 +20,8 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { ListFaqQueryDto } from './dto/list-faq.query';
 import { UpdateFaqDto } from './dto/update-faq.dto';
@@ -27,10 +29,12 @@ import { FaqService } from './faq.service';
 
 @ApiTags('admin-dashboard: faqs')
 // ✅ admin dashboard should be protected
-
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/faqs')
 export class FaqController {
-  constructor(private readonly faqService: FaqService) {}
+  constructor(private readonly faqService: FaqService) { }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
