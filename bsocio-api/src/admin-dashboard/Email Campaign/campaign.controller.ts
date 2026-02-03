@@ -7,19 +7,22 @@ import { CampaignService } from './campaign.service';
 import { CreateEmailCampaignDto } from './dto/create-email-campaign.dto';
 
 @ApiTags('admin-dashboard: campaigns')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'COMMUNICATIONS_ADMIN')
 @Controller('admin-dashboard/campaigns')
 export class CampaignController {
   constructor(private readonly service: CampaignService) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'COMMUNICATIONS_ADMIN')
+  @ApiBearerAuth('access-token')
   @Post('draft')
   @ApiOperation({ summary: 'Save email campaign as draft' })
   saveDraft(@Body() dto: CreateEmailCampaignDto) {
     return this.service.saveDraft(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'COMMUNICATIONS_ADMIN')
+  @ApiBearerAuth('access-token')
   @Post('send')
   @ApiOperation({ summary: 'Create and send / schedule email campaign' })
   create(@Body() dto: CreateEmailCampaignDto) {

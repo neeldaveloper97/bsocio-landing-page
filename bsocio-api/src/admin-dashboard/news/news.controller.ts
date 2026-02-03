@@ -23,13 +23,13 @@ import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 
 @ApiTags('admin-dashboard: news')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/news')
 export class NewsController {
   constructor(private readonly service: NewsService) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
+  @ApiBearerAuth('access-token')
   @Post()
   @ApiOperation({ summary: 'Create news article' })
   create(@Body() dto: CreateNewsDto, @Request() req: any) {
@@ -66,7 +66,9 @@ export class NewsController {
     return this.service.getById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
+  @ApiBearerAuth('access-token')
   @Patch(':id')
   @ApiOperation({ summary: 'Update news article' })
   update(
@@ -77,14 +79,18 @@ export class NewsController {
     return this.service.update(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
+  @ApiBearerAuth('access-token')
   @Patch(':id/archive')
   @ApiOperation({ summary: 'Archive news article' })
   archive(@Param('id') id: string, @Request() req: any) {
     return this.service.archive(id, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
+  @ApiBearerAuth('access-token')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete news article' })
   delete(@Param('id') id: string) {

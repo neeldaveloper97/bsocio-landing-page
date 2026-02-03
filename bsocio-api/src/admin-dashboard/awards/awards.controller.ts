@@ -30,16 +30,14 @@ import { CreateCeremonyDto } from './dto/create-ceremony.dto';
 import { UpdateCeremonyDto } from './dto/update-ceremony.dto';
 
 @ApiTags('admin-dashboard: awards')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/awards')
 export class AwardsController {
   constructor(private readonly awardsService: AwardsService) { }
 
   // ==================== Award Categories ====================
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post('categories')
   @ApiOperation({ summary: 'Create award category' })
@@ -61,7 +59,8 @@ export class AwardsController {
     return this.awardsService.getCategoryById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch('categories/:id')
   @ApiOperation({ summary: 'Update award category' })
@@ -74,7 +73,8 @@ export class AwardsController {
     return this.awardsService.updateCategory(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete('categories/:id')
   @ApiOperation({ summary: 'Delete award category' })
@@ -85,7 +85,8 @@ export class AwardsController {
 
   // ==================== Nominees ====================
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post('nominees')
   @ApiOperation({ summary: 'Create nominee' })
@@ -115,7 +116,8 @@ export class AwardsController {
     return this.awardsService.getNomineeById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch('nominees/:id')
   @ApiOperation({ summary: 'Update nominee' })
@@ -128,7 +130,8 @@ export class AwardsController {
     return this.awardsService.updateNominee(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete('nominees/:id')
   @ApiOperation({ summary: 'Delete nominee' })
@@ -139,7 +142,8 @@ export class AwardsController {
 
   // ==================== Ceremonies ====================
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post('ceremonies')
   @ApiOperation({ summary: 'Create ceremony' })
@@ -161,7 +165,8 @@ export class AwardsController {
     return this.awardsService.getCeremonyById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch('ceremonies/:id')
   @ApiOperation({ summary: 'Update ceremony' })
@@ -174,7 +179,8 @@ export class AwardsController {
     return this.awardsService.updateCeremony(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete('ceremonies/:id')
   @ApiOperation({ summary: 'Delete ceremony' })
@@ -185,7 +191,8 @@ export class AwardsController {
 
   // ==================== Special Guests ====================
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post('guests')
   @ApiOperation({ summary: 'Create special guest' })
@@ -207,7 +214,8 @@ export class AwardsController {
     return this.awardsService.getSpecialGuestById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch('guests/:id')
   @ApiOperation({ summary: 'Update special guest' })
@@ -220,7 +228,8 @@ export class AwardsController {
     return this.awardsService.updateSpecialGuest(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete('guests/:id')
   @ApiOperation({ summary: 'Delete special guest' })

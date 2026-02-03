@@ -26,14 +26,12 @@ import { ListEventQueryDto } from './dto/list-event-query.dto';
 import { EventsService } from './events.service';
 
 @ApiTags('admin-dashboard: events')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post()
   @ApiOperation({ summary: 'Create a new event' })
@@ -77,7 +75,8 @@ export class EventsController {
     return this.eventsService.getById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch(':id')
   @ApiOperation({ summary: 'Update an event' })
@@ -90,7 +89,8 @@ export class EventsController {
     return this.eventsService.update(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an event' })

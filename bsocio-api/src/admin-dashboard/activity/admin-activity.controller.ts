@@ -10,8 +10,6 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { AdminActivityService } from './admin-activity.service';
 
 @ApiTags('admin-dashboard: activity')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth('access-token')
 @Controller('admin-dashboard/activity')
 export class AdminActivityController {
   constructor(private readonly service: AdminActivityService) {}

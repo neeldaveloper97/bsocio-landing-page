@@ -11,8 +11,6 @@ import { DashboardOverviewService } from './dashboard-overview.service';
 import { DashboardOverviewResponseDto } from './dto/dashboard-overview.dto';
 
 @ApiTags('admin-dashboard: overview')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth('access-token')
 @Controller('admin-dashboard/overview')
 export class DashboardOverviewController {
   constructor(private readonly service: DashboardOverviewService) {}

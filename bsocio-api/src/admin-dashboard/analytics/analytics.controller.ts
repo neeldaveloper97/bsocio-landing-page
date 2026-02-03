@@ -7,9 +7,6 @@ import { AnalyticsService } from './analytics.service';
 import { AnalyticsQueryDto } from './dto/analytics.query.dto';
 
 @ApiTags('admin-dashboard: analytics')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'ANALYTICS_VIEWER')
 @Controller('admin-dashboard/analytics')
 export class AnalyticsController {
   constructor(private readonly service: AnalyticsService) { }

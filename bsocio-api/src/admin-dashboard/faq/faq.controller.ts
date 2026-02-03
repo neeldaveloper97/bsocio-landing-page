@@ -28,15 +28,12 @@ import { UpdateFaqDto } from './dto/update-faq.dto';
 import { FaqService } from './faq.service';
 
 @ApiTags('admin-dashboard: faqs')
-// ✅ admin dashboard should be protected
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
 @Controller('admin-dashboard/faqs')
 export class FaqController {
   constructor(private readonly faqService: FaqService) { }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post()
   @ApiOperation({ summary: 'Create FAQ' })
@@ -57,7 +54,8 @@ export class FaqController {
     return this.faqService.getById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Patch(':id')
   @ApiOperation({ summary: 'Update FAQ' })
@@ -70,7 +68,8 @@ export class FaqController {
     return this.faqService.update(id, dto, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete FAQ' })
@@ -79,7 +78,8 @@ export class FaqController {
     return this.faqService.remove(id, req.user?.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post('reorder')
   @ApiOperation({ summary: 'Reorder FAQs by ordered list of ids' })
@@ -102,7 +102,8 @@ export class FaqController {
 
   // Optional endpoint (useful for public site):
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
   @ApiBearerAuth('access-token')
   @Post(':id/views')
   @ApiOperation({ summary: 'Increment FAQ views (optional)' })

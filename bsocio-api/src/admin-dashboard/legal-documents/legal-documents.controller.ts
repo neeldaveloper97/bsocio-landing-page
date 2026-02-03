@@ -12,20 +12,25 @@ import {
   UpdateLegalDocumentDto,
   LegalDocumentTypeDto,
 } from './dto/update-legal-document.dto';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @ApiTags('admin-dashboard: legal')
 @ApiBearerAuth('access-token')
 @Controller('admin-dashboard/legal')
 export class LegalDocumentsController {
-  constructor(private readonly service: LegalDocumentsService) {}
+  constructor(private readonly service: LegalDocumentsService) { }
 
+  @UseGuards()
   @Get(':type')
   @ApiOperation({ summary: 'Get legal document (privacy policy / terms)' })
   @ApiParam({ name: 'type', enum: LegalDocumentTypeDto })
   get(@Param('type') type: LegalDocumentTypeDto) {
     return this.service.get(type);
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN', 'CONTENT_ADMIN')
+  @ApiBearerAuth('access-token')
   @Put(':type')
   @ApiOperation({ summary: 'Create or update legal document' })
   @ApiParam({ name: 'type', enum: LegalDocumentTypeDto })
