@@ -34,6 +34,32 @@ export class CampaignProcessor extends WorkerHost {
             return;
         }
 
+        let whereClause: any = { email: { not: null } };
+
+        if ((campaign.audience as any) === 'MANUAL_SELECTION') {
+            const targetIds = (campaign as any).targetUserIds;
+            if (targetIds && targetIds.length > 0) {
+                whereClause.id = { in: targetIds };
+            } else {
+                this.logger.warn(`Campaign ${campaignId} is MANUAL but has no target IDs`);
+                return;
+            }
+        } else if ((campaign.audience as any) === 'SEGMENTED_USERS') {
+            const filters = (campaign as any).filters;
+            if (filters) {
+                if (filters.role) whereClause.role = filters.role;
+                if (filters.oauthProvider) whereClause.oauthProvider = filters.oauthProvider;
+                if (filters.isPhoneVerified !== undefined) whereClause.isPhoneVerified = filters.isPhoneVerified;
+                if (filters.gender) whereClause.gender = filters.gender;
+
+                if (filters.joinedAfter || filters.joinedBefore) {
+                    whereClause.createdAt = {};
+                    if (filters.joinedAfter) whereClause.createdAt.gte = new Date(filters.joinedAfter);
+                    if (filters.joinedBefore) whereClause.createdAt.lte = new Date(filters.joinedBefore);
+                }
+            }
+        }
+
         const batchSize = 50; // Process 50 users at a time
         let hasMore = true;
         let totalProcessedInJob = 0;
@@ -44,7 +70,7 @@ export class CampaignProcessor extends WorkerHost {
                 take: batchSize,
                 skip: cursor ? 1 : 0,
                 cursor: cursor ? { id: cursor } : undefined,
-                where: { email: { not: undefined } }, // Filtering valid emails
+                where: whereClause,
                 select: { id: true, email: true },
                 orderBy: { id: 'asc' }, // Ensure stable ordering
             });

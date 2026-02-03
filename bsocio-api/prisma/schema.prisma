@@ -147,6 +147,8 @@ model EmailCampaign {
   content     String
   audience    EmailAudience       @default(ALL_USERS)
   sendType    EmailSendType
+  filters     Json?
+  targetUserIds String[]
   scheduledAt DateTime?
   status      EmailCampaignStatus @default(DRAFT)
   totalSent   Int                 @default(0)
@@ -346,6 +348,7 @@ enum MagicLinkType {
 enum EmailAudience {
   ALL_USERS
   SEGMENTED_USERS
+  MANUAL_SELECTION
 }
 
 enum EmailSendType {

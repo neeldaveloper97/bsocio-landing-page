@@ -10,6 +10,7 @@ import {
 export enum EmailAudienceDto {
   ALL_USERS = 'ALL_USERS',
   SEGMENTED_USERS = 'SEGMENTED_USERS',
+  MANUAL_SELECTION = 'MANUAL_SELECTION',
 }
 
 export enum EmailSendTypeDto {
@@ -44,4 +45,12 @@ export class CreateEmailCampaignDto {
   @IsOptional()
   @IsDateString()
   scheduledAt?: string;
+
+  @ApiPropertyOptional({ description: 'Filters for segmented audience' })
+  @IsOptional()
+  filters?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: 'List of user IDs for manual selection' })
+  @IsOptional()
+  targetUserIds?: string[];
 }

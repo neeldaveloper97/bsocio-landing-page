@@ -32,8 +32,10 @@ export class CampaignService {
         name: dto.name,
         subject: dto.subject,
         content: dto.content,
-        audience: dto.audience,
-        sendType: dto.sendType,
+        audience: dto.audience as any,
+        sendType: dto.sendType as any,
+        filters: dto.filters ? (dto.filters as any) : undefined,
+        targetUserIds: dto.targetUserIds || [],
         scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         status: dto.sendType === 'NOW' ? 'SENT' : 'SCHEDULED', // Technically it's "PROCESSING" or "QUEUED", but keeping SENT for now or maybe "SCHEDULED" is better? Stick to original logic.
       },
@@ -67,7 +69,14 @@ export class CampaignService {
   async saveDraft(dto: CreateEmailCampaignDto) {
     return this.prisma.emailCampaign.create({
       data: {
-        ...dto,
+        name: dto.name,
+        subject: dto.subject,
+        content: dto.content,
+        audience: dto.audience as any,
+        sendType: dto.sendType as any,
+        filters: dto.filters ? (dto.filters as any) : undefined,
+        targetUserIds: dto.targetUserIds || [],
+        scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
         status: 'DRAFT',
       },
     });
