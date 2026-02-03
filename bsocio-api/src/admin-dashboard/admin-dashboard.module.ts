@@ -6,7 +6,7 @@ import { LegalDocumentsModule } from './legal-documents/legal-documents.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { NewsModule } from './news/news.module';
 import { CampaignModule } from './Email Campaign/campaign.module';
-// import { AdminUsersModule } from './admin-users/admin-users.module';
+import { AdminUsersModule } from './admin-users/admin-users.module';
 import { EventsModule } from './events/events.module';
 import { AwardsModule } from './awards/awards.module';
 
@@ -19,7 +19,7 @@ import { AwardsModule } from './awards/awards.module';
     AnalyticsModule,
     NewsModule,
     CampaignModule,
-    // AdminUsersModule,
+    AdminUsersModule,
     EventsModule,
     AwardsModule,
   ],
@@ -27,4 +27,4 @@ import { AwardsModule } from './awards/awards.module';
   providers: [],
   exports: [AdminActivityModule],
 })
-export class AdminDashboardModule {}
+export class AdminDashboardModule { }
