@@ -6,9 +6,9 @@ import { LegalDocumentsModule } from './legal-documents/legal-documents.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { NewsModule } from './news/news.module';
 import { CampaignModule } from './Email Campaign/campaign.module';
-import { AdminUsersModule } from './admin-users/admin-users.module';
 import { EventsModule } from './events/events.module';
 import { AwardsModule } from './awards/awards.module';
+import { AdminUsersModule } from './admin-users/admin-users.module';
 
 @Module({
   imports: [

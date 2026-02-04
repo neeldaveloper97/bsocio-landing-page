@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-w-full" role="status" aria-label="Loading analytics">
+            <div className="page-content w-full" role="status" aria-label="Loading analytics">
                 {/* Header Skeleton */}
                 <div>
                     <div className="bg-gradient-to-r from-[#E5E7EB] via-[#F3F4F6] to-[#E5E7EB] animate-pulse rounded-md" style={{ width: '220px', height: '32px' }} />
@@ -237,35 +237,14 @@ export default function AnalyticsPage() {
 
     if (isError) {
         return (
-            <div style={{ minWidth: '100%' }}>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '300px',
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '12px',
-                    border: '1px solid #E5E7EB'
-                }}>
-                    <div style={{ textAlign: 'center', padding: '24px' }}>
-                        <p style={{ color: '#DC2626', fontWeight: 500, fontSize: '15px', marginBottom: '16px' }}>
-                            Failed to load analytics.
-                        </p>
-                        <Button 
-                            onClick={() => refetch()}
-                            style={{
-                                backgroundColor: '#2563EB',
-                                color: '#FFFFFF',
-                                padding: '10px 24px',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: 500
-                            }}
-                        >
-                            Retry
-                        </Button>
-                    </div>
+            <div className="page-content w-full">
+                <div className="error-state-container">
+                    <span className="error-state-icon">⚠️</span>
+                    <h3 className="error-state-title">Failed to load analytics</h3>
+                    <p className="error-state-message">There was an error loading the analytics data. Please try again.</p>
+                    <button className="btn-primary-responsive" onClick={() => refetch()}>
+                        Retry
+                    </button>
                 </div>
             </div>
         );

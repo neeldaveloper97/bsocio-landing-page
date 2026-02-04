@@ -216,7 +216,7 @@ export default function ClientDashboard() {
                         <StatCardSkeleton />
                     </div>
                 ) : isError ? (
-                    <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+                    <div className="inline-error-state">
                         Failed to load metrics.{' '}
                         <button onClick={() => refetch()} className="text-primary font-semibold hover:underline">Retry</button>
                     </div>

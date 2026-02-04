@@ -103,8 +103,8 @@ export default function LegalPage() {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col gap-6 w-full max-w-full">
-                <div className="flex flex-col items-center justify-center min-h-100 gap-4">
+            <div className="page-content w-full">
+                <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 bg-white border border-[#E5E7EB] rounded-xl w-full">
                     <div className="w-10 h-10 border-[3px] border-[#E5E7EB] border-t-[#2563EB] rounded-full animate-spin"></div>
                     <p className="text-[#6B7280] text-sm">Loading documents...</p>
                 </div>
@@ -115,9 +115,9 @@ export default function LegalPage() {
     // Show error state with retry button
     if (hasError && !currentDoc) {
         return (
-            <div className="flex flex-col gap-6 w-full max-w-full">
+            <div className="page-content w-full">
                 {/* Tabs */}
-                <div className="flex gap-0 border-b border-[#E5E7EB] bg-transparent">
+                <div className="flex gap-0 border-b border-[#E5E7EB] bg-transparent w-full">
                     <button
                         className={cn(
                             "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB]",
@@ -138,21 +138,11 @@ export default function LegalPage() {
                     </button>
                 </div>
 
-                <div className="flex flex-col items-center justify-center min-h-100 gap-4 bg-white border border-[#E5E7EB] rounded-xl py-12 px-6 text-center">
-                    <div>
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                    </div>
-                    <h3 className="font-sans text-xl font-bold text-[#101828] m-0">Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
-                    <p className="font-sans text-sm text-[#6B7280] m-0 max-w-100">There was an error loading the document. Please check your connection and try again.</p>
-                    <button className="inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#2563EB] text-white hover:bg-[#1D4ED8]" onClick={handleRetry}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="23 4 23 10 17 10"></polyline>
-                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                        </svg>
+                <div className="error-state-container">
+                    <span className="error-state-icon">⚠️</span>
+                    <h3 className="error-state-title">Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
+                    <p className="error-state-message">There was an error loading the document. Please check your connection and try again.</p>
+                    <button className="btn-primary-responsive" onClick={handleRetry}>
                         Retry
                     </button>
                 </div>

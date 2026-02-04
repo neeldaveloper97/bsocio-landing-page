@@ -203,11 +203,11 @@ export default function EventsPage() {
     // Show error state if API failed
     if (isError) {
         return (
-            <div className="page-content">
-                <div className="text-center py-12">
-                    <span className="text-4xl mb-4 block">⚠️</span>
-                    <h3 className="text-lg font-semibold text-[#111827] mb-2">Failed to load events</h3>
-                    <p className="text-[#6B7280] mb-4">There was an error loading the events. Please try again.</p>
+            <div className="page-content w-full">
+                <div className="error-state-container">
+                    <span className="error-state-icon">⚠️</span>
+                    <h3 className="error-state-title">Failed to load events</h3>
+                    <p className="error-state-message">There was an error loading the events. Please try again.</p>
                     <button className="btn-primary-responsive" onClick={refetch}>
                         Retry
                     </button>

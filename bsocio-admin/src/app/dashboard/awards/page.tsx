@@ -173,15 +173,15 @@ export default function AwardsPage() {
             </div>
 
             {/* Award Categories Section */}
-            <div className="bg-white rounded-xl border border-border p-6 mb-8">
+            <div className="bg-white rounded-xl border border-border p-6 mb-8 w-full">
                 <h2 className="text-lg font-semibold text-foreground mb-6">Award Categories</h2>
                 
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
+                    <div className="flex items-center justify-center py-12 w-full">
                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                     </div>
                 ) : categories && categories.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 w-full">
                         {categories.map((category) => (
                             <div 
                                 key={category.id} 
@@ -221,7 +221,7 @@ export default function AwardsPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div className="text-center py-12 text-muted-foreground w-full bg-gray-50 rounded-lg">
                         No categories found. Click "Add New Category" to create one.
                     </div>
                 )}

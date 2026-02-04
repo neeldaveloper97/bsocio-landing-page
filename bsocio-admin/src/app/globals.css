@@ -2016,6 +2016,90 @@ body {
     }
 }
 
+/* ==========================================
+   ERROR STATE COMPONENTS
+   ========================================== */
+
+/* Full-width error state container */
+.error-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    min-height: 300px;
+    padding: 48px 24px;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    .error-state-container {
+        min-height: 250px;
+        padding: 32px 16px;
+    }
+}
+
+.error-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .error-state-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+}
+
+.error-state-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+@media (max-width: 640px) {
+    .error-state-title {
+        font-size: 16px;
+    }
+}
+
+.error-state-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0 0 16px 0;
+    max-width: 400px;
+}
+
+@media (max-width: 640px) {
+    .error-state-message {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+}
+
+/* Inline error state (for inside sections) */
+.inline-error-state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background-color: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    color: #DC2626;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* Page header */
 .page-header-row {
     display: flex;

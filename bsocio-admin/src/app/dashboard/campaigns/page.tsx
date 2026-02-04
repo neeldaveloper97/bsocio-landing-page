@@ -62,13 +62,15 @@ const initialFormData: FormData = {
 
 export default function CampaignsPage() {
     const [showModal, setShowModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [viewingCampaign, setViewingCampaign] = useState<EmailCampaign | null>(null);
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [currentPage, setCurrentPage] = useState(0);
 
     // Lock body scroll when modal is open
     useEffect(() => {
-        if (showModal) {
+        if (showModal || showViewModal) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
@@ -76,7 +78,7 @@ export default function CampaignsPage() {
         return () => {
             document.body.style.overflow = '';
         };
-    }, [showModal]);
+    }, [showModal, showViewModal]);
 
     // Hooks
     const { data: campaigns, isLoading, refetch } = useCampaigns(
@@ -111,6 +113,16 @@ export default function CampaignsPage() {
     const closeModal = () => {
         setShowModal(false);
         setFormData(initialFormData);
+    };
+
+    const openViewModal = (campaign: EmailCampaign) => {
+        setViewingCampaign(campaign);
+        setShowViewModal(true);
+    };
+
+    const closeViewModal = () => {
+        setShowViewModal(false);
+        setViewingCampaign(null);
     };
 
     const handleSaveDraft = async () => {
@@ -251,49 +263,37 @@ export default function CampaignsPage() {
     // Loading skeleton
     if (isLoading) {
         return (
-            <div className="content-section active">
-                <div className="section-header-with-btn">
-                    <div className="section-intro">
-                        <h1>Email Campaigns</h1>
-                        <p>Create and manage email campaigns</p>
+            <div className="page-content w-full">
+                <div className="page-header-row">
+                    <div className="flex flex-col gap-1">
+                        <div className="w-48 h-7 bg-gray-100 rounded" />
+                        <div className="w-72 h-5 bg-gray-100 rounded" />
                     </div>
                 </div>
-                <div className="stats-cards-grid">
+                <div className="stats-grid-4">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="stat-card skeleton-card">
-                            <div className="skeleton-box" style={{ width: '40px', height: '40px', borderRadius: '8px' }}></div>
-                            <div className="skeleton-box" style={{ width: '60px', height: '32px', marginTop: '8px' }}></div>
-                            <div className="skeleton-box" style={{ width: '80px', height: '14px', marginTop: '8px' }}></div>
+                        <div key={i} className="stat-card-responsive">
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg" />
+                            <div className="w-16 h-8 bg-gray-100 rounded mt-2" />
+                            <div className="w-20 h-4 bg-gray-100 rounded mt-2" />
                         </div>
                     ))}
                 </div>
-                <div className="table-container">
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Campaign Name</th>
-                                    <th>Subject</th>
-                                    <th>Audience</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <tr key={i}>
-                                        <td><div className="skeleton-box" style={{ width: '150px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '200px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '80px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '70px', height: '24px', borderRadius: '12px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '120px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '60px', height: '24px' }}></div></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full">
+                    <div className="flex gap-4 p-4 bg-gray-50 border-b border-gray-100">
+                        <div className="w-1/4 h-4 bg-gray-100 rounded" />
+                        <div className="w-1/4 h-4 bg-gray-100 rounded" />
+                        <div className="w-1/4 h-4 bg-gray-100 rounded hidden sm:block" />
+                        <div className="w-1/4 h-4 bg-gray-100 rounded hidden sm:block" />
                     </div>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex gap-4 p-4 border-b border-gray-50 last:border-0">
+                            <div className="w-1/4 h-4 bg-gray-100 rounded" />
+                            <div className="w-1/4 h-4 bg-gray-100 rounded" />
+                            <div className="w-1/4 h-4 bg-gray-100 rounded hidden sm:block" />
+                            <div className="w-1/4 h-4 bg-gray-100 rounded hidden sm:block" />
+                        </div>
+                    ))}
                 </div>
             </div>
         );
@@ -376,9 +376,9 @@ export default function CampaignsPage() {
                         key: 'actions',
                         header: 'Actions',
                         align: 'center',
-                        render: () => (
+                        render: (campaign) => (
                             <div className="action-buttons" style={{ justifyContent: 'center' }}>
-                                <button className="action-btn" title="View">
+                                <button className="action-btn" title="View" onClick={() => openViewModal(campaign)}>
                                     <ViewIcon />
                                 </button>
                             </div>
@@ -580,6 +580,114 @@ export default function CampaignsPage() {
                                     }
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* View Campaign Modal */}
+            {showViewModal && viewingCampaign && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
+                    <div className="bg-white rounded-2xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] max-sm:max-h-[85vh] overflow-hidden flex flex-col">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                            <div>
+                                <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Campaign Details</h2>
+                                <p className="font-sans text-sm text-muted-foreground m-0 mt-1">{viewingCampaign.name}</p>
+                            </div>
+                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-muted-foreground hover:bg-background hover:text-[#101828] text-2xl" onClick={closeViewModal}>×</button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto p-6 max-sm:p-4">
+                            <div className="space-y-6">
+                                {/* Status and Audience */}
+                                <div className="flex flex-wrap gap-3">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                        viewingCampaign.status === 'SENT' ? 'bg-green-100 text-green-800' :
+                                        viewingCampaign.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-800' :
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {viewingCampaign.status}
+                                    </span>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        {viewingCampaign.audience === 'ALL_USERS' ? 'All Users' : 'Segmented'}
+                                    </span>
+                                </div>
+
+                                {/* Subject */}
+                                <div>
+                                    <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Subject</label>
+                                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 font-sans text-sm text-[#101828]">
+                                        {viewingCampaign.subject}
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                <div>
+                                    <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Email Content</label>
+                                    <div 
+                                        className="p-4 bg-gray-50 rounded-lg border border-gray-200 font-sans text-sm text-[#101828] prose prose-sm max-w-none max-h-[300px] overflow-y-auto"
+                                        dangerouslySetInnerHTML={{ __html: viewingCampaign.content }}
+                                    />
+                                </div>
+
+                                {/* Stats if sent */}
+                                {viewingCampaign.status === 'SENT' && (
+                                    <div>
+                                        <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Send Statistics</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                                                <div className="text-lg font-bold text-green-800">{viewingCampaign.successCount || 0}</div>
+                                                <div className="text-xs text-green-600">Successfully Sent</div>
+                                            </div>
+                                            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                                                <div className="text-lg font-bold text-red-800">{viewingCampaign.failedCount || 0}</div>
+                                                <div className="text-xs text-red-600">Failed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Scheduled Time */}
+                                {viewingCampaign.scheduledAt && (
+                                    <div>
+                                        <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Scheduled For</label>
+                                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 font-sans text-sm text-blue-800">
+                                            📅 {new Date(viewingCampaign.scheduledAt).toLocaleString()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Sent At */}
+                                {viewingCampaign.sentAt && (
+                                    <div>
+                                        <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Sent At</label>
+                                        <div className="p-3 bg-green-50 rounded-lg border border-green-200 font-sans text-sm text-green-800">
+                                            ✅ {new Date(viewingCampaign.sentAt).toLocaleString()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Created At */}
+                                <div>
+                                    <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Created</label>
+                                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 font-sans text-sm text-gray-600">
+                                        {new Date(viewingCampaign.createdAt).toLocaleString()}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex justify-end gap-3 p-6 max-sm:p-4 border-t border-[#E5E7EB]">
+                            <button 
+                                className="py-2.5 px-5 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-background"
+                                onClick={closeViewModal}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>,
