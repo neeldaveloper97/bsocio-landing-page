@@ -384,3 +384,11 @@ enum Gender {
   NON_BINARY
   PREFER_NOT_TO_SAY
 }
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

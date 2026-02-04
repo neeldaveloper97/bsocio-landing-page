@@ -1,10 +1,8 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiOperation,
   ApiQuery,
   ApiTags,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { AdminActivityService } from './admin-activity.service';
@@ -12,8 +10,9 @@ import { AdminActivityService } from './admin-activity.service';
 @ApiTags('admin-dashboard: activity')
 @Controller('admin-dashboard/activity')
 export class AdminActivityController {
-  constructor(private readonly service: AdminActivityService) {}
+  constructor(private readonly service: AdminActivityService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({
     summary: 'Get paginated admin activities (excludes user login)',

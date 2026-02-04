@@ -67,6 +67,45 @@ export class AdminUsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.COMMUNICATIONS_ADMIN, Role.CONTENT_ADMIN)
+  @ApiBearerAuth('access-token')
+  @Get('system-logs/export')
+  @ApiOperation({ summary: 'Export system logs to CSV' })
+  @ApiResponse({ status: 200, description: 'CSV file exported successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  async exportSystemLogs(
+    @Query('filter') filter: string,
+    @Query('type') type: string,
+    @Query('search') search: string,
+    @Query('sortBy') sortBy: string,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc',
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Res() res: Response,
+  ) {
+    const csvData = await this.adminUsersService.exportSystemLogs({
+      filter,
+      type,
+      search,
+      sortBy,
+      sortOrder,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+
+    const filename = page && limit
+      ? `system-logs-page-${page}-${new Date().toISOString().split('T')[0]}.csv`
+      : `system-logs-all-${new Date().toISOString().split('T')[0]}.csv`;
+
+    res.set({
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename=${filename}`,
+    });
+
+    res.send(csvData);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
   @ApiBearerAuth('access-token')
   @Post()

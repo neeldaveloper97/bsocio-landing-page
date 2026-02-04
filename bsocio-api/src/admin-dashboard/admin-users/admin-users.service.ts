@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { Role, AdminActivityType } from '@prisma/client';
 
 @Injectable()
 export class AdminUsersService {
@@ -122,6 +122,117 @@ export class AdminUsersService {
         user.dob ? user.dob.toISOString() : '',
         user.isPhoneVerified,
         user.gender || '',
+      ]
+        .map((field) => {
+          const stringValue = String(field ?? '');
+          if (
+            stringValue.includes(',') ||
+            stringValue.includes('"') ||
+            stringValue.includes('\n')
+          ) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          return stringValue;
+        })
+        .join(',');
+    });
+
+    return [header, ...rows].join('\n');
+  }
+
+  private getDateFilter(filter?: string): Date | undefined {
+    if (!filter) return undefined;
+
+    const now = new Date();
+    switch (filter) {
+      case '24h':
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case 'week':
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case 'month':
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      default:
+        return undefined;
+    }
+  }
+
+  async exportSystemLogs(params: {
+    filter?: string;
+    type?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+  }) {
+    const { filter, type, search, sortBy, sortOrder, page, limit } = params;
+
+    const dateFrom = this.getDateFilter(filter);
+
+    const where: any = {
+      ...(type && type !== 'all'
+        ? { type: type as AdminActivityType }
+        : { type: { not: AdminActivityType.USER_LOGIN } }),
+      actor: {
+        role: {
+          not: Role.USER,
+        },
+      },
+      ...(dateFrom ? { createdAt: { gte: dateFrom } } : {}),
+    };
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { message: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const sortField = sortBy || 'createdAt';
+    const order = sortOrder === 'asc' ? 'asc' : 'desc';
+
+    const findOptions: any = {
+      where,
+      include: {
+        actor: {
+          select: {
+            email: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { [sortField as string]: order },
+    };
+
+    if (page && limit) {
+      findOptions.skip = (page - 1) * limit;
+      findOptions.take = +limit;
+    }
+
+    const activities: any[] = await this.prisma.adminActivity.findMany(findOptions);
+
+    const header = [
+      'ID',
+      'Type',
+      'Title',
+      'Message',
+      'Admin Email',
+      'Admin Name',
+      'Created At',
+    ].join(',');
+
+    const rows = activities.map((a) => {
+      return [
+        a.id,
+        a.type,
+        a.title,
+        a.message || '',
+        a.actor?.email ?? 'System',
+        a.actor?.email
+          ? a.actor.email.split('@')[0].charAt(0).toUpperCase() +
+          a.actor.email.split('@')[0].slice(1)
+          : 'System',
+        a.createdAt ? a.createdAt.toISOString() : '',
       ]
         .map((field) => {
           const stringValue = String(field ?? '');
