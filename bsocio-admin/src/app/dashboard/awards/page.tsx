@@ -97,7 +97,7 @@ export default function AwardsPage() {
     }, [showModal, showDeleteModal]);
 
     // Stats
-    const totalCategories = statistics?.totalCategories || categories?.items?.length || 0;
+    const totalCategories = statistics?.totalCategories || categories?.length || 0;
     const totalNominees = statistics?.totalNominees || 0;
     const activeAwards = statistics?.activeAwards || 0;
     const upcomingCeremonies = statistics?.upcomingCeremonies || 0;

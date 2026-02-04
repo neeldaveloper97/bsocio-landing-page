@@ -79,7 +79,7 @@ function SkeletonRow({ columns }: { columns: number }) {
                     <div 
                         className="skeleton-box" 
                         style={{ 
-                            width: i === 0 ? '150px' : i === columns - 1 ? '80px' : '120px', 
+                            width: '100%', 
                             height: '16px' 
                         }}
                     />
