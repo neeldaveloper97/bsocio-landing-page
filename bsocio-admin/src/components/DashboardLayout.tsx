@@ -3,9 +3,12 @@
 import { useState, ReactNode, useCallback, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks';
+import { prefetchDashboardData, prefetchAdminActivity } from '@/hooks';
 import { AuthGuard } from './AuthGuard';
 import { cn } from '@/lib/utils';
+import type { UserRole } from '@/types';
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -16,27 +19,36 @@ interface NavItem {
     label: string;
     icon: string;
     href: string;
+    allowedRoles: UserRole[];
 }
 
-// Static nav items - defined outside component to prevent recreation
+// Static nav items with role-based access control
 const NAV_ITEMS: NavItem[] = [
-    { id: 'overview', label: 'Overview', icon: '📊', href: '/dashboard' },
-    { id: 'analytics', label: 'Analytics', icon: '📈', href: '/dashboard/analytics' },
-    { id: 'news', label: 'News & Media', icon: '📰', href: '/dashboard/news' },
-    { id: 'events', label: 'Events', icon: '🎉', href: '/dashboard/events' },
-    { id: 'faqs', label: 'FAQs', icon: '❓', href: '/dashboard/faqs' },
-    { id: 'legal', label: 'Legal Documents', icon: '📋', href: '/dashboard/legal' },
+    { id: 'overview', label: 'Overview', icon: '📊', href: '/dashboard', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'] },
+    { id: 'analytics', label: 'Analytics', icon: '📈', href: '/dashboard/analytics', allowedRoles: ['SUPER_ADMIN', 'ANALYTICS_VIEWER'] },
+    { id: 'news', label: 'News & Media', icon: '📰', href: '/dashboard/news', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'events', label: 'Events', icon: '🎉', href: '/dashboard/events', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'faqs', label: 'FAQs', icon: '❓', href: '/dashboard/faqs', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'legal', label: 'Legal Documents', icon: '📋', href: '/dashboard/legal', allowedRoles: ['SUPER_ADMIN'] },
+    { id: 'awards', label: 'Awards & Recognition', icon: '🏆', href: '/dashboard/awards', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'nominees', label: 'Nominees', icon: '👨', href: '/dashboard/nominees', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'guests', label: 'Special Guests', icon: '🎟️', href: '/dashboard/guests', allowedRoles: ['SUPER_ADMIN', 'CONTENT_ADMIN'] },
+    { id: 'campaigns', label: 'Email Campaigns', icon: '📣', href: '/dashboard/campaigns', allowedRoles: ['SUPER_ADMIN', 'COMMUNICATIONS_ADMIN'] },
+    { id: 'communications', label: 'Communications', icon: '📧', href: '/dashboard/communications', allowedRoles: ['SUPER_ADMIN', 'COMMUNICATIONS_ADMIN'] },
+    { id: 'users', label: 'User Management', icon: '👥', href: '/dashboard/users', allowedRoles: ['SUPER_ADMIN'] },
 ];
 
-// Memoized nav item component
+// Memoized nav item component with prefetching
 const NavItemLink = memo(function NavItemLink({ 
     item, 
     isActive, 
-    onClick 
+    onClick,
+    onPrefetch,
 }: { 
     item: NavItem; 
     isActive: boolean; 
     onClick: () => void;
+    onPrefetch?: () => void;
 }) {
     return (
         <Link
@@ -50,6 +62,9 @@ const NavItemLink = memo(function NavItemLink({
                     : "bg-transparent text-[#D1D5DB]"
             )}
             onClick={onClick}
+            onMouseEnter={onPrefetch}
+            onFocus={onPrefetch}
+            prefetch={true}
         >
             <span className="w-5 h-5 min-w-5 text-base inline-flex items-center justify-center">
                 {item.icon}
@@ -64,6 +79,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, logout } = useAuth();
+    const queryClient = useQueryClient();
 
     const toggleSidebar = useCallback(() => {
         setSidebarOpen((prev) => !prev);
@@ -73,6 +89,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         setSidebarOpen(false);
     }, []);
 
+    // Filter nav items based on user role
+    const visibleNavItems = useMemo(() => {
+        if (!user?.role) return [];
+        return NAV_ITEMS.filter(item => item.allowedRoles.includes(user.role));
+    }, [user?.role]);
+
     // Memoize isActive check function
     const getIsActive = useCallback((href: string) => {
         if (href === '/dashboard') {
@@ -80,6 +102,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
         return pathname.startsWith(href);
     }, [pathname]);
+
+    // Prefetch handler for nav item hover - instant page loads
+    const handlePrefetch = useCallback((href: string) => {
+        if (href === '/dashboard') {
+            // Prefetch dashboard data on hover
+            prefetchDashboardData(queryClient);
+            prefetchAdminActivity(queryClient);
+        }
+        // Add more prefetch handlers for other routes as needed
+    }, [queryClient]);
 
     const handleLogout = useCallback(async () => {
         await logout();
@@ -168,12 +200,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                     {/* Navigation */}
                     <nav className="flex flex-col items-start p-3 gap-1 flex-1">
-                        {NAV_ITEMS.map((item) => (
+                        {visibleNavItems.map((item) => (
                             <NavItemLink
                                 key={item.id}
                                 item={item}
                                 isActive={getIsActive(item.href)}
                                 onClick={closeSidebar}
+                                onPrefetch={() => handlePrefetch(item.href)}
                             />
                         ))}
                     </nav>

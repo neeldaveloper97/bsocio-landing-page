@@ -39,19 +39,35 @@ export class AwardsService {
     return category;
   }
 
-  async listCategories(status?: string) {
+  async listCategories(status?: string, skip?: number, take?: number, search?: string) {
     const where: any = {};
     if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-    return this.prisma.awardCategory.findMany({
-      where,
-      include: {
-        _count: {
-          select: { nominees: true },
+    const actualSkip = skip ?? 0;
+    const actualTake = take ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.prisma.awardCategory.findMany({
+        where,
+        include: {
+          _count: {
+            select: { nominees: true },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip: actualSkip,
+        take: actualTake,
+      }),
+      this.prisma.awardCategory.count({ where }),
+    ]);
+
+    return { items, total, skip: actualSkip, take: actualTake };
   }
 
   async getCategoryById(id: string) {
@@ -147,19 +163,43 @@ export class AwardsService {
     return nominee;
   }
 
-  async listNominees(categoryId?: string, status?: string, isWinner?: boolean) {
+  async listNominees(
+    categoryId?: string,
+    status?: string,
+    isWinner?: boolean,
+    skip?: number,
+    take?: number,
+    search?: string,
+  ) {
     const where: any = {};
     if (categoryId) where.categoryId = categoryId;
     if (status) where.status = status;
     if (isWinner !== undefined) where.isWinner = isWinner;
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { organization: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-    return this.prisma.nominee.findMany({
-      where,
-      include: {
-        category: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const actualSkip = skip ?? 0;
+    const actualTake = take ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.prisma.nominee.findMany({
+        where,
+        include: {
+          category: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: actualSkip,
+        take: actualTake,
+      }),
+      this.prisma.nominee.count({ where }),
+    ]);
+
+    return { items, total, skip: actualSkip, take: actualTake };
   }
 
   async getNomineeById(id: string) {
@@ -341,14 +381,35 @@ export class AwardsService {
     return guest;
   }
 
-  async listSpecialGuests(status?: string) {
+  async listSpecialGuests(
+    status?: string,
+    skip?: number,
+    take?: number,
+    search?: string,
+  ) {
     const where: any = {};
     if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-    return this.prisma.specialGuest.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
+    const actualSkip = skip ?? 0;
+    const actualTake = take ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.prisma.specialGuest.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: actualSkip,
+        take: actualTake,
+      }),
+      this.prisma.specialGuest.count({ where }),
+    ]);
+
+    return { items, total, skip: actualSkip, take: actualTake };
   }
 
   async getSpecialGuestById(id: string) {

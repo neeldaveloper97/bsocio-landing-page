@@ -47,10 +47,23 @@ export class AdminActivityController {
     description: 'Sort order (asc or desc)',
     enum: ['asc', 'desc'],
   })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by activity type',
+    example: 'NEWS_CREATED',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by title or message',
+  })
   async getActivities(
     @Query('skip') skip?: string,
     @Query('take') take?: string,
     @Query('filter') filter?: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
@@ -60,6 +73,8 @@ export class AdminActivityController {
       skip: skipNum,
       take: takeNum,
       filter,
+      type,
+      search,
       sortBy,
       sortOrder,
     });

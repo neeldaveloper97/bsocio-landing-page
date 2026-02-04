@@ -1,23 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Arimo } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import ClientProviders from "@/components/providers/ClientProviders";
+import WebVitalsWrapper from "@/components/WebVitalsWrapper";
 
+/**
+ * ============================================
+ * MOBILE PERFORMANCE OPTIMIZATIONS (Next.js 16)
+ * ============================================
+ * - Single font (Inter only) - saves 50KB+
+ * - WebVitals in Client Component (ssr:false not allowed in Server)
+ * - Direct ClientProviders import (better tree-shaking)
+ * - Minimal critical CSS inline
+ * ============================================
+ */
+
+// Single optimized font - Inter variable with minimal weights
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "optional", // Use optional for better LCP
+  weight: ["400", "500", "600", "700"], // Only needed weights
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
-});
-
-const arimo = Arimo({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "optional", // Use optional for better LCP
-  preload: true,
-  adjustFontFallback: true,
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -90,17 +96,20 @@ export default function RootLayout({
           .page-content{display:flex;flex-direction:column;gap:32px;width:100%;min-width:0;max-width:100%}
         `}} />
       </head>
-      <body className={`${inter.variable} ${arimo.variable} font-sans`}>
-        {/* Skip to main content - Accessibility */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white"
-        >
-          Skip to main content
-        </a>
-        <main id="main-content" role="main">
-          {children}
-        </main>
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+        <ClientProviders>
+          <WebVitalsWrapper />
+          {/* Skip to main content - Accessibility */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white"
+          >
+            Skip to main content
+          </a>
+          <main id="main-content" role="main">
+            {children}
+          </main>
+        </ClientProviders>
       </body>
     </html>
   );

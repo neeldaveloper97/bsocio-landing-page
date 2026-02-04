@@ -70,6 +70,19 @@ export const API_ENDPOINTS = {
     STATISTICS: 'admin-dashboard/events/statistics',
   },
 
+  // Awards endpoints (public - no auth required)
+  AWARDS: {
+    CATEGORIES: 'admin-dashboard/awards/categories',
+    CATEGORY_BY_ID: (id: string) => `admin-dashboard/awards/categories/${id}`,
+    NOMINEES: 'admin-dashboard/awards/nominees',
+    NOMINEE_BY_ID: (id: string) => `admin-dashboard/awards/nominees/${id}`,
+    CEREMONIES: 'admin-dashboard/awards/ceremonies',
+    CEREMONY_BY_ID: (id: string) => `admin-dashboard/awards/ceremonies/${id}`,
+    GUESTS: 'admin-dashboard/awards/guests',
+    GUEST_BY_ID: (id: string) => `admin-dashboard/awards/guests/${id}`,
+    STATISTICS: 'admin-dashboard/awards/statistics',
+  },
+
   // Images (S3)
   IMAGES: {
     SIGNED_URL: '/images/signed-url',

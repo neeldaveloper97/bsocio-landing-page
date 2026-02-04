@@ -4,12 +4,19 @@ import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useEventStatistics } from '@/hooks';
-import type { Event, CreateEventRequest, UpdateEventRequest, EventStatus, EventVisibility } from '@/types';
+import type { Event, CreateEventRequest, UpdateEventRequest, EventStatus, EventVisibility, EventFilters } from '@/types';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { cn } from '@/lib/utils';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 // Helper to format date for display
 const formatDate = (dateString: string): string => {
@@ -40,13 +47,6 @@ const getEventStatus = (eventDate: string): 'upcoming' | 'ongoing' | 'past' => {
 };
 
 export default function EventsPage() {
-    // API Hooks
-    const { data: events, isLoading, isError, refetch } = useEvents();
-    const { data: statistics, isLoading: statsLoading } = useEventStatistics();
-    const { mutateAsync: createEvent, isPending: isCreating } = useCreateEvent();
-    const { mutateAsync: updateEvent, isPending: isUpdating } = useUpdateEvent();
-    const { mutateAsync: deleteEvent, isPending: isDeleting } = useDeleteEvent();
-
     // UI State
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,6 +54,20 @@ export default function EventsPage() {
     const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'past'>('all');
+
+    // Build filters with pagination
+    const filters: EventFilters = useMemo(() => ({
+        filter: filterStatus,
+        skip: currentPage * PAGE_SIZE,
+        take: PAGE_SIZE,
+    }), [filterStatus, currentPage]);
+
+    // API Hooks - server-side pagination
+    const { events, total: totalEvents, isLoading, isError, refetch } = useEvents(filters);
+    const { data: statistics, isLoading: statsLoading } = useEventStatistics();
+    const { mutateAsync: createEvent, isPending: isCreating } = useCreateEvent();
+    const { mutateAsync: updateEvent, isPending: isUpdating } = useUpdateEvent();
+    const { mutateAsync: deleteEvent, isPending: isDeleting } = useDeleteEvent();
 
     // Form State
     const [formData, setFormData] = useState({
@@ -79,29 +93,17 @@ export default function EventsPage() {
         };
     }, [showModal, showDeleteModal]);
 
-    // Filter events based on status
-    const filteredEvents = useMemo(() => {
-        if (!events) return [];
-        if (filterStatus === 'all') return events;
-        
-        return events.filter(event => {
-            const status = getEventStatus(event.eventDate);
-            if (filterStatus === 'upcoming') return status === 'upcoming' || status === 'ongoing';
-            return status === 'past';
-        });
-    }, [events, filterStatus]);
+    // Reset page when filter changes
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [filterStatus]);
 
-    // Pagination
-    const totalPages = Math.ceil(filteredEvents.length / PAGE_SIZE);
-    const paginatedEvents = useMemo(() => {
-        const start = currentPage * PAGE_SIZE;
-        return filteredEvents.slice(start, start + PAGE_SIZE);
-    }, [filteredEvents, currentPage]);
+    // Server-side pagination
+    const totalPages = Math.ceil(totalEvents / PAGE_SIZE);
 
     // Stats calculations
-    const totalEvents = events?.length || 0;
-    const upcomingCount = statistics?.upcomingEvents || events?.filter(e => getEventStatus(e.eventDate) !== 'past').length || 0;
-    const totalAttendees = statistics?.totalAttendees || events?.reduce((sum, e) => sum + e.currentAttendees, 0) || 0;
+    const upcomingCount = statistics?.upcomingEvents || 0;
+    const totalAttendees = statistics?.totalAttendees || 0;
 
     const getStatusBadge = (eventDate: string, publishStatus: EventStatus) => {
         if (publishStatus === 'DRAFT') {
@@ -198,6 +200,22 @@ export default function EventsPage() {
         }
     };
 
+    // Show error state if API failed
+    if (isError) {
+        return (
+            <div className="page-content">
+                <div className="text-center py-12">
+                    <span className="text-4xl mb-4 block">⚠️</span>
+                    <h3 className="text-lg font-semibold text-[#111827] mb-2">Failed to load events</h3>
+                    <p className="text-[#6B7280] mb-4">There was an error loading the events. Please try again.</p>
+                    <button className="btn-primary-responsive" onClick={refetch}>
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="page-content">
             {/* Section Header */}
@@ -264,7 +282,7 @@ export default function EventsPage() {
 
             {/* Events Table */}
             <DataTable<Event>
-                data={paginatedEvents}
+                data={events}
                 columns={[
                     { 
                         key: 'title', 
@@ -329,7 +347,7 @@ export default function EventsPage() {
                 keyExtractor={(event) => event.id}
                 isLoading={isLoading}
                 title="All Events"
-                totalCount={filteredEvents.length}
+                totalCount={totalEvents}
                 emptyIcon="🎉"
                 emptyTitle="No events found"
                 emptyDescription="Create your first event to get started"
@@ -407,27 +425,27 @@ export default function EventsPage() {
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
-                                    <select 
-                                        id="status" 
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
-                                        value={formData.status}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as EventStatus }))}
-                                    >
-                                        <option value="DRAFT">Draft</option>
-                                        <option value="PUBLISHED">Published</option>
-                                    </select>
+                                    <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as EventStatus }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="DRAFT">Draft</SelectItem>
+                                            <SelectItem value="PUBLISHED">Published</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="visibility" className="font-sans text-sm font-semibold text-[#374151]">Visibility</label>
-                                    <select 
-                                        id="visibility" 
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
-                                        value={formData.visibility}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, visibility: e.target.value as EventVisibility }))}
-                                    >
-                                        <option value="PUBLIC">Public</option>
-                                        <option value="PRIVATE">Private</option>
-                                    </select>
+                                    <Select value={formData.visibility} onValueChange={(value) => setFormData(prev => ({ ...prev, visibility: value as EventVisibility }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select visibility" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="PUBLIC">Public</SelectItem>
+                                            <SelectItem value="PRIVATE">Private</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2 mt-4">

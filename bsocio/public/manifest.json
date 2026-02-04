@@ -1,0 +1,16 @@
+{
+  "name": "Bsocio - The Future of Humanity Initiative",
+  "short_name": "Bsocio",
+  "description": "Transforming celebrations into compassion - ending child hunger through social giving",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -9,15 +9,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { eventsService } from '@/lib/api/services/events.service';
-import type { Event, EventFilters, CreateEventRequest, UpdateEventRequest, EventStatistics } from '@/types';
+import type { Event, EventFilters, CreateEventRequest, UpdateEventRequest, EventStatistics, PaginatedResponse } from '@/types';
 import type { ApiException } from '@/lib/api/error-handler';
 
 /**
  * Hook return interface
  */
 interface UseEventsReturn {
-  /** Events data */
-  data: Event[];
+  /** Paginated response data */
+  data: PaginatedResponse<Event> | null;
+  /** Events items */
+  events: Event[];
+  /** Total count of items */
+  total: number;
   /** Whether data is loading */
   isLoading: boolean;
   /** Whether there was an error */
@@ -32,7 +36,7 @@ interface UseEventsReturn {
  * Hook for fetching events list
  */
 export function useEvents(filters?: EventFilters): UseEventsReturn {
-  const [data, setData] = useState<Event[]>([]);
+  const [data, setData] = useState<PaginatedResponse<Event> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<ApiException | null>(null);
@@ -50,7 +54,7 @@ export function useEvents(filters?: EventFilters): UseEventsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [filters?.filter, filters?.status, filters?.sortBy, filters?.sortOrder]);
+  }, [filters?.filter, filters?.status, filters?.sortBy, filters?.sortOrder, filters?.skip, filters?.take, filters?.search]);
 
   useEffect(() => {
     fetchData();
@@ -58,6 +62,8 @@ export function useEvents(filters?: EventFilters): UseEventsReturn {
 
   return {
     data,
+    events: data?.items ?? [],
+    total: data?.total ?? 0,
     isLoading,
     isError,
     error,

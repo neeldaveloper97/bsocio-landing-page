@@ -9,15 +9,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { newsService } from '@/lib/api/services/news.service';
-import type { NewsArticle, NewsFilters, CreateNewsRequest, UpdateNewsRequest, ImageUploadResponse } from '@/types';
+import type { NewsArticle, NewsFilters, CreateNewsRequest, UpdateNewsRequest, ImageUploadResponse, PaginatedResponse } from '@/types';
 import type { ApiException } from '@/lib/api/error-handler';
 
 /**
  * Hook return interface
  */
 interface UseNewsReturn {
-  /** News articles data */
-  data: NewsArticle[];
+  /** Paginated response data */
+  data: PaginatedResponse<NewsArticle> | null;
+  /** News articles items */
+  news: NewsArticle[];
+  /** Total count of items */
+  total: number;
   /** Whether data is loading */
   isLoading: boolean;
   /** Whether there was an error */
@@ -32,7 +36,7 @@ interface UseNewsReturn {
  * Hook for fetching news list
  */
 export function useNews(filters?: NewsFilters): UseNewsReturn {
-  const [data, setData] = useState<NewsArticle[]>([]);
+  const [data, setData] = useState<PaginatedResponse<NewsArticle> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<ApiException | null>(null);
@@ -50,7 +54,7 @@ export function useNews(filters?: NewsFilters): UseNewsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [filters?.status, filters?.category, filters?.search, filters?.sortBy, filters?.sortOrder]);
+  }, [filters?.status, filters?.category, filters?.search, filters?.sortBy, filters?.sortOrder, filters?.skip, filters?.take]);
 
   useEffect(() => {
     fetchData();
@@ -58,6 +62,8 @@ export function useNews(filters?: NewsFilters): UseNewsReturn {
 
   return {
     data,
+    news: data?.items ?? [],
+    total: data?.total ?? 0,
     isLoading,
     isError,
     error,

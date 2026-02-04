@@ -295,7 +295,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                     <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
-                        <SelectTrigger className="year-filter-trigger">
+                        <SelectTrigger>
                             <SelectValue placeholder="Select Year" />
                         </SelectTrigger>
                         <SelectContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLogin } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { getErrorMessage } from '@/lib/api';
@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { isAuthenticated, isInitialized } = useAuth();
+    const searchParams = useSearchParams();
+    const { isAuthenticated, isInitialized, isAdmin } = useAuth();
     const { login, isLoading, error: loginError } = useLogin({
         onSuccess: () => {
             router.push('/dashboard');
@@ -23,12 +24,20 @@ export default function LoginPage() {
     const [showTfa, setShowTfa] = useState(false);
     const [error, setError] = useState('');
 
-    // Redirect if already authenticated
+    // Check for unauthorized error from URL
     useEffect(() => {
-        if (isInitialized && isAuthenticated) {
+        const errorParam = searchParams.get('error');
+        if (errorParam === 'unauthorized') {
+            setError('Access denied. Only administrators can access this dashboard.');
+        }
+    }, [searchParams]);
+
+    // Redirect if already authenticated and admin
+    useEffect(() => {
+        if (isInitialized && isAuthenticated && isAdmin) {
             router.replace('/dashboard');
         }
-    }, [isInitialized, isAuthenticated, router]);
+    }, [isInitialized, isAuthenticated, isAdmin, router]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

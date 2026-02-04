@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsNumberString, IsIn } from 'class-validator';
 import { EventStatus } from './create-event.dto';
 
 export class ListEventQueryDto {
@@ -9,7 +9,7 @@ export class ListEventQueryDto {
     default: 'all',
   })
   @IsOptional()
-  @IsString()
+  @IsIn(['upcoming', 'past', 'all'])
   filter?: 'upcoming' | 'past' | 'all';
 
   @ApiPropertyOptional({
@@ -34,6 +34,29 @@ export class ListEventQueryDto {
     default: 'desc',
   })
   @IsOptional()
-  @IsString()
+  @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc';
+
+  @ApiPropertyOptional({
+    description: 'Number of items to skip',
+    default: 0,
+  })
+  @IsOptional()
+  @IsNumberString()
+  skip?: string;
+
+  @ApiPropertyOptional({
+    description: 'Number of items to take',
+    default: 20,
+  })
+  @IsOptional()
+  @IsNumberString()
+  take?: string;
+
+  @ApiPropertyOptional({
+    description: 'Search query',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

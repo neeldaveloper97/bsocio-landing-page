@@ -363,6 +363,15 @@ export default function SignupPage() {
               </div>
             )}
 
+            {/* Google Sign Up */}
+            <GoogleSignInButton 
+              className="w-full"
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+            />
+
+            <Divider />
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
               <FormField
@@ -464,15 +473,6 @@ export default function SignupPage() {
               >
                 {isLoading ? "Creating Account..." : "Accept the Invitation"}
               </Button>
-
-              <Divider />
-
-              {/* Google Sign Up */}
-              <GoogleSignInButton 
-                className="w-full"
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-              />
             </form>
 
             {/* Footer Text */}

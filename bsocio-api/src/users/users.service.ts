@@ -49,12 +49,19 @@ export class UsersService {
   }
 
   async updatePhoneVerification(userId: string, phone: string, invitationLink: string) {
+    // Get current user to check if they have all required fields
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+    
+    // For phone verification, we mark user as permanent regardless of other fields
+    // Google OAuth users will be permanent after phone verification
     return this.prisma.user.update({
       where: { id: userId },
       data: {
         phone,
         invitationLink,
         isPhoneVerified: true,
+        isPermanentUser: true,
       },
       select: { id: true, email: true, role: true, phone: true, isPhoneVerified: true },
     });

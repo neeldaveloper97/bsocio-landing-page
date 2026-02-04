@@ -51,13 +51,27 @@ export class NewsController {
     required: false,
     description: 'Sort order (asc or desc)',
   })
+  @ApiQuery({ name: 'skip', required: false, description: 'Number of items to skip' })
+  @ApiQuery({ name: 'take', required: false, description: 'Number of items to take' })
+  @ApiQuery({ name: 'search', required: false, description: 'Search query' })
   list(
     @Query('status') status?: string,
     @Query('category') category?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
   ) {
-    return this.service.list(status, category, sortBy, sortOrder);
+    return this.service.list(
+      status,
+      category,
+      sortBy,
+      sortOrder,
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+      search,
+    );
   }
 
   @Get(':id')

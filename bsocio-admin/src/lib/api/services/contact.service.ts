@@ -37,10 +37,20 @@ class ContactService {
    */
   async getAll(filters?: ContactInquiryFilters): Promise<ContactInquiryListResponse> {
     try {
+      // Sanitize filters to remove undefined/null/empty values
+      const cleanFilters: Record<string, string | number | boolean> = {};
+      
+      if (filters) {
+        if (filters.status) cleanFilters.status = filters.status;
+        if (filters.reason) cleanFilters.reason = filters.reason;
+        if (filters.skip !== undefined && filters.skip !== null) cleanFilters.skip = filters.skip;
+        if (filters.take !== undefined && filters.take !== null) cleanFilters.take = filters.take;
+      }
+
       const response = await apiClient.get<ContactInquiryListResponse>(
         API_ENDPOINTS.CONTACT.BASE,
         {
-          params: filters as Record<string, string | number | boolean | undefined>,
+          params: cleanFilters,
         }
       );
       return response.data;

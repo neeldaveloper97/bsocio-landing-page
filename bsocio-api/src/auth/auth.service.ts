@@ -110,6 +110,10 @@ export class AuthService {
     name: string;
     picture?: string;
     googleId: string;
+    gender?: string;
+    dob?: string;
+    phone?: string;
+    invitationLink?: string;
   }) {
     return this.handleGoogleUser(userData);
   }
@@ -122,8 +126,12 @@ export class AuthService {
     name: string;
     picture?: string;
     googleId: string;
+    gender?: string;
+    dob?: string;
+    phone?: string;
+    invitationLink?: string;
   }) {
-    const { email, name, picture, googleId } = userData;
+    const { email, name, picture, googleId, gender, dob, phone, invitationLink } = userData;
 
     // Check if user exists by Google ID or email
     let user = await this.prisma.user.findFirst({
@@ -133,18 +141,33 @@ export class AuthService {
     });
 
     if (!user) {
-      // Create new user
+      // Create new user with minimal data from Google
+      // Gender and DOB are optional for Google OAuth users
+      const createData: any = {
+        id: randomUUID(),
+        email,
+        oauthProvider: OAuthProvider.GOOGLE,
+        oauthId: googleId,
+        role: 'USER',
+        dob: dob ? new Date(dob) : new Date('2000-01-01'),
+        isPhoneVerified: false,
+        isTermsAccepted: true,
+        isPermanentUser: false, // Will be set to true after phone verification
+      };
+      
+      // Only add optional fields if provided
+      if (gender) createData.gender = gender;
+      if (phone) createData.phone = phone;
+      if (invitationLink) createData.invitationLink = invitationLink;
+      
+      // Only mark as permanent if phone and invitation are provided
+      if (phone && invitationLink) {
+        createData.isPhoneVerified = true;
+        createData.isPermanentUser = true;
+      }
+      
       user = await this.prisma.user.create({
-        data: {
-          id: randomUUID(),
-          email,
-          oauthProvider: OAuthProvider.GOOGLE,
-          oauthId: googleId,
-          role: 'USER',
-          dob: new Date('2000-01-01'), // Default DOB for OAuth users
-          isTermsAccepted: true, // Assumed accepted via OAuth
-          isPermanentUser: true,
-        },
+        data: createData,
       });
 
       // Log new user registration
@@ -170,6 +193,33 @@ export class AuthService {
         message: `${email} linked Google account`,
         actorId: user.id,
       });
+    } else if (gender || dob || phone || invitationLink) {
+      // Update existing Google user with profile completion data
+      const updateData: any = {};
+      if (gender) updateData.gender = gender;
+      if (dob) updateData.dob = new Date(dob);
+      if (phone) {
+        updateData.phone = phone;
+        updateData.isPhoneVerified = true;
+      }
+      if (invitationLink) updateData.invitationLink = invitationLink;
+      
+      // Mark as permanent user if phone and invitation are provided
+      if (phone && invitationLink) {
+        updateData.isPermanentUser = true;
+      }
+
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+
+      await this.adminActivityService.log({
+        type: AdminActivityType.SYSTEM,
+        title: 'Google User Profile Updated',
+        message: `${email} completed profile via Google OAuth`,
+        actorId: user.id,
+      });
     }
 
     // Log login activity
@@ -191,6 +241,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         isNewUser: !user.isPermanentUser,
+        isPermanentUser: user.isPermanentUser,
       },
     };
   }

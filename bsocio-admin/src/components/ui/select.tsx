@@ -18,15 +18,14 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "select-trigger flex h-11 w-full items-center justify-between whitespace-nowrap rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "select-trigger flex h-11 w-full items-center justify-between gap-3 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className
     )}
-    style={{ padding: '12px 16px' }}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -85,8 +84,7 @@ const SelectContent = React.forwardRef<
     >
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
-        className="select-viewport w-full min-w-[var(--radix-select-trigger-width)]"
-        style={{ padding: '12px' }}
+        className="select-viewport w-full min-w-[var(--radix-select-trigger-width)] p-2"
       >
         {children}
       </SelectPrimitive.Viewport>
@@ -115,10 +113,9 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2.5 pl-4 pr-10 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 mb-1",
       className
     )}
-    style={{ padding: '12px 40px 12px 16px', marginBottom: '4px' }}
     {...props}
   >
     <span className="absolute right-3 flex h-4 w-4 items-center justify-center">

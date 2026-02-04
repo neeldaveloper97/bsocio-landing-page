@@ -14,6 +14,7 @@ import type {
   UpdateNewsRequest,
   NewsFilters,
   ImageUploadResponse,
+  PaginatedResponse,
 } from '@/types';
 
 /**
@@ -35,11 +36,11 @@ class NewsService {
   }
 
   /**
-   * Get all news articles with optional filters
+   * Get all news articles with optional filters (paginated)
    */
-  async getAll(filters?: NewsFilters): Promise<NewsArticle[]> {
+  async getAll(filters?: NewsFilters): Promise<PaginatedResponse<NewsArticle>> {
     try {
-      const response = await apiClient.get<NewsArticle[]>(
+      const response = await apiClient.get<PaginatedResponse<NewsArticle>>(
         API_ENDPOINTS.NEWS.BASE,
         {
           params: filters as Record<string, string | number | boolean | undefined>,

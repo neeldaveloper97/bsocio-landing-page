@@ -188,6 +188,10 @@ export class AuthController {
       name: string;
       picture?: string;
       googleId: string;
+      gender?: string;
+      dob?: string;
+      phone?: string;
+      invitationLink?: string;
     },
   ) {
     return this.authService.googleAuthWithUserData(dto);

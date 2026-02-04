@@ -30,15 +30,25 @@ export class NewsService {
     return article;
   }
 
-  list(
+  async list(
     status?: string,
     category?: string,
     sortBy?: string,
     sortOrder?: 'asc' | 'desc',
+    skip?: number,
+    take?: number,
+    search?: string,
   ) {
     const where: any = {};
     if (status) where.status = status as any;
     if (category) where.category = category as any;
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { excerpt: { contains: search, mode: 'insensitive' } },
+        { author: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     // Build orderBy based on sortBy and sortOrder params
     const validSortFields = [
@@ -55,10 +65,20 @@ export class NewsService {
       : 'publicationDate';
     const order = sortOrder === 'asc' ? 'asc' : 'desc';
 
-    return this.prisma.newsArticle.findMany({
-      where,
-      orderBy: { [sortField as string]: order },
-    });
+    const actualSkip = skip ?? 0;
+    const actualTake = take ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.prisma.newsArticle.findMany({
+        where,
+        orderBy: { [sortField as string]: order },
+        skip: actualSkip,
+        take: actualTake,
+      }),
+      this.prisma.newsArticle.count({ where }),
+    ]);
+
+    return { items, total, skip: actualSkip, take: actualTake };
   }
 
   getById(id: string) {

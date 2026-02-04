@@ -9,6 +9,7 @@ import {
 } from '@/hooks';
 import { PlusIcon, ViewIcon } from '@/components/ui/admin-icons';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
     Select,
     SelectContent,
@@ -19,7 +20,7 @@ import {
 import type { EmailCampaign, EmailAudience, EmailSendType, CreateEmailCampaignRequest } from '@/types';
 import './campaigns.css';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const AUDIENCE_OPTIONS: { value: EmailAudience; label: string }[] = [
     { value: 'ALL_USERS', label: 'All Users' },
@@ -38,6 +39,11 @@ interface FormData {
     audience: EmailAudience;
     sendType: EmailSendType;
     scheduledAt: string;
+    filters?: {
+        role?: string;
+        status?: string;
+        country?: string;
+    };
 }
 
 const initialFormData: FormData = {
@@ -47,6 +53,11 @@ const initialFormData: FormData = {
     audience: 'ALL_USERS',
     sendType: 'NOW',
     scheduledAt: '',
+    filters: {
+        role: '',
+        status: '',
+        country: '',
+    },
 };
 
 export default function CampaignsPage() {
@@ -129,6 +140,17 @@ export default function CampaignsPage() {
                 requestData.scheduledAt = new Date(formData.scheduledAt).toISOString();
             }
 
+            // Add filters for segmented users
+            if (formData.audience === 'SEGMENTED_USERS' && formData.filters) {
+                const cleanFilters: Record<string, any> = {};
+                if (formData.filters.role) cleanFilters.role = formData.filters.role;
+                if (formData.filters.status) cleanFilters.status = formData.filters.status;
+                if (formData.filters.country) cleanFilters.country = formData.filters.country;
+                if (Object.keys(cleanFilters).length > 0) {
+                    (requestData as any).filters = cleanFilters;
+                }
+            }
+
             await saveDraft.mutateAsync(requestData);
             await refetch();
             closeModal();
@@ -168,6 +190,17 @@ export default function CampaignsPage() {
             
             if (formData.sendType === 'SCHEDULED' && formData.scheduledAt) {
                 requestData.scheduledAt = new Date(formData.scheduledAt).toISOString();
+            }
+
+            // Add filters for segmented users
+            if (formData.audience === 'SEGMENTED_USERS' && formData.filters) {
+                const cleanFilters: Record<string, any> = {};
+                if (formData.filters.role) cleanFilters.role = formData.filters.role;
+                if (formData.filters.status) cleanFilters.status = formData.filters.status;
+                if (formData.filters.country) cleanFilters.country = formData.filters.country;
+                if (Object.keys(cleanFilters).length > 0) {
+                    (requestData as any).filters = cleanFilters;
+                }
             }
 
             await sendCampaign.mutateAsync(requestData);
@@ -356,7 +389,7 @@ export default function CampaignsPage() {
                 title="All Campaigns"
                 headerActions={
                     <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setCurrentPage(0); }}>
-                        <SelectTrigger style={{ width: '200px' }}>
+                        <SelectTrigger>
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -413,33 +446,83 @@ export default function CampaignsPage() {
                             <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="audience" className="font-sans text-sm font-semibold text-[#374151]">Audience *</label>
-                                    <select
-                                        id="audience"
-                                        name="audience"
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
-                                        value={formData.audience}
-                                        onChange={handleInputChange}
-                                    >
-                                        {AUDIENCE_OPTIONS.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
-                                    </select>
+                                    <Select value={formData.audience} onValueChange={(value) => setFormData(prev => ({ ...prev, audience: value as EmailAudience }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select audience" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {AUDIENCE_OPTIONS.map(opt => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="sendType" className="font-sans text-sm font-semibold text-[#374151]">Send Type *</label>
-                                    <select
-                                        id="sendType"
-                                        name="sendType"
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
-                                        value={formData.sendType}
-                                        onChange={handleInputChange}
-                                    >
-                                        {SEND_TYPE_OPTIONS.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
-                                    </select>
+                                    <Select value={formData.sendType} onValueChange={(value) => setFormData(prev => ({ ...prev, sendType: value as EmailSendType }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select send type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SEND_TYPE_OPTIONS.map(opt => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
+
+                            {formData.audience === 'SEGMENTED_USERS' && (
+                                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <h3 className="font-sans text-sm font-semibold text-[#374151] mb-3">Audience Filters</h3>
+                                    <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <label htmlFor="filterRole" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Role</label>
+                                            <Select value={formData.filters?.role || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, role: value } }))}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="All Roles" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="">All Roles</SelectItem>
+                                                    <SelectItem value="USER">Users</SelectItem>
+                                                    <SelectItem value="ORGANIZER">Organizers</SelectItem>
+                                                    <SelectItem value="ADMIN">Admins</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label htmlFor="filterStatus" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Status</label>
+                                            <Select value={formData.filters?.status || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, status: value } }))}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="All Statuses" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="">All Statuses</SelectItem>
+                                                    <SelectItem value="ACTIVE">Active</SelectItem>
+                                                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                                    <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2 mt-4">
+                                        <label htmlFor="filterCountry" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Country</label>
+                                        <input
+                                            type="text"
+                                            id="filterCountry"
+                                            name="filterCountry"
+                                            className="py-2.5 px-3 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
+                                            placeholder="e.g., USA, Canada, UK"
+                                            value={formData.filters?.country || ''}
+                                            onChange={(e) => setFormData(prev => ({
+                                                ...prev,
+                                                filters: { ...prev.filters, country: e.target.value }
+                                            }))}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-[#6B7280] mt-2">💡 Only users matching these filters will receive this campaign</p>
+                                </div>
+                            )}
 
                             {formData.sendType === 'SCHEDULED' && (
                                 <div className="flex flex-col gap-2">
@@ -457,17 +540,16 @@ export default function CampaignsPage() {
                             )}
 
                             <div className="flex flex-col gap-2">
-                                <label htmlFor="content" className="font-sans text-sm font-semibold text-[#374151]">Email Content (HTML/Markdown) *</label>
-                                <textarea
-                                    id="content"
-                                    name="content"
-                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-none"
-                                    placeholder="Enter your email content here. You can use HTML or Markdown formatting."
-                                    rows={10}
+                                <label htmlFor="content" className="font-sans text-sm font-semibold text-[#374151]">Email Content *</label>
+                                <RichTextEditor
                                     value={formData.content}
-                                    onChange={handleInputChange}
-                                ></textarea>
-                                <small className="text-xs text-[#6B7280]">Supports HTML and Markdown formatting</small>
+                                    onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                                    placeholder="Compose your email content here. Use the toolbar for formatting."
+                                    minHeight="300px"
+                                />
+                                <small className="text-xs text-[#6B7280]">
+                                    Rich text editor with formatting options. Content will be sent as HTML email.
+                                </small>
                             </div>
 
                             <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-2">

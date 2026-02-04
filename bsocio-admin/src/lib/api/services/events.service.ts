@@ -14,6 +14,7 @@ import type {
   UpdateEventRequest,
   EventFilters,
   EventStatistics,
+  PaginatedResponse,
 } from '@/types';
 
 /**
@@ -35,11 +36,11 @@ class EventsService {
   }
 
   /**
-   * Get all events with optional filters
+   * Get all events with optional filters (paginated)
    */
-  async getAll(filters?: EventFilters): Promise<Event[]> {
+  async getAll(filters?: EventFilters): Promise<PaginatedResponse<Event>> {
     try {
-      const response = await apiClient.get<Event[]>(
+      const response = await apiClient.get<PaginatedResponse<Event>>(
         API_ENDPOINTS.EVENTS.BASE,
         {
           params: filters as Record<string, string | number | boolean | undefined>,

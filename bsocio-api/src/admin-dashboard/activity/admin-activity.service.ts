@@ -42,19 +42,21 @@ export class AdminActivityService {
     skip?: number;
     take?: number;
     filter?: string;
+    type?: string;
+    search?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }) {
-    const { skip = 0, take = 10, filter, sortBy, sortOrder } = params;
+    const { skip = 0, take = 10, filter, type, search, sortBy, sortOrder } = params;
 
     const dateFrom = this.getDateFilter(filter);
 
     // Only get activities from admin role users (exclude USER_LOGIN type and non-admin actors)
-    const where = {
-      // Exclude USER_LOGIN type
-      type: {
-        not: AdminActivityType.USER_LOGIN,
-      },
+    const where: any = {
+      // Exclude USER_LOGIN type unless specifically filtered
+      ...(type && type !== 'all'
+        ? { type: type as AdminActivityType }
+        : { type: { not: AdminActivityType.USER_LOGIN } }),
       // Only include activities from users with admin roles (exclude USER role)
       actor: {
         role: {
@@ -63,6 +65,14 @@ export class AdminActivityService {
       },
       ...(dateFrom ? { createdAt: { gte: dateFrom } } : {}),
     };
+
+    // Search by title or message
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { message: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     // Build orderBy based on sortBy and sortOrder params
     const validSortFields = ['createdAt'];

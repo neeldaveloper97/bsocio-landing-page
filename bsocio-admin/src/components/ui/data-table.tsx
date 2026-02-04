@@ -155,7 +155,7 @@ export function DataTable<T>({
                 <table className="data-table-responsive">
                     <thead>
                         <tr>
-                            {columns.map((column) => (
+                            {(columns || []).map((column) => (
                                 <th 
                                     key={column.key}
                                     style={{ 
@@ -188,13 +188,13 @@ export function DataTable<T>({
                         {isLoading ? (
                             // Loading skeleton
                             Array.from({ length: loadingRows }).map((_, i) => (
-                                <SkeletonRow key={i} columns={columns.length} />
+                                <SkeletonRow key={i} columns={(columns || []).length || 1} />
                             ))
-                        ) : data.length === 0 ? (
+                        ) : !data || data.length === 0 ? (
                             // Empty state
                             <tr>
                                 <td 
-                                    colSpan={columns.length} 
+                                    colSpan={(columns || []).length || 1} 
                                     style={{ textAlign: 'center', padding: '48px 24px' }}
                                 >
                                     <div className="empty-state">
@@ -221,7 +221,7 @@ export function DataTable<T>({
                                         rowClassName?.(item)
                                     )}
                                 >
-                                    {columns.map((column) => (
+                                    {(columns || []).map((column) => (
                                         <td 
                                             key={column.key}
                                             data-label={column.header}
@@ -241,10 +241,10 @@ export function DataTable<T>({
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && onPageChange && (
+            {totalPages >= 1 && onPageChange && (
                 <div className="pagination-row">
                     <span className="pagination-info">
-                        {pageInfo || `Page ${currentPage + 1} of ${totalPages}`}
+                        {pageInfo || `Page ${currentPage + 1} of ${totalPages || 1}`}
                     </span>
                     <div className="pagination-buttons">
                         <button

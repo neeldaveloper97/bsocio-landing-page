@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { WebVitals } from "@/components/WebVitals";
 import {
   generateMetadata as createMetadata,
   generateOrganizationSchema,
@@ -28,20 +29,22 @@ const ClientProviders = dynamic(
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-dm-sans",
-  display: "optional", // Use optional for better LCP - fallback immediately if not loaded
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
+  fallback: ["system-ui", "arial"],
 });
 
 const arimo = Arimo({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-arimo",
-  display: "optional", // Use optional for better LCP
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
+  fallback: ["system-ui", "arial"],
 });
 
 // ============================================
@@ -105,6 +108,7 @@ export default function RootLayout({
         </a>
 
         <ClientProviders>
+          {/* <WebVitals /> */}
           <Header />
 
           <main id="main-content" className="flex-1" role="main">

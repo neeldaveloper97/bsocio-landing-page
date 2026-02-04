@@ -23,6 +23,23 @@ export { useNews, useNewsArticle, useRelatedArticles } from './useNews';
 // Events Hooks
 export { useEvents, useUpcomingEvents, usePastEvents, useEvent, useEventStatistics } from './useEvents';
 
+// Awards Hooks
+export {
+  useAwardCategories,
+  useAwardCategoryById,
+  useNominees,
+  useApprovedNominees,
+  useWinners,
+  useNomineeById,
+  useCeremonies,
+  useUpcomingCeremonies,
+  useCeremonyById,
+  useSpecialGuests,
+  useActiveGuests,
+  useSpecialGuestById,
+  useAwardsStatistics,
+} from './useAwards';
+
 // Re-export TanStack Query utilities for convenience
 export { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export { queryKeys, queryClient } from '@/lib/query-client';

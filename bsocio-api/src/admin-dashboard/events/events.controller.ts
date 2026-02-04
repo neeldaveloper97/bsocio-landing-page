@@ -47,6 +47,9 @@ export class EventsController {
       query.status,
       query.sortBy,
       query.sortOrder,
+      query.skip ? parseInt(query.skip, 10) : undefined,
+      query.take ? parseInt(query.take, 10) : undefined,
+      query.search,
     );
   }
 

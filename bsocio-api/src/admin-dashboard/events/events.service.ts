@@ -43,6 +43,9 @@ export class EventsService {
     status?: string,
     sortBy?: string,
     sortOrder?: 'asc' | 'desc',
+    skip?: number,
+    take?: number,
+    search?: string,
   ) {
     const where: any = {};
 
@@ -59,6 +62,15 @@ export class EventsService {
       where.eventDate = { lt: now };
     }
 
+    // Search
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { venue: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     // Build orderBy
     const validSortFields = [
       'title',
@@ -73,10 +85,20 @@ export class EventsService {
       : 'eventDate';
     const order = sortOrder === 'asc' ? 'asc' : 'desc';
 
-    return this.prisma.event.findMany({
-      where,
-      orderBy: { [sortField as string]: order },
-    });
+    const actualSkip = skip ?? 0;
+    const actualTake = take ?? 20;
+
+    const [items, total] = await Promise.all([
+      this.prisma.event.findMany({
+        where,
+        orderBy: { [sortField as string]: order },
+        skip: actualSkip,
+        take: actualTake,
+      }),
+      this.prisma.event.count({ where }),
+    ]);
+
+    return { items, total, skip: actualSkip, take: actualTake };
   }
 
   async getById(id: string) {

@@ -134,7 +134,7 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
-  const isAdmin = state.user?.role === 'ADMIN';
+  const isAdmin = state.user?.role ? ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'].includes(state.user.role) : false;
 
   return {
     ...state,

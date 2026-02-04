@@ -6,26 +6,39 @@ import { useFAQs } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibility, FAQFilters } from '@/types';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 export default function FAQsPage() {
+    // State
+    const [showModal, setShowModal] = useState(false);
+    const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
+
     // Sorting state
     const [sortBy, setSortBy] = useState<string>('sortOrder');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     
+    // Build filters with pagination
     const filters: FAQFilters = useMemo(() => ({
         sortBy,
         sortOrder,
-    }), [sortBy, sortOrder]);
+        page: currentPage + 1, // API uses 1-indexed pages
+        limit: PAGE_SIZE,
+    }), [sortBy, sortOrder, currentPage]);
 
-    const { faqs, isLoading, isError, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
-    const [showModal, setShowModal] = useState(false);
-    const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
-    const [currentPage, setCurrentPage] = useState(0);
+    const { faqs, data, isLoading, isError, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
+    const totalFAQs = data?.total ?? faqs.length;
     
     // Confirmation modal state
     const [confirmModal, setConfirmModal] = useState<{
@@ -46,12 +59,8 @@ export default function FAQsPage() {
     const [state, setState] = useState<FAQState>('PUBLISHED');
     const [visibility, setVisibility] = useState<FAQVisibility>('PUBLIC');
 
-    // Pagination
-    const totalPages = Math.ceil(faqs.length / PAGE_SIZE);
-    const paginatedFaqs = useMemo(() => {
-        const start = currentPage * PAGE_SIZE;
-        return faqs.slice(start, start + PAGE_SIZE);
-    }, [faqs, currentPage]);
+    // Server-side pagination
+    const totalPages = Math.ceil(totalFAQs / PAGE_SIZE);
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -205,7 +214,7 @@ export default function FAQsPage() {
 
             {/* FAQs Table */}
             <DataTable<FAQ>
-                data={paginatedFaqs}
+                data={faqs}
                 columns={[
                     { 
                         key: 'question', 
@@ -281,29 +290,29 @@ export default function FAQsPage() {
                                 <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
                                     <div className="flex flex-col gap-2">
                                         <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category</label>
-                                        <select 
-                                            id="category" 
-                                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
-                                            value={category}
-                                            onChange={(e) => setCategory(e.target.value as FAQCategory)}
-                                        >
-                                            <option value="GENERAL">General</option>
-                                            <option value="TECHNICAL">Technical</option>
-                                            <option value="BILLING">Billing</option>
-                                            <option value="OTHER">Other</option>
-                                        </select>
+                                        <Select value={category} onValueChange={(value) => setCategory(value as FAQCategory)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="GENERAL">General</SelectItem>
+                                                <SelectItem value="TECHNICAL">Technical</SelectItem>
+                                                <SelectItem value="BILLING">Billing</SelectItem>
+                                                <SelectItem value="OTHER">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
-                                        <select 
-                                            id="status" 
-                                            className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10"
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value as FAQStatus)}
-                                        >
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="INACTIVE">Inactive</option>
-                                        </select>
+                                        <Select value={status} onValueChange={(value) => setStatus(value as FAQStatus)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ACTIVE">Active</SelectItem>
+                                                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full">

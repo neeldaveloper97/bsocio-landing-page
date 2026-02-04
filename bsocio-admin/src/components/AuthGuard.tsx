@@ -44,15 +44,24 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Immediate check from storage - no delay needed
     const hasToken = tokenStorage.isAuthenticated();
+    const user = tokenStorage.getUser();
+    const isAdminUser = user?.role && ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'].includes(user.role);
+    
     setIsAuthenticated(hasToken);
+    setIsAdmin(isAdminUser);
     setIsChecking(false);
     
     if (!hasToken) {
       router.replace('/login');
+    } else if (!isAdminUser) {
+      // User is authenticated but not an admin
+      tokenStorage.clear();
+      router.replace('/login?error=unauthorized');
     }
   }, [router]);
 
@@ -61,8 +70,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return <AuthLoadingSkeleton />;
   }
 
-  // Don't render children if not authenticated
-  if (!isAuthenticated) {
+  // Don't render children if not authenticated or not admin
+  if (!isAuthenticated || !isAdmin) {
     return <AuthLoadingSkeleton />;
   }
 

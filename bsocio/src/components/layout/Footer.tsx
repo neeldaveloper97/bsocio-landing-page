@@ -32,13 +32,13 @@ const FOOTER_SECTIONS: FooterSection[] = [
       { href: "/", label: "Home" },
       { href: "/about", label: "About Us" },
       { href: "/how-it-works", label: "How It Works" },
-      { href: "/festivals", label: "Festivals", disabled: true },
+      { href: "/festivals", label: "Festivals" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { href: "/news-media", label: "News & Media", disabled: true },
+      { href: "/news-media", label: "News & Media" },
       { href: "/faqs", label: "FAQs" },
       { href: "/our-structure", label: "Our Structure" },
       { href: "/leadership", label: "Leadership Team" },
@@ -150,11 +150,11 @@ export default function Footer() {
     >
       {/* Main Footer Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
           <div className="space-y-6">
             <Logo variant="footer" />
-            <nav className="flex gap-3" aria-label="Social media links">
+            <nav className="flex flex-wrap gap-3 mt-2" aria-label="Social media links">
               {SOCIAL_LINKS.map((social) => (
                 <SocialLink key={social.label} {...social} />
               ))}

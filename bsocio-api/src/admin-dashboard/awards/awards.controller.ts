@@ -48,8 +48,21 @@ export class AwardsController {
   @Get('categories')
   @ApiOperation({ summary: 'List award categories' })
   @ApiQuery({ name: 'status', required: false })
-  listCategories(@Query('status') status?: string) {
-    return this.awardsService.listCategories(status);
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  listCategories(
+    @Query('status') status?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.awardsService.listCategories(
+      status,
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+      search,
+    );
   }
 
   @Get('categories/:id')
@@ -99,14 +112,27 @@ export class AwardsController {
   @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'isWinner', required: false })
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  @ApiQuery({ name: 'search', required: false })
   listNominees(
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
     @Query('isWinner') isWinner?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
   ) {
     const isWinnerBool =
       isWinner === 'true' ? true : isWinner === 'false' ? false : undefined;
-    return this.awardsService.listNominees(categoryId, status, isWinnerBool);
+    return this.awardsService.listNominees(
+      categoryId,
+      status,
+      isWinnerBool,
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+      search,
+    );
   }
 
   @Get('nominees/:id')
@@ -203,8 +229,21 @@ export class AwardsController {
   @Get('guests')
   @ApiOperation({ summary: 'List special guests' })
   @ApiQuery({ name: 'status', required: false })
-  listSpecialGuests(@Query('status') status?: string) {
-    return this.awardsService.listSpecialGuests(status);
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  listSpecialGuests(
+    @Query('status') status?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.awardsService.listSpecialGuests(
+      status,
+      skip ? parseInt(skip, 10) : undefined,
+      take ? parseInt(take, 10) : undefined,
+      search,
+    );
   }
 
   @Get('guests/:id')

@@ -36,11 +36,11 @@ function CloseIcon() {
 // ============================================
 
 const NAV_ITEMS = [
-  { label: "About", href: "/about", disabled: false },
-  { label: "How it works", href: "/how-it-works", disabled: false },
-  { label: "News & Media", href: "/news-media", disabled: false},
-  { label: "Festivals", href: "/festivals", disabled: false },
-  { label: "FAQs", href: "/faqs", disabled: false },
+  { label: "About", href: "/about"},
+  { label: "How it works", href: "/how-it-works"},
+  { label: "News & Media", href: "/news-media"},
+  { label: "Festivals", href: "/festivals"},
+  { label: "FAQs", href: "/faqs"},
 ] as const;
 
 // ============================================
@@ -150,7 +150,6 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
                 isActive={pathname === item.href}
                 onClick={onClose}
                 variant="mobile"
-                disabled={item.disabled}
               />
             ))}
           </div>
@@ -210,7 +209,6 @@ export default function Header() {
                 href={item.href}
                 label={item.label}
                 isActive={pathname === item.href}
-                disabled={item.disabled}
               />
             ))}
           </nav>

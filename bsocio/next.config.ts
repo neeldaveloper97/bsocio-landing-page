@@ -27,6 +27,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   reactCompiler: true,
+  
+  // Output optimization
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  
   // Experimental optimizations for tree-shaking large packages
   experimental: {
     optimizePackageImports: [
@@ -46,7 +50,20 @@ const nextConfig: NextConfig = {
       "clsx",
       "tailwind-merge",
     ],
+    // Optimize CSS
+    optimizeCss: true,
   },
+  
+  // Turbopack configuration for Next.js 16 (replaces webpack)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  
   images: {
     remotePatterns: [
       {

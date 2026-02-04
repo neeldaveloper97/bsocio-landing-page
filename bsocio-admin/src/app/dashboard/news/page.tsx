@@ -16,6 +16,7 @@ import {
 import { PlusIcon, EditIcon, DeleteIcon, ArchiveIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { Pagination } from '@/components/ui/pagination';
 import {
     Select,
     SelectContent,
@@ -33,7 +34,7 @@ const NEWS_CATEGORIES: { value: NewsCategory; label: string }[] = [
     { value: 'PARTNERSHIP', label: 'Partnership' },
 ];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 interface FormData {
     title: string;
@@ -116,19 +117,21 @@ export default function NewsPage() {
         setCurrentPage(0);
     }, [sortBy, sortOrder]);
 
-    // Build filters with sorting
+    // Build filters with sorting and pagination
     const buildFilters = useCallback((status?: NewsStatus): NewsFilters => ({
         ...(status ? { status } : {}),
         sortBy,
         sortOrder,
-    }), [sortBy, sortOrder]);
+        skip: currentPage * PAGE_SIZE,
+        take: PAGE_SIZE,
+    }), [sortBy, sortOrder, currentPage]);
 
-    // First, always fetch ALL articles to get accurate counts
-    const { data: allArticlesData, isLoading: isLoadingAll, refetch } = useNews(buildFilters());
-    const allArticles: NewsArticle[] = allArticlesData || [];
+    // Fetch paginated data from server
+    const filters = useMemo(() => buildFilters(statusFilter !== 'all' ? statusFilter as NewsStatus : undefined), [buildFilters, statusFilter]);
+    const { news: displayArticles, total: totalArticles, isLoading, refetch } = useNews(filters);
 
-    // Calculate stats from ALL articles (not filtered)
-    const totalArticles = allArticles.length;
+    // Fetch stats separately (just total counts, no pagination)
+    const { news: allArticles } = useNews({ take: 1000 }); // Get all for counts
     const publishedCount = allArticles.filter((a: NewsArticle) => a.status === 'PUBLISHED').length;
     const draftCount = allArticles.filter((a: NewsArticle) => a.status === 'DRAFT').length;
     const archivedCount = allArticles.filter((a: NewsArticle) => a.status === 'ARCHIVED').length;
@@ -139,28 +142,9 @@ export default function NewsPage() {
             case 'PUBLISHED': return publishedCount;
             case 'DRAFT': return draftCount;
             case 'ARCHIVED': return archivedCount;
-            default: return totalArticles;
+            default: return allArticles.length;
         }
-    }, [publishedCount, draftCount, archivedCount, totalArticles]);
-
-    // Determine if we should skip API call (when count is 0)
-    const shouldSkipFilteredFetch = statusFilter !== 'all' && getFilterCount(statusFilter) === 0;
-
-    // Fetch filtered articles from server (only if count > 0)
-    const { data: filteredData, isLoading: isLoadingFiltered } = useNews(
-        statusFilter !== 'all' && !shouldSkipFilteredFetch 
-            ? buildFilters(statusFilter as NewsStatus)
-            : undefined
-    );
-
-    // Determine which articles to display
-    const displayArticles = useMemo(() => {
-        if (shouldSkipFilteredFetch) return []; // No API call, return empty
-        if (statusFilter === 'all') return allArticles;
-        return filteredData || [];
-    }, [statusFilter, shouldSkipFilteredFetch, allArticles, filteredData]);
-
-    const isLoading = isLoadingAll || (statusFilter !== 'all' && !shouldSkipFilteredFetch && isLoadingFiltered);
+    }, [publishedCount, draftCount, archivedCount, allArticles.length]);
 
     const createNews = useCreateNews();
     const updateNews = useUpdateNews();
@@ -169,12 +153,8 @@ export default function NewsPage() {
     const uploadImage = useUploadImage();
     const deleteImage = useDeleteImage();
 
-    // Pagination
-    const totalPages = Math.ceil(displayArticles.length / PAGE_SIZE);
-    const paginatedArticles = useMemo(() => {
-        const start = currentPage * PAGE_SIZE;
-        return displayArticles.slice(start, start + PAGE_SIZE);
-    }, [displayArticles, currentPage]);
+    // Server-side pagination
+    const totalPages = Math.ceil(totalArticles / PAGE_SIZE);
 
     // Reset page when filter changes
     useEffect(() => {
@@ -471,7 +451,7 @@ export default function NewsPage() {
 
             {/* Articles Table */}
             <DataTable<NewsArticle>
-                data={paginatedArticles}
+                data={displayArticles}
                 columns={[
                     { 
                         key: 'title', 
@@ -532,7 +512,7 @@ export default function NewsPage() {
                         render: (article) => (
                             <div className="flex items-center gap-2 justify-center">
                                 <button
-                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
                                     title="Edit"
                                     aria-label={`Edit ${article.title}`}
                                     onClick={() => openEditModal(article)}
@@ -540,7 +520,7 @@ export default function NewsPage() {
                                     <EditIcon />
                                 </button>
                                 <button
-                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={article.status === 'ARCHIVED' ? 'Already Archived' : 'Archive'}
                                     aria-label={`Archive ${article.title}`}
                                     onClick={() => openArchiveConfirm(article)}
@@ -549,7 +529,7 @@ export default function NewsPage() {
                                     <ArchiveIcon />
                                 </button>
                                 <button
-                                    className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
                                     title="Delete"
                                     aria-label={`Delete ${article.title}`}
                                     onClick={() => openDeleteConfirm(article)}
@@ -565,28 +545,23 @@ export default function NewsPage() {
                 title="All Articles"
                 totalCount={displayArticles.length}
                 headerActions={
-                    <div className="flex items-center gap-3">
-                        <span className="font-sans text-sm text-[#6B7280]">
-                            {displayArticles.length} {statusFilter !== 'all' ? statusFilter.toLowerCase() : 'total'}
-                        </span>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger style={{ width: '180px' }}>
-                                <SelectValue placeholder="Filter by status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Articles</SelectItem>
-                                <SelectItem value="PUBLISHED" disabled={publishedCount === 0}>
-                                    Published ({publishedCount})
-                                </SelectItem>
-                                <SelectItem value="DRAFT" disabled={draftCount === 0}>
-                                    Drafts ({draftCount})
-                                </SelectItem>
-                                <SelectItem value="ARCHIVED" disabled={archivedCount === 0}>
-                                    Archived ({archivedCount})
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Articles</SelectItem>
+                            <SelectItem value="PUBLISHED" disabled={publishedCount === 0}>
+                                Published ({publishedCount})
+                            </SelectItem>
+                            <SelectItem value="DRAFT" disabled={draftCount === 0}>
+                                Drafts ({draftCount})
+                            </SelectItem>
+                            <SelectItem value="ARCHIVED" disabled={archivedCount === 0}>
+                                Archived ({archivedCount})
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 }
                 emptyIcon="📰"
                 emptyTitle={statusFilter !== 'all' ? `No ${statusFilter.toLowerCase()} articles` : 'No articles found'}
@@ -649,18 +624,16 @@ export default function NewsPage() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category *</label>
-                                    <select
-                                        id="category"
-                                        name="category"
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10"
-                                        value={formData.category}
-                                        onChange={handleInputChange}
-                                    >
-                                        <option value="">Select category</option>
-                                        {NEWS_CATEGORIES.map(cat => (
-                                            <option key={cat.value} value={cat.value}>{cat.label}</option>
-                                        ))}
-                                    </select>
+                                    <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as NewsCategory }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {NEWS_CATEGORIES.map(cat => (
+                                                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="publicationDate" className="font-sans text-sm font-semibold text-[#374151]">Publication Date *</label>

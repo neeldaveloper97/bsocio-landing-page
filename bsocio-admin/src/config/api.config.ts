@@ -38,6 +38,11 @@ export const API_ENDPOINTS = {
   // Admin Activity
   ADMIN: {
     ACTIVITY: '/admin-dashboard/activity',
+    USERS: {
+      BASE: '/admin-dashboard/users',
+      STATS: '/admin-dashboard/users/stats',
+      BY_ID: (id: string) => `/admin-dashboard/users/${id}`,
+    },
   },
 
   // Analytics
@@ -97,5 +102,26 @@ export const API_ENDPOINTS = {
     BASE: '/admin-dashboard/events',
     BY_ID: (id: string) => `/admin-dashboard/events/${id}`,
     STATISTICS: '/admin-dashboard/events/statistics',
+  },
+
+  // Awards Management
+  AWARDS: {
+    CATEGORIES: {
+      BASE: '/admin-dashboard/awards/categories',
+      BY_ID: (id: string) => `/admin-dashboard/awards/categories/${id}`,
+    },
+    NOMINEES: {
+      BASE: '/admin-dashboard/awards/nominees',
+      BY_ID: (id: string) => `/admin-dashboard/awards/nominees/${id}`,
+    },
+    CEREMONIES: {
+      BASE: '/admin-dashboard/awards/ceremonies',
+      BY_ID: (id: string) => `/admin-dashboard/awards/ceremonies/${id}`,
+    },
+    GUESTS: {
+      BASE: '/admin-dashboard/awards/guests',
+      BY_ID: (id: string) => `/admin-dashboard/awards/guests/${id}`,
+    },
+    STATISTICS: '/admin-dashboard/awards/statistics',
   },
 } as const;

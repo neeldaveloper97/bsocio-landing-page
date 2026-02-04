@@ -25,6 +25,10 @@ export interface GoogleUserData {
   name: string;
   picture?: string;
   googleId: string;
+  gender?: "MALE" | "FEMALE" | "NON_BINARY" | "PREFER_NOT_TO_SAY";
+  dob?: string;
+  phone?: string;
+  invitationLink?: string;
 }
 
 class GoogleAuthService {

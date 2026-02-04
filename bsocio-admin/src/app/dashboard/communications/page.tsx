@@ -5,6 +5,13 @@ import { createPortal } from 'react-dom';
 import { useContacts } from '@/hooks';
 import { ViewIcon } from '@/components/ui/admin-icons';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { ContactInquiry, ContactStatus, ContactReason } from '@/types';
 import './communications.css';
 
@@ -21,7 +28,7 @@ export default function CommunicationsPage() {
     const [currentPage, setCurrentPage] = useState(0);
     const [selectedInquiry, setSelectedInquiry] = useState<ContactInquiry | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
-    const pageSize = 20;
+    const pageSize = 5;
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -108,59 +115,6 @@ export default function CommunicationsPage() {
 
     const totalPages = Math.ceil(total / pageSize);
 
-    // Loading skeleton
-    if (isLoading) {
-        return (
-            <div className="content-section active">
-                <div className="section-header-with-btn">
-                    <div className="section-intro">
-                        <h1>Communications</h1>
-                        <p>Manage contact inquiries from users</p>
-                    </div>
-                </div>
-                <div className="stats-cards-grid">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="stat-card skeleton-card">
-                            <div className="skeleton-box" style={{ width: '40px', height: '40px', borderRadius: '8px' }}></div>
-                            <div className="skeleton-box" style={{ width: '60px', height: '32px', marginTop: '8px' }}></div>
-                            <div className="skeleton-box" style={{ width: '80px', height: '14px', marginTop: '8px' }}></div>
-                        </div>
-                    ))}
-                </div>
-                <div className="table-container">
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Reason</th>
-                                    <th>Country</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <tr key={i}>
-                                        <td><div className="skeleton-box" style={{ width: '120px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '180px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '100px', height: '24px', borderRadius: '12px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '80px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '80px', height: '24px', borderRadius: '12px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '120px', height: '16px' }}></div></td>
-                                        <td><div className="skeleton-box" style={{ width: '60px', height: '24px' }}></div></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="page-content">
             {/* Section Header */}
@@ -175,22 +129,30 @@ export default function CommunicationsPage() {
             <div className="stats-grid-4">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">✉️</div>
-                    <div className="stat-value-responsive">{total}</div>
+                    <div className="stat-value-responsive">
+                        {isLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : total}
+                    </div>
                     <div className="stat-label-responsive">Total Inquiries</div>
                 </div>
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#EF4444]">🔴</div>
-                    <div className="stat-value-responsive">{newCount}</div>
+                    <div className="stat-value-responsive">
+                        {isLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : newCount}
+                    </div>
                     <div className="stat-label-responsive">New</div>
                 </div>
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#F59E0B]">⏳</div>
-                    <div className="stat-value-responsive">{inProgressCount}</div>
+                    <div className="stat-value-responsive">
+                        {isLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : inProgressCount}
+                    </div>
                     <div className="stat-label-responsive">In Progress</div>
                 </div>
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#10B981]">✅</div>
-                    <div className="stat-value-responsive">{resolvedCount}</div>
+                    <div className="stat-value-responsive">
+                        {isLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : resolvedCount}
+                    </div>
                     <div className="stat-label-responsive">Resolved</div>
                 </div>
             </div>
@@ -198,6 +160,7 @@ export default function CommunicationsPage() {
             {/* Contact Inquiries Table - Using DataTable Component */}
             <DataTable<ContactInquiry>
                 data={contacts || []}
+                isLoading={isLoading}
                 columns={[
                     {
                         key: 'fullName',
@@ -254,35 +217,41 @@ export default function CommunicationsPage() {
                 totalCount={total}
                 headerActions={
                     <div className="flex items-center gap-3">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value as ContactStatus | '');
+                        <Select 
+                            value={statusFilter || 'all'} 
+                            onValueChange={(value) => {
+                                setStatusFilter(value === 'all' ? '' : value as ContactStatus);
                                 setCurrentPage(0);
                             }}
-                            className="form-select"
-                            style={{ maxWidth: '180px' }}
                         >
-                            <option value="">All Statuses</option>
-                            <option value="NEW">New</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="RESOLVED">Resolved</option>
-                        </select>
-                        <select
-                            value={reasonFilter}
-                            onChange={(e) => {
-                                setReasonFilter(e.target.value as ContactReason | '');
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Statuses" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="NEW">New</SelectItem>
+                                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                                <SelectItem value="RESOLVED">Resolved</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select 
+                            value={reasonFilter || 'all'} 
+                            onValueChange={(value) => {
+                                setReasonFilter(value === 'all' ? '' : value as ContactReason);
                                 setCurrentPage(0);
                             }}
-                            className="form-select"
-                            style={{ maxWidth: '180px' }}
                         >
-                            <option value="">All Reasons</option>
-                            <option value="MEDIA_PRESS">Media/Press</option>
-                            <option value="PARTNERSHIPS">Partnerships</option>
-                            <option value="REPORT_SCAM">Report Scam</option>
-                            <option value="GENERAL_INQUIRY">General Inquiry</option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="All Reasons" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Reasons</SelectItem>
+                                <SelectItem value="MEDIA_PRESS">Media/Press</SelectItem>
+                                <SelectItem value="PARTNERSHIPS">Partnerships</SelectItem>
+                                <SelectItem value="REPORT_SCAM">Report Scam</SelectItem>
+                                <SelectItem value="GENERAL_INQUIRY">General Inquiry</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 }
                 emptyIcon="✉️"

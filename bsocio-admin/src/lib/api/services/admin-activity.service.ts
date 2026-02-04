@@ -39,6 +39,8 @@ class AdminActivityService {
       const skip = params?.skip ?? 0;
       const take = params?.take ?? 10;
       const filter = params?.filter;
+      const type = params?.type;
+      const search = params?.search;
       const sortBy = params?.sortBy;
       const sortOrder = params?.sortOrder;
 
@@ -49,6 +51,8 @@ class AdminActivityService {
             skip,
             take,
             ...(filter ? { filter } : {}),
+            ...(type ? { type } : {}),
+            ...(search ? { search } : {}),
             ...(sortBy ? { sortBy } : {}),
             ...(sortOrder ? { sortOrder } : {}),
           },

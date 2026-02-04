@@ -36,7 +36,7 @@ export interface PaginatedResponse<T> {
 // User & Auth Types
 // ============================================
 
-export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
+export type UserRole = 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COMMUNICATIONS_ADMIN' | 'ANALYTICS_VIEWER' | 'USER';
 
 export interface User {
   id: string;
@@ -173,6 +173,8 @@ export interface AdminActivityRequest {
   skip?: number;
   take?: number;
   filter?: '24h' | 'week' | 'month';
+  type?: string;
+  search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -180,6 +182,49 @@ export interface AdminActivityRequest {
 export interface AdminActivityResponse {
   activities: AdminActivity[];
   total: number;
+}
+
+// ============================================
+// Admin Users Types
+// ============================================
+
+export type AdminRoleKey = 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COMMUNICATIONS_ADMIN' | 'ANALYTICS_VIEWER';
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  roleKey: AdminRoleKey;
+  permissions: string[];
+  lastLogin: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface AdminUserRequest {
+  role?: string;
+  status?: 'active' | 'inactive' | 'all';
+  search?: string;
+  skip?: number;
+  take?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AdminUserResponse {
+  items: AdminUser[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface AdminUserStats {
+  total: number;
+  superAdmins: number;
+  contentAdmins: number;
+  communicationsAdmins: number;
+  analyticsViewers: number;
 }
 
 // ============================================
@@ -389,6 +434,8 @@ export interface NewsFilters {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  skip?: number;
+  take?: number;
 }
 
 // ============================================
@@ -533,11 +580,213 @@ export interface EventFilters {
   status?: EventStatus;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  skip?: number;
+  take?: number;
+  search?: string;
 }
 
 export interface EventStatistics {
   upcomingEvents: number;
   pastEvents: number;
   totalAttendees: number;
+}
+
+// ============================================
+// Award Category Types
+// ============================================
+
+export type AwardCategoryStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface AwardCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  status: AwardCategoryStatus;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    nominees: number;
+  };
+  nominees?: Nominee[];
+}
+
+export interface CreateAwardCategoryRequest {
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  status?: AwardCategoryStatus;
+}
+
+export interface UpdateAwardCategoryRequest {
+  name?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  status?: AwardCategoryStatus;
+}
+
+export interface AwardCategoryFilters {
+  status?: AwardCategoryStatus;
+  skip?: number;
+  take?: number;
+  search?: string;
+}
+
+// ============================================
+// Nominee Types
+// ============================================
+
+export type NomineeStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface Nominee {
+  id: string;
+  name: string;
+  title?: string;
+  organization?: string;
+  categoryId: string;
+  imageUrl?: string;
+  about?: string;
+  keyAchievements: string[];
+  impactStory?: string;
+  quote?: string;
+  status: NomineeStatus;
+  isWinner: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category?: AwardCategory;
+}
+
+export interface CreateNomineeRequest {
+  name: string;
+  title?: string;
+  organization?: string;
+  categoryId: string;
+  imageUrl?: string;
+  about?: string;
+  keyAchievements?: string[];
+  impactStory?: string;
+  quote?: string;
+  status?: NomineeStatus;
+  isWinner?: boolean;
+}
+
+export interface UpdateNomineeRequest {
+  name?: string;
+  title?: string;
+  organization?: string;
+  categoryId?: string;
+  imageUrl?: string;
+  about?: string;
+  keyAchievements?: string[];
+  impactStory?: string;
+  quote?: string;
+  status?: NomineeStatus;
+  isWinner?: boolean;
+}
+
+export interface NomineeFilters {
+  categoryId?: string;
+  status?: NomineeStatus;
+  isWinner?: boolean;
+  skip?: number;
+  take?: number;
+  search?: string;
+}
+
+// ============================================
+// Ceremony Types
+// ============================================
+
+export type CeremonyStatus = 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+
+export interface Ceremony {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  venue?: string;
+  description?: string;
+  imageUrl?: string;
+  status: CeremonyStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCeremonyRequest {
+  title: string;
+  date: string;
+  location: string;
+  venue?: string;
+  description?: string;
+  imageUrl?: string;
+  status?: CeremonyStatus;
+}
+
+export interface UpdateCeremonyRequest {
+  title?: string;
+  date?: string;
+  location?: string;
+  venue?: string;
+  description?: string;
+  imageUrl?: string;
+  status?: CeremonyStatus;
+}
+
+export interface CeremonyFilters {
+  status?: CeremonyStatus;
+}
+
+// ============================================
+// Special Guest Types
+// ============================================
+
+export type SpecialGuestStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface SpecialGuest {
+  id: string;
+  name: string;
+  title?: string;
+  bio?: string;
+  imageUrl?: string;
+  status: SpecialGuestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSpecialGuestRequest {
+  name: string;
+  title?: string;
+  bio?: string;
+  imageUrl?: string;
+  status?: SpecialGuestStatus;
+}
+
+export interface UpdateSpecialGuestRequest {
+  name?: string;
+  title?: string;
+  bio?: string;
+  imageUrl?: string;
+  status?: SpecialGuestStatus;
+}
+
+export interface SpecialGuestFilters {
+  status?: SpecialGuestStatus;
+  skip?: number;
+  take?: number;
+  search?: string;
+}
+
+// ============================================
+// Awards Statistics
+// ============================================
+
+export interface AwardsStatistics {
+  totalCategories: number;
+  totalNominees: number;
+  activeAwards: number;
+  upcomingCeremonies: number;
 }
 

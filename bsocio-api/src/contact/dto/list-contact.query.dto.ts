@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ContactReasonDto } from './create-contact.dto';
 
 export enum ContactStatusDto {
@@ -21,12 +22,14 @@ export class ListContactQueryDto {
 
   @ApiPropertyOptional({ example: 0 })
   @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== '' ? parseInt(value, 10) : undefined))
   @IsInt()
   @Min(0)
   skip?: number;
 
   @ApiPropertyOptional({ example: 20 })
   @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== '' ? parseInt(value, 10) : undefined))
   @IsInt()
   @Min(1)
   take?: number;

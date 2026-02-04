@@ -79,8 +79,15 @@ export function GoogleSignInButton({
         tokenStorage.setRefreshToken(data.refreshToken);
       }
       
-      onSuccess?.();
-      router.push('/');
+      // Check if user needs to complete profile (phone verification)
+      // If isPermanentUser is false, redirect to verification page
+      if (data.user && !data.user.isPermanentUser) {
+        onSuccess?.();
+        router.push(`/signup/verify?email=${encodeURIComponent(data.user.email)}`);
+      } else {
+        onSuccess?.();
+        router.push('/');
+      }
     } catch (error) {
       console.error('Google sign-in error:', error);
       onError?.(error as Error);
@@ -142,8 +149,14 @@ export function GoogleSignInButton({
           tokenStorage.setRefreshToken(data.refreshToken);
         }
         
-        onSuccess?.();
-        router.push('/');
+        // Check if user needs to complete profile (phone verification)
+        if (data.user && !data.user.isPermanentUser) {
+          onSuccess?.();
+          router.push(`/signup/verify?email=${encodeURIComponent(userInfo.email)}`);
+        } else {
+          onSuccess?.();
+          router.push('/');
+        }
       } catch (error) {
         console.error('Google sign-in error:', error);
         onError?.(error as Error);

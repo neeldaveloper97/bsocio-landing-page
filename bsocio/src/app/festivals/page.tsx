@@ -2,99 +2,12 @@
 
 import { useState, useMemo } from "react";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
-import {
-  FestivalsStarIcon as StarIcon,
-  FestivalsHeartIcon as HeartIcon,
-  FestivalsUsersIcon as UsersIcon,
-} from "@/components/ui/brand-icons";
 import { useEvents, useEventStatistics } from "@/hooks";
+import { useAwardCategories, useApprovedNominees, useActiveGuests } from "@/hooks";
 import { cn } from "@/lib/utils";
-import type { Event } from "@/types";
+import type { Event, AwardCategory, Nominee, SpecialGuest } from "@/types";
 
 type TabType = "awards" | "events" | "guests";
-
-// ============================================
-// DATA
-// ============================================
-
-const foundingHeroes = [
-  {
-    id: 1,
-    name: "Dr. Sarah Chen",
-    role: "Founder, Global Food Initiative",
-    location: "Singapore",
-    description: "Led nutrition programs reaching 2.5 million children across Southeast Asia.",
-  },
-  {
-    id: 2,
-    name: "Marcus Johnson",
-    role: "CEO, Hunger Relief Network",
-    location: "United States",
-    description: "Mobilized $50M in donations to combat child hunger in underserved communities.",
-  },
-  {
-    id: 3,
-    name: "Amara Okafor",
-    role: "Director, Community Nutrition Programs",
-    location: "Nigeria",
-    description: "Established sustainable farming initiatives providing food security for 500K families.",
-  },
-];
-
-const philanthropyHeroes = [
-  {
-    id: 1,
-    name: "Elena Rodriguez",
-    role: "Philanthropist & Social Entrepreneur",
-    location: "Spain",
-    description: "Funded educational programs for 100,000 children in underserved regions worldwide.",
-  },
-  {
-    id: 2,
-    name: "Dr. Raj Patel",
-    role: "Global Health Advocate",
-    location: "India",
-    description: "Pioneered telemedicine nutrition consultations for rural communities across South Asia.",
-  },
-];
-
-const changeMakers = [
-  {
-    id: 1,
-    name: "Coming Soon",
-    role: "Change Maker Honorees",
-    location: "Global",
-    description: "Recognizing individuals who are driving meaningful change in their communities.",
-    disabled: true,
-  },
-];
-
-const guests = [
-  {
-    id: 1,
-    name: "Jon Batiste",
-    role: "Grammy Award-Winning Artist",
-    description: "Musical Performance & Keynote Speaker",
-  },
-  {
-    id: 2,
-    name: "David Beckham",
-    role: "Global Humanitarian Icon",
-    description: "Guest of Honor",
-  },
-  {
-    id: 3,
-    name: "Dr. Lawrence Haddad",
-    role: "World Food Prize Laureate",
-    description: "Keynote Speaker",
-  },
-  {
-    id: 4,
-    name: "Catherine Kamau",
-    role: "Acclaimed Actress & Storyteller",
-    description: "Host & Community Voice",
-  },
-];
 
 // ============================================
 // HELPER FUNCTIONS
@@ -142,68 +55,83 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
   );
 }
 
-interface NavCardProps {
-  icon: React.ReactNode;
-  iconBg: string;
-  title: string;
-  description: string;
-  onClick: () => void;
+interface CategoryCardProps {
+  category: AwardCategory;
+  onClick?: () => void;
 }
 
-function NavCard({ icon, iconBg, title, description, onClick }: NavCardProps) {
+function CategoryCard({ category, onClick }: CategoryCardProps) {
   return (
-    <div
-      className="group flex cursor-pointer flex-col items-center rounded-2xl border border-border bg-linear-to-br from-white to-slate-50 p-6 text-center shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-xl sm:p-8"
-      onClick={onClick}
-    >
-      <div
-        className={cn(
-          "mb-4 flex h-16 w-16 items-center justify-center rounded-full",
-          iconBg
-        )}
-      >
-        {icon}
+    <div className="group flex flex-col items-center rounded-2xl border border-border bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-xl sm:p-8">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">
+        {category.icon || "🏆"}
       </div>
-      <h3 className="mb-2 text-lg font-bold leading-tight text-foreground sm:text-xl">
-        {title}
+      <h3 className="mb-3 text-lg font-bold leading-tight text-foreground sm:text-xl">
+        {category.name}
       </h3>
-      <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-        {description}
-      </p>
-      <span className="mt-auto inline-block rounded-lg border-2 border-accent bg-transparent px-6 py-3 text-base font-semibold text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-white">
+      <div 
+        className="mb-6 text-sm leading-relaxed text-muted-foreground line-clamp-3"
+        dangerouslySetInnerHTML={{ 
+          __html: category.description || "Recognizing excellence and impact in this category." 
+        }}
+      />
+      <button
+        onClick={onClick}
+        className="mt-auto rounded-lg border-2 border-accent bg-transparent px-6 py-2.5 text-sm font-bold text-accent transition-all duration-300 hover:bg-accent hover:text-white"
+      >
         Explore →
-      </span>
+      </button>
     </div>
   );
 }
 
-interface AwardCardProps {
-  name: string;
-  role: string;
-  location: string;
-  description: string;
-  disabled?: boolean;
+interface NomineeCardProps {
+  nominee: Nominee;
+  showCategory?: boolean;
 }
 
-function AwardCard({ name, role, location, description, disabled }: AwardCardProps) {
+function NomineeCard({ nominee, showCategory }: NomineeCardProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="flex h-64 items-center justify-center bg-muted text-sm font-medium text-primary">
-        [{name} Image]
+      <div className="relative flex h-64 items-center justify-center bg-muted text-sm font-medium text-primary">
+        {nominee.imageUrl ? (
+          <img
+            src={nominee.imageUrl}
+            alt={nominee.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
+            {nominee.name.charAt(0)}
+          </div>
+        )}
+        {nominee.isWinner && (
+          <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-white">
+            🏆 Winner
+          </div>
+        )}
       </div>
       <div className="p-6">
-        <h4 className="mb-2 text-xl font-bold leading-7 text-foreground">{name}</h4>
-        <p className="mb-2 text-sm leading-5 text-primary">{role}</p>
-        <p className="mb-3 text-sm leading-5 text-muted-foreground">{location}</p>
-        <p className="mb-4 leading-relaxed text-foreground">{description}</p>
-        <button
-          className={cn(
-            "w-full rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300",
-            "hover:bg-primary hover:text-white",
-            disabled && "pointer-events-none opacity-50"
-          )}
-        >
-          {disabled ? "Coming Soon" : "View Profile"}
+        <h4 className="mb-2 text-xl font-bold leading-7 text-foreground">{nominee.name}</h4>
+        {nominee.title && (
+          <p className="mb-2 text-sm leading-5 text-primary">{nominee.title}</p>
+        )}
+        {nominee.organization && (
+          <p className="mb-3 text-sm leading-5 text-muted-foreground">{nominee.organization}</p>
+        )}
+        {showCategory && nominee.category && (
+          <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            {nominee.category.name}
+          </span>
+        )}
+        {nominee.about && (
+          <div 
+            className="mb-4 leading-relaxed text-foreground line-clamp-3"
+            dangerouslySetInnerHTML={{ __html: nominee.about }}
+          />
+        )}
+        <button className="w-full rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white">
+          View Profile
         </button>
       </div>
     </div>
@@ -244,7 +172,10 @@ function EventCard({ title, date, location, venue, description, mainEvent }: Eve
           <strong>Time:</strong> {venue}
         </p>
       </div>
-      <p className="mb-4 leading-relaxed text-muted-foreground">{description}</p>
+      <div 
+        className="mb-4 leading-relaxed text-muted-foreground"
+        dangerouslySetInnerHTML={{ __html: description }}
+      />
       <button className="w-full rounded-lg bg-primary px-6 py-3 text-center font-bold text-white transition-all duration-300 hover:bg-primary/90">
         View Event Details
       </button>
@@ -253,26 +184,41 @@ function EventCard({ title, date, location, venue, description, mainEvent }: Eve
 }
 
 interface GuestCardProps {
-  name: string;
-  role: string;
-  description: string;
+  guest: SpecialGuest;
 }
 
-function GuestCard({ name, role, description }: GuestCardProps) {
+function GuestCard({ guest }: GuestCardProps) {
   return (
     <div className="flex min-h-[500px] w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:min-h-[530px]">
-      <div className="flex h-64 shrink-0 items-center justify-center bg-muted text-sm font-medium text-primary sm:h-72 md:h-80">
-        [{name} Image]
+      <div className="relative flex h-64 shrink-0 items-center justify-center bg-muted text-sm font-medium text-primary sm:h-72 md:h-80">
+        {guest.imageUrl ? (
+          <img
+            src={guest.imageUrl}
+            alt={guest.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
+            {guest.name.charAt(0)}
+          </div>
+        )}
       </div>
       <div className="flex min-h-[180px] flex-1 flex-col justify-between p-5 sm:min-h-[200px] sm:p-6">
         <div>
           <h4 className="mb-2 text-lg font-bold leading-7 text-foreground sm:text-xl">
-            {name}
+            {guest.name}
           </h4>
-          <p className="mb-2 min-h-[40px] text-sm leading-5 text-muted-foreground">
-            {role}
-          </p>
-          <p className="mb-4 text-sm leading-5 text-primary">{description}</p>
+          {guest.title && (
+            <p className="mb-2 min-h-[40px] text-sm leading-5 text-muted-foreground">
+              {guest.title}
+            </p>
+          )}
+          {guest.bio && (
+            <div 
+              className="mb-4 text-sm leading-5 text-foreground line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: guest.bio }}
+            />
+          )}
         </div>
         <button className="mt-auto w-full shrink-0 rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white">
           View Profile
@@ -289,13 +235,18 @@ function GuestCard({ name, role, description }: GuestCardProps) {
 export default function FestivalsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("awards");
   
+  // Events API data
   const { events: apiEvents, isLoading: eventsLoading, isError: eventsError } = useEvents({
     status: 'PUBLISHED',
     sortBy: 'eventDate',
     sortOrder: 'asc',
   });
-
   const { statistics } = useEventStatistics();
+
+  // Awards API data - Load all nominees at once
+  const { categories, isLoading: categoriesLoading, isError: categoriesError } = useAwardCategories('ACTIVE');
+  const { nominees, isLoading: nomineesLoading, isError: nomineesError } = useApprovedNominees();
+  const { guests, isLoading: guestsLoading, isError: guestsError } = useActiveGuests();
 
   const events = useMemo(() => {
     if (!apiEvents) return [];
@@ -311,10 +262,28 @@ export default function FestivalsPage() {
     }));
   }, [apiEvents]);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
+  // Group nominees by category
+  const nomineesByCategory = useMemo(() => {
+    if (!nominees || !categories) return {};
+    const grouped: Record<string, Nominee[]> = {};
+    categories.forEach(cat => {
+      grouped[cat.id] = nominees.filter(n => n.categoryId === cat.id);
+    });
+    return grouped;
+  }, [nominees, categories]);
+
+  const handleCategoryClick = (categoryId: string) => {
+    // Smooth scroll to category section
+    const element = document.getElementById(`category-${categoryId}`);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const offset = 120; // Account for sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -368,66 +337,70 @@ export default function FestivalsPage() {
             </p>
           </div>
 
-          {/* Awards Navigation Cards */}
-          <div className="mb-12 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-            <NavCard
-              icon={<StarIcon />}
-              iconBg="bg-secondary/10"
-              title="Founding Birthday Hero"
-              description="Honoring the pioneers who sparked a global movement of generosity."
-              onClick={() => scrollToSection("founding-heroes")}
-            />
-            <NavCard
-              icon={<HeartIcon />}
-              iconBg="bg-accent/10"
-              title="Philanthropy Hero"
-              description="Celebrating individuals whose generosity creates lasting impact at scale."
-              onClick={() => scrollToSection("philanthropy-heroes")}
-            />
-            <NavCard
-              icon={<UsersIcon />}
-              iconBg="bg-primary/10"
-              title="Change Makers"
-              description="Recognizing bold action and innovation that drive meaningful change."
-              onClick={() => scrollToSection("changemaker-heroes")}
-            />
+          {/* Award Categories */}
+          <div className="mb-12">
+            <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl">
+              Award Categories
+            </h3>
+            {categoriesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : categoriesError ? (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">Unable to load categories. Please try again later.</p>
+              </div>
+            ) : categories && categories.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                {categories.map((category) => (
+                  <CategoryCard
+                    key={category.id}
+                    category={category}
+                    onClick={() => handleCategoryClick(category.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">Award categories will be announced soon.</p>
+              </div>
+            )}
           </div>
 
-          {/* Founding Birthday Hero Awards */}
-          <div className="mb-12" id="founding-heroes">
-            <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl">
-              Founding Birthday Hero Awards
-            </h3>
-            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {foundingHeroes.map((hero) => (
-                <AwardCard key={hero.id} {...hero} />
-              ))}
+          {/* Nominees Section - Display all categories with their nominees */}
+          {nomineesLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             </div>
-          </div>
-
-          {/* Philanthropy Hero Awards */}
-          <div className="mb-12" id="philanthropy-heroes">
-            <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl">
-              Philanthropy Hero Awards
-            </h3>
-            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {philanthropyHeroes.map((hero) => (
-                <AwardCard key={hero.id} {...hero} />
-              ))}
+          ) : nomineesError ? (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Unable to load nominees. Please try again later.</p>
             </div>
-          </div>
-
-          {/* Change Makers Awards */}
-          <div id="changemaker-heroes">
-            <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl">
-              Change Makers Awards
-            </h3>
-            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {changeMakers.map((hero) => (
-                <AwardCard key={hero.id} {...hero} disabled={hero.disabled} />
-              ))}
+          ) : categories && categories.length > 0 ? (
+            <div className="space-y-20">
+              {categories.map((category) => {
+                const categoryNominees = nomineesByCategory[category.id] || [];
+                if (categoryNominees.length === 0) return null;
+                
+                return (
+                  <div key={category.id} id={`category-${category.id}`} className="scroll-mt-32">
+                    <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
+                      {category.name} Awards
+                    </h3>
+                    <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+                      {categoryNominees.map((nominee) => (
+                        <NomineeCard key={nominee.id} nominee={nominee} showCategory={false} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Nominees will be announced soon.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -494,11 +467,25 @@ export default function FestivalsPage() {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
-            {guests.map((guest) => (
-              <GuestCard key={guest.id} {...guest} />
-            ))}
-          </div>
+          {guestsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            </div>
+          ) : guestsError ? (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Unable to load guests. Please try again later.</p>
+            </div>
+          ) : guests && guests.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+              {guests.map((guest) => (
+                <GuestCard key={guest.id} guest={guest} />
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Special guests will be announced closer to the event.</p>
+            </div>
+          )}
         </div>
       </section>
 

@@ -247,3 +247,95 @@ export interface EventStatistics {
   pastEvents: number;
   totalAttendees: number;
 }
+
+// ============================================
+// Award Category Types
+// ============================================
+
+export type AwardCategoryStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface AwardCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  status: AwardCategoryStatus;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    nominees: number;
+  };
+  nominees?: Nominee[];
+}
+
+// ============================================
+// Nominee Types
+// ============================================
+
+export type NomineeStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface Nominee {
+  id: string;
+  name: string;
+  title?: string;
+  organization?: string;
+  categoryId: string;
+  imageUrl?: string;
+  about?: string;
+  keyAchievements: string[];
+  impactStory?: string;
+  quote?: string;
+  status: NomineeStatus;
+  isWinner: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category?: AwardCategory;
+}
+
+// ============================================
+// Ceremony Types
+// ============================================
+
+export type CeremonyStatus = 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+
+export interface Ceremony {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  venue?: string;
+  description?: string;
+  imageUrl?: string;
+  status: CeremonyStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// Special Guest Types
+// ============================================
+
+export type SpecialGuestStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface SpecialGuest {
+  id: string;
+  name: string;
+  title?: string;
+  bio?: string;
+  imageUrl?: string;
+  status: SpecialGuestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// Awards Statistics
+// ============================================
+
+export interface AwardsStatistics {
+  totalCategories: number;
+  totalNominees: number;
+  activeAwards: number;
+  upcomingCeremonies: number;
+}
