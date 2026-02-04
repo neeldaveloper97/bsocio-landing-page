@@ -60,5 +60,25 @@ export function useUpdateAdminUserRole() {
   });
 }
 
+/**
+ * Hook for exporting admin users to CSV
+ */
+export function useExportAdminUsers() {
+  return useMutation({
+    mutationFn: (params?: AdminUserRequest) => adminUsersService.exportUsers(params),
+    onSuccess: (blob) => {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `admin-users-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}
+
 // Export query keys for external use
 export { ADMIN_USERS_KEYS };

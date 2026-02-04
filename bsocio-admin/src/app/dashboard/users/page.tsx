@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Download, Users, AlertCircle } from 'lucide-react';
-import { useAdminUsers, useAdminUserStats, useUpdateAdminUserRole } from '@/hooks';
+import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers } from '@/hooks';
 import { useAdminActivityOptimized } from '@/hooks';
 import type { AdminUser, AdminRoleKey, AdminActivity } from '@/types';
 
@@ -134,7 +134,6 @@ export default function UsersSystemPage() {
     // Admin Users state
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userRoleFilter, setUserRoleFilter] = useState<string>('all');
-    const [userStatusFilter, setUserStatusFilter] = useState<string>('all');
     const [userCurrentPage, setUserCurrentPage] = useState(0);
     
     // System Logs state
@@ -160,16 +159,17 @@ export default function UsersSystemPage() {
         skip: userCurrentPage * USER_PAGE_SIZE,
         take: USER_PAGE_SIZE,
         role: userRoleFilter !== 'all' ? userRoleFilter : undefined,
-        status: userStatusFilter as 'active' | 'inactive' | 'all',
         search: userSearchQuery || undefined,
     });
 
-    const {
-        data: userStats,
-        isLoading: statsLoading,
-    } = useAdminUserStats();
+    // Stats endpoint not yet implemented on backend
+    // const {
+    //     data: userStats,
+    //     isLoading: statsLoading,
+    // } = useAdminUserStats();
 
     const updateRoleMutation = useUpdateAdminUserRole();
+    const exportUsersMutation = useExportAdminUsers();
 
     // ============================================
     // API HOOKS - SYSTEM LOGS (Activity)
@@ -202,7 +202,7 @@ export default function UsersSystemPage() {
     // Reset page when filters change
     useEffect(() => {
         setUserCurrentPage(0);
-    }, [userSearchQuery, userRoleFilter, userStatusFilter]);
+    }, [userSearchQuery, userRoleFilter]);
 
     useEffect(() => {
         setLogCurrentPage(0);
@@ -238,6 +238,13 @@ export default function UsersSystemPage() {
         } catch (error) {
             console.error('Failed to update role:', error);
         }
+    };
+
+    const handleExportUsers = () => {
+        exportUsersMutation.mutate({
+            role: userRoleFilter !== 'all' ? userRoleFilter : undefined,
+            search: userSearchQuery || undefined,
+        });
     };
 
     // ============================================
@@ -385,33 +392,33 @@ export default function UsersSystemPage() {
             {/* ============================================ */}
             {activeTab === 'users' && (
                 <>
-                    {/* Stats Cards */}
+                    {/* Stats Cards - Using data from users list */}
                     <div className="stats-grid-4">
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#2563EB]">👥</div>
                             <div className="stat-value-responsive">
-                                {statsLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : userStats?.total || 0}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : usersData?.total || 0}
                             </div>
                             <div className="stat-label-responsive">Total Admins</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#10B981]">👑</div>
                             <div className="stat-value-responsive">
-                                {statsLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : userStats?.superAdmins || 0}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'SUPER_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Super Admins</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#2563EB]">📝</div>
                             <div className="stat-value-responsive">
-                                {statsLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : userStats?.contentAdmins || 0}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'CONTENT_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Content Admins</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#F59E0B]">📢</div>
                             <div className="stat-value-responsive">
-                                {statsLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : userStats?.communicationsAdmins || 0}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'COMMUNICATIONS_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Communications</div>
                         </div>
@@ -449,19 +456,13 @@ export default function UsersSystemPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <Select value={userStatusFilter} onValueChange={setUserStatusFilter}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="All Statuses" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Statuses</SelectItem>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="inactive">Inactive</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                                    <button 
+                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleExportUsers}
+                                        disabled={exportUsersMutation.isPending}
+                                    >
                                         <Download className="w-4 h-4" />
-                                        Export
+                                        {exportUsersMutation.isPending ? 'Exporting...' : 'Export'}
                                     </button>
                                 </div>
                             }

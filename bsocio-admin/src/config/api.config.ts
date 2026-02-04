@@ -39,9 +39,10 @@ export const API_ENDPOINTS = {
   ADMIN: {
     ACTIVITY: '/admin-dashboard/activity',
     USERS: {
-      BASE: '/admin-dashboard/users',
-      STATS: '/admin-dashboard/users/stats',
-      BY_ID: (id: string) => `/admin-dashboard/users/${id}`,
+      BASE: '/admin/users',
+      STATS: '/admin/users/stats',
+      EXPORT: '/admin/users/export',
+      BY_ID: (id: string) => `/admin/users/${id}`,
     },
   },
 

@@ -90,5 +90,6 @@ export {
   useAdminUsers,
   useAdminUserStats,
   useUpdateAdminUserRole,
+  useExportAdminUsers,
   ADMIN_USERS_KEYS,
 } from './useAdminUsers';

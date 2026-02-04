@@ -39,17 +39,20 @@ class AdminUsersService {
    */
   async getAdminUsers(params?: AdminUserRequest): Promise<AdminUserResponse> {
     try {
+      // Convert skip/take to page/limit for backend
+      const skip = params?.skip ?? 0;
+      const take = params?.take ?? 10;
+      const page = Math.floor(skip / take) + 1;
+      const limit = take;
+
       const response = await apiClient.get<AdminUserResponse>(
         API_ENDPOINTS.ADMIN.USERS.BASE,
         {
           params: {
-            skip: params?.skip ?? 0,
-            take: params?.take ?? 10,
+            page,
+            limit,
             ...(params?.role ? { role: params.role } : {}),
-            ...(params?.status ? { status: params.status } : {}),
             ...(params?.search ? { search: params.search } : {}),
-            ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-            ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
           },
         }
       );
@@ -98,6 +101,44 @@ class AdminUsersService {
         { role }
       );
       return response.data;
+    } catch (error) {
+      throw parseApiError(error);
+    }
+  }
+
+  /**
+   * Export admin users to CSV
+   */
+  async exportUsers(params?: AdminUserRequest): Promise<Blob> {
+    try {
+      // Convert skip/take to page/limit for backend
+      const skip = params?.skip ?? 0;
+      const take = params?.take ?? 10;
+      const page = Math.floor(skip / take) + 1;
+      const limit = take;
+
+      // Build the full URL with query params
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7000';
+      const url = new URL(API_ENDPOINTS.ADMIN.USERS.EXPORT, baseUrl);
+      url.searchParams.append('page', String(page));
+      url.searchParams.append('limit', String(limit));
+      if (params?.role) url.searchParams.append('role', params.role);
+      if (params?.search) url.searchParams.append('search', params.search);
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export users');
+      }
+
+      return await response.blob();
     } catch (error) {
       throw parseApiError(error);
     }
