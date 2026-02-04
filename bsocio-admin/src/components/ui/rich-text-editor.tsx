@@ -32,6 +32,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   limit?: number;
+  minHeight?: string;
 }
 
 // Toolbar button component with proper event handling
@@ -79,7 +80,8 @@ export function RichTextEditor({
   onChange,
   placeholder = 'Start writing...',
   className,
-  limit = 10000
+  limit = 10000,
+  minHeight = '250px'
 }: RichTextEditorProps) {
   // Track active states explicitly for proper re-rendering
   const [activeStates, setActiveStates] = useState({
@@ -337,7 +339,8 @@ export function RichTextEditor({
       <div className="relative w-full flex-1 overflow-y-auto">
         <EditorContent
           editor={editor}
-          className="min-h-[250px] [&_.ProseMirror]:p-4 [&_.ProseMirror]:min-h-[250px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:cursor-text"
+          className="[&_.ProseMirror]:p-4 [&_.ProseMirror]:outline-none [&_.ProseMirror]:cursor-text"
+          style={{ minHeight }}
         />
 
         {/* Character Count */}
