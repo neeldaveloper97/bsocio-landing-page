@@ -6,4 +6,4 @@
 
 export * from './api';
 export * from './query-client';
-export { default as cn } from './utils';
+export { cn } from './utils';

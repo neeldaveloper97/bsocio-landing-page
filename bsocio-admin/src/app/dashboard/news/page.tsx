@@ -254,13 +254,12 @@ export default function NewsPage() {
         if (uploadedImageUrl) {
             try {
                 await deleteImage.mutateAsync(uploadedImageUrl);
-                console.log('Deleted orphaned image:', uploadedImageUrl);
             } catch (error) {
                 console.error('Failed to delete orphaned image:', error);
                 // Don't block modal close even if delete fails
             }
         }
-        
+
         setShowModal(false);
         setEditingArticle(null);
         setFormData(initialFormData);
@@ -453,8 +452,8 @@ export default function NewsPage() {
             <DataTable<NewsArticle>
                 data={displayArticles}
                 columns={[
-                    { 
-                        key: 'title', 
+                    {
+                        key: 'title',
                         header: 'Title',
                         sortable: true,
                         render: (article) => (
@@ -473,33 +472,33 @@ export default function NewsPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'category', 
+                    {
+                        key: 'category',
                         header: 'Category',
                         sortable: true,
                         render: (article) => getCategoryLabel(article.category)
                     },
-                    { 
-                        key: 'author', 
+                    {
+                        key: 'author',
                         header: 'Author',
                         sortable: true,
                         render: (article) => <span title={article.author}>{truncateText(article.author, 20)}</span>
                     },
-                    { 
-                        key: 'publicationDate', 
+                    {
+                        key: 'publicationDate',
                         header: 'Date',
                         sortable: true,
                         render: (article) => formatDate(article.publicationDate)
                     },
-                    { 
-                        key: 'status', 
+                    {
+                        key: 'status',
                         header: 'Status',
                         sortable: true,
                         align: 'center',
                         render: (article) => getStatusBadge(article.status)
                     },
-                    { 
-                        key: 'views', 
+                    {
+                        key: 'views',
                         header: 'Views',
                         sortable: true,
                         align: 'center',
@@ -584,8 +583,8 @@ export default function NewsPage() {
                                     Add news, media coverage, and press releases
                                 </p>
                             </div>
-                            <button 
-                                className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]" 
+                            <button
+                                className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                                 type="button"

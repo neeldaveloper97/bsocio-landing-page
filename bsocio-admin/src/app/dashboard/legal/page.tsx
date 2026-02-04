@@ -24,7 +24,7 @@ function formatDate(dateString: string | undefined): string {
  */
 function getVersionInfo(doc: LegalDocument | null) {
     if (!doc) return null;
-    
+
     return {
         version: 'v1.0', // Single version since we don't have history
         date: formatDate(doc.updatedAt),
@@ -36,11 +36,11 @@ function getVersionInfo(doc: LegalDocument | null) {
 
 export default function LegalPage() {
     const [activeTab, setActiveTab] = useState<LegalDocumentType>('PRIVACY_POLICY');
-    
+
     // Fetch both documents
     const termsHook = useLegal('TERMS_OF_USE');
     const privacyHook = useLegal('PRIVACY_POLICY');
-    
+
     // Form state
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -52,17 +52,6 @@ export default function LegalPage() {
     const currentHook = activeTab === 'TERMS_OF_USE' ? termsHook : privacyHook;
     const currentDoc = currentHook.data;
     const versionInfo = getVersionInfo(currentDoc);
-
-    // Debug logging
-    useEffect(() => {
-        console.log('Legal Page Debug:', {
-            activeTab,
-            isLoading: currentHook.isLoading,
-            isError: currentHook.isError,
-            error: currentHook.error,
-            currentDoc,
-        });
-    }, [activeTab, currentHook.isLoading, currentHook.isError, currentHook.error, currentDoc]);
 
     // Load document data when tab changes or document loads
     useEffect(() => {
@@ -208,7 +197,7 @@ export default function LegalPage() {
                 <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                     <h2 className="font-sans text-xl font-bold text-[#101828] m-0">Edit Content</h2>
                     <div className="flex gap-3 flex-wrap">
-                        <button 
+                        <button
                             className="inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border border-[#2563EB] cursor-pointer transition-all duration-200 bg-white text-[#2563EB] hover:bg-[#EFF6FF]"
                             onClick={() => setShowPreview(!showPreview)}
                         >
@@ -218,7 +207,7 @@ export default function LegalPage() {
                             </svg>
                             Preview
                         </button>
-                        <button 
+                        <button
                             className={cn(
                                 "inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#84CC16] text-white hover:bg-[#65A30D]",
                                 isSaving && "opacity-60 cursor-not-allowed"
@@ -233,7 +222,7 @@ export default function LegalPage() {
                             </svg>
                             Save
                         </button>
-                        <button 
+                        <button
                             className={cn(
                                 "inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border-none cursor-pointer transition-all duration-200 bg-[#2563EB] text-white hover:bg-[#1D4ED8]",
                                 isSaving && "opacity-60 cursor-not-allowed"
@@ -284,7 +273,7 @@ export default function LegalPage() {
                         <label className="font-sans text-sm font-semibold text-[#374151]">{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
                         {showPreview ? (
                             <div className="min-h-80 p-6 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg overflow-auto">
-                                <div 
+                                <div
                                     className="font-sans text-sm text-[#374151] leading-relaxed"
                                     dangerouslySetInnerHTML={{ __html: content }}
                                 />

@@ -69,10 +69,10 @@ function CategoryCard({ category, onClick }: CategoryCardProps) {
       <h3 className="mb-3 text-lg font-bold leading-tight text-foreground sm:text-xl">
         {category.name}
       </h3>
-      <div 
+      <div
         className="mb-6 text-sm leading-relaxed text-muted-foreground line-clamp-3"
-        dangerouslySetInnerHTML={{ 
-          __html: category.description || "Recognizing excellence and impact in this category." 
+        dangerouslySetInnerHTML={{
+          __html: category.description || "Recognizing excellence and impact in this category."
         }}
       />
       <button
@@ -125,7 +125,7 @@ function NomineeCard({ nominee, showCategory }: NomineeCardProps) {
           </span>
         )}
         {nominee.about && (
-          <div 
+          <div
             className="mb-4 leading-relaxed text-foreground line-clamp-3"
             dangerouslySetInnerHTML={{ __html: nominee.about }}
           />
@@ -172,7 +172,7 @@ function EventCard({ title, date, location, venue, description, mainEvent }: Eve
           <strong>Time:</strong> {venue}
         </p>
       </div>
-      <div 
+      <div
         className="mb-4 leading-relaxed text-muted-foreground"
         dangerouslySetInnerHTML={{ __html: description }}
       />
@@ -214,7 +214,7 @@ function GuestCard({ guest }: GuestCardProps) {
             </p>
           )}
           {guest.bio && (
-            <div 
+            <div
               className="mb-4 text-sm leading-5 text-foreground line-clamp-3"
               dangerouslySetInnerHTML={{ __html: guest.bio }}
             />
@@ -229,12 +229,86 @@ function GuestCard({ guest }: GuestCardProps) {
 }
 
 // ============================================
+// SKELETON COMPONENTS
+// ============================================
+
+function CategoryCardSkeleton() {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-border bg-gradient-to-br from-white to-slate-50 p-6 shadow-md sm:p-8 animate-pulse">
+      <div className="mb-4 h-16 w-16 rounded-full bg-muted" />
+      <div className="mb-3 h-6 w-32 rounded bg-muted" />
+      <div className="mb-6 space-y-2 w-full">
+        <div className="h-4 w-full rounded bg-muted" />
+        <div className="h-4 w-3/4 mx-auto rounded bg-muted" />
+      </div>
+      <div className="mt-auto h-10 w-28 rounded-lg bg-muted" />
+    </div>
+  );
+}
+
+function NomineeCardSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-card animate-pulse">
+      <div className="h-64 w-full bg-muted" />
+      <div className="p-6">
+        <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
+        <div className="mb-2 h-5 w-1/2 rounded bg-muted" />
+        <div className="mb-3 h-4 w-2/3 rounded bg-muted" />
+        <div className="mb-4 space-y-2">
+          <div className="h-4 w-full rounded bg-muted" />
+          <div className="h-4 w-5/6 rounded bg-muted" />
+        </div>
+        <div className="h-11 w-full rounded-lg bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+function EventCardSkeleton() {
+  return (
+    <div className="rounded-lg border border-border bg-card p-6 sm:p-8 animate-pulse">
+      <div className="mb-3 h-7 w-24 rounded-full bg-muted" />
+      <div className="mb-4 h-8 w-3/4 rounded bg-muted" />
+      <div className="mb-4 space-y-2">
+        <div className="h-5 w-1/2 rounded bg-muted" />
+        <div className="h-5 w-2/3 rounded bg-muted" />
+        <div className="h-5 w-1/3 rounded bg-muted" />
+      </div>
+      <div className="mb-4 space-y-2">
+        <div className="h-4 w-full rounded bg-muted" />
+        <div className="h-4 w-5/6 rounded bg-muted" />
+      </div>
+      <div className="h-12 w-full rounded-lg bg-muted" />
+    </div>
+  );
+}
+
+function GuestCardSkeleton() {
+  return (
+    <div className="flex min-h-[500px] w-full flex-col overflow-hidden rounded-lg border border-border bg-card md:min-h-[530px] animate-pulse">
+      <div className="h-64 shrink-0 bg-muted sm:h-72 md:h-80" />
+      <div className="flex min-h-[180px] flex-1 flex-col justify-between p-5 sm:min-h-[200px] sm:p-6">
+        <div>
+          <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
+          <div className="mb-2 h-10 w-full rounded bg-muted" />
+          <div className="mb-4 space-y-2">
+            <div className="h-4 w-full rounded bg-muted" />
+            <div className="h-4 w-5/6 rounded bg-muted" />
+          </div>
+        </div>
+        <div className="mt-auto h-11 w-full shrink-0 rounded-lg bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN PAGE COMPONENT
 // ============================================
 
 export default function FestivalsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("awards");
-  
+
   // Events API data
   const { events: apiEvents, isLoading: eventsLoading, isError: eventsError } = useEvents({
     status: 'PUBLISHED',
@@ -249,7 +323,7 @@ export default function FestivalsPage() {
   const { guests, isLoading: guestsLoading, isError: guestsError } = useActiveGuests();
 
   const events = useMemo(() => {
-    if (!apiEvents) return [];
+    if (!apiEvents || !Array.isArray(apiEvents)) return [];
     return apiEvents.map((event) => ({
       id: event.id,
       title: event.title,
@@ -264,7 +338,7 @@ export default function FestivalsPage() {
 
   // Group nominees by category
   const nomineesByCategory = useMemo(() => {
-    if (!nominees || !categories) return {};
+    if (!nominees || !categories || !Array.isArray(nominees) || !Array.isArray(categories)) return {};
     const grouped: Record<string, Nominee[]> = {};
     categories.forEach(cat => {
       grouped[cat.id] = nominees.filter(n => n.categoryId === cat.id);
@@ -279,7 +353,7 @@ export default function FestivalsPage() {
       const offset = 120; // Account for sticky header
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
+
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
@@ -343,14 +417,19 @@ export default function FestivalsPage() {
               Award Categories
             </h3>
             {categoriesLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                <CategoryCardSkeleton />
+                <CategoryCardSkeleton />
+                <CategoryCardSkeleton />
+                <CategoryCardSkeleton />
+                <CategoryCardSkeleton />
+                <CategoryCardSkeleton />
               </div>
             ) : categoriesError ? (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground">Unable to load categories. Please try again later.</p>
               </div>
-            ) : categories && categories.length > 0 ? (
+            ) : Array.isArray(categories) && categories.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {categories.map((category) => (
                   <CategoryCard
@@ -369,19 +448,24 @@ export default function FestivalsPage() {
 
           {/* Nominees Section - Display all categories with their nominees */}
           {nomineesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <NomineeCardSkeleton />
+              <NomineeCardSkeleton />
+              <NomineeCardSkeleton />
+              <NomineeCardSkeleton />
+              <NomineeCardSkeleton />
+              <NomineeCardSkeleton />
             </div>
           ) : nomineesError ? (
             <div className="py-12 text-center">
               <p className="text-muted-foreground">Unable to load nominees. Please try again later.</p>
             </div>
-          ) : categories && categories.length > 0 ? (
+          ) : Array.isArray(categories) && categories.length > 0 ? (
             <div className="space-y-20">
               {categories.map((category) => {
                 const categoryNominees = nomineesByCategory[category.id] || [];
                 if (categoryNominees.length === 0) return null;
-                
+
                 return (
                   <div key={category.id} id={`category-${category.id}`} className="scroll-mt-32">
                     <h3 className="mb-8 text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
@@ -429,8 +513,11 @@ export default function FestivalsPage() {
           </div>
 
           {eventsLoading ? (
-            <div className="py-12 text-center">
-              <p className="text-muted-foreground">Loading events...</p>
+            <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
+              <EventCardSkeleton />
+              <EventCardSkeleton />
+              <EventCardSkeleton />
+              <EventCardSkeleton />
             </div>
           ) : eventsError ? (
             <div className="py-12 text-center">
@@ -468,14 +555,17 @@ export default function FestivalsPage() {
           </div>
 
           {guestsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+              <GuestCardSkeleton />
+              <GuestCardSkeleton />
+              <GuestCardSkeleton />
+              <GuestCardSkeleton />
             </div>
           ) : guestsError ? (
             <div className="py-12 text-center">
               <p className="text-muted-foreground">Unable to load guests. Please try again later.</p>
             </div>
-          ) : guests && guests.length > 0 ? (
+          ) : Array.isArray(guests) && guests.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
               {guests.map((guest) => (
                 <GuestCard key={guest.id} guest={guest} />

@@ -50,7 +50,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     // Immediate check from storage - no delay needed
     const hasToken = tokenStorage.isAuthenticated();
     const user = tokenStorage.getUser();
-    const isAdminUser = user?.role && ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'].includes(user.role);
+    const isAdminUser = !!(user?.role && ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'].includes(user.role));
     
     setIsAuthenticated(hasToken);
     setIsAdmin(isAdminUser);
@@ -60,7 +60,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       router.replace('/login');
     } else if (!isAdminUser) {
       // User is authenticated but not an admin
-      tokenStorage.clear();
+      tokenStorage.clearAll();
       router.replace('/login?error=unauthorized');
     }
   }, [router]);

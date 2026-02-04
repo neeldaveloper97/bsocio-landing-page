@@ -36,9 +36,7 @@ export function useNews(params?: UseNewsParams): UseNewsReturn {
     setIsError(false);
     setError(null);
     try {
-      console.log('Fetching news with params:', params);
       const result = await newsService.getPublished(params);
-      console.log('News fetched successfully:', result);
       setArticles(result);
     } catch (err) {
       setIsError(true);

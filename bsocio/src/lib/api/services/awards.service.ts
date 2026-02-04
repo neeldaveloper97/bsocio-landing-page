@@ -22,7 +22,7 @@ import type {
 class AwardsService {
   private static instance: AwardsService;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance
@@ -41,11 +41,14 @@ class AwardsService {
    */
   async getCategories(status?: string): Promise<AwardCategory[]> {
     try {
-      const response = await apiClient.get<AwardCategory[]>(
+      const response = await apiClient.get<{ items?: AwardCategory[] } | AwardCategory[]>(
         API_ENDPOINTS.AWARDS.CATEGORIES,
         status ? { status } : undefined
       );
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.items)) return data.items;
+      return [];
     } catch (error) {
       throw parseApiError(error);
     }
@@ -70,17 +73,20 @@ class AwardsService {
   /**
    * Get all nominees with optional filters
    */
-  async getNominees(filters?: { 
-    categoryId?: string; 
-    status?: string; 
+  async getNominees(filters?: {
+    categoryId?: string;
+    status?: string;
     isWinner?: boolean;
   }): Promise<Nominee[]> {
     try {
-      const response = await apiClient.get<Nominee[]>(
+      const response = await apiClient.get<{ items?: Nominee[] } | Nominee[]>(
         API_ENDPOINTS.AWARDS.NOMINEES,
         filters
       );
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.items)) return data.items;
+      return [];
     } catch (error) {
       throw parseApiError(error);
     }
@@ -121,11 +127,14 @@ class AwardsService {
    */
   async getCeremonies(status?: string): Promise<Ceremony[]> {
     try {
-      const response = await apiClient.get<Ceremony[]>(
+      const response = await apiClient.get<{ items?: Ceremony[] } | Ceremony[]>(
         API_ENDPOINTS.AWARDS.CEREMONIES,
         status ? { status } : undefined
       );
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.items)) return data.items;
+      return [];
     } catch (error) {
       throw parseApiError(error);
     }
@@ -159,11 +168,14 @@ class AwardsService {
    */
   async getSpecialGuests(status?: string): Promise<SpecialGuest[]> {
     try {
-      const response = await apiClient.get<SpecialGuest[]>(
+      const response = await apiClient.get<{ items?: SpecialGuest[] } | SpecialGuest[]>(
         API_ENDPOINTS.AWARDS.GUESTS,
         status ? { status } : undefined
       );
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.items)) return data.items;
+      return [];
     } catch (error) {
       throw parseApiError(error);
     }

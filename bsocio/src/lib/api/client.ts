@@ -31,7 +31,7 @@ interface ApiResponse<T> {
  */
 function buildUrl(endpoint: string, params?: RequestOptions['params']): string {
   const url = new URL(endpoint, API_CONFIG.baseURL);
-  
+
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -39,7 +39,7 @@ function buildUrl(endpoint: string, params?: RequestOptions['params']): string {
       }
     });
   }
-  
+
   return url.toString();
 }
 
@@ -66,7 +66,7 @@ async function handleTokenRefresh(): Promise<string | null> {
     const data = await response.json();
     tokenStorage.setAccessToken(data.accessToken);
     tokenStorage.setRefreshToken(data.refreshToken);
-    
+
     return data.accessToken;
   } catch {
     // Refresh failed - clear tokens
@@ -102,7 +102,6 @@ async function request<T>(
 
   // Log request in development
   if (process.env.NEXT_PUBLIC_ENV === 'development') {
-    console.log(`[API Request] ${options.method || 'GET'} ${endpoint}`, { body, params });
   }
 
   const response = await fetch(url, {

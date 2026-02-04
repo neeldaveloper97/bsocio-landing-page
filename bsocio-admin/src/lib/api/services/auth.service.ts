@@ -125,7 +125,7 @@ class AuthService {
    */
   isAdmin(): boolean {
     const user = this.getUser();
-    return user?.role === 'ADMIN';
+    return !!(user?.role && ['SUPER_ADMIN', 'CONTENT_ADMIN', 'COMMUNICATIONS_ADMIN', 'ANALYTICS_VIEWER'].includes(user.role));
   }
 }
 

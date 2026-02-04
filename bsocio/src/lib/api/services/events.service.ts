@@ -18,16 +18,23 @@ export const eventsService = {
    */
   async getAll(filters?: EventFilters): Promise<Event[]> {
     const queryParams: Record<string, string> = {};
-    
+
     if (filters?.filter) queryParams.filter = filters.filter;
     if (filters?.status) queryParams.status = filters.status;
     if (filters?.sortBy) queryParams.sortBy = filters.sortBy;
     if (filters?.sortOrder) queryParams.sortOrder = filters.sortOrder;
 
-    const response = await apiClient.get<Event[]>(API_ENDPOINTS.EVENTS.LIST, queryParams);
-    
-    // The API returns an array of events directly
-    return response.data;
+    const response = await apiClient.get<{ items?: Event[] } | Event[]>(API_ENDPOINTS.EVENTS.LIST, queryParams);
+
+    // Handle API response - might be { items: [...] } or direct array
+    const data = response.data;
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.items)) {
+      return data.items;
+    }
+    return [];
   },
 
   /**

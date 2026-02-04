@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLogin } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { isAuthenticated, isInitialized, isAdmin } = useAuth();
@@ -148,8 +148,8 @@ export default function LoginPage() {
                                 </div>
 
                                 {/* Forgot Password */}
-                                <a 
-                                    href="#" 
+                                <a
+                                    href="#"
                                     className="font-bold text-sm leading-5 text-right text-primary no-underline w-full block hover:underline"
                                 >
                                     Forgot password?
@@ -213,5 +213,38 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+function LoginFallback() {
+    return (
+        <div className="min-h-screen flex flex-col justify-center items-center p-8 gap-8 bg-[#F3F4F6]">
+            <div className="flex flex-col items-start gap-8 w-full max-w-125">
+                <div className="flex flex-col items-start gap-2 w-full">
+                    <div className="flex justify-center items-center w-full">
+                        <span className="font-bold text-3xl leading-9">
+                            <span className="text-primary">B</span>
+                            <span className="text-[#1A1A1A]">socio</span>
+                            <span className="inline-block w-2 h-2 bg-accent rounded-full ml-0.5" />
+                        </span>
+                    </div>
+                    <p className="font-normal text-base leading-6 text-center text-[#4A5565] w-full">
+                        Admin Dashboard
+                    </p>
+                </div>
+                <div className="flex flex-col items-center justify-center p-8 gap-6 w-full bg-white shadow-md rounded-xl min-h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-[#6A7282]">Loading...</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginFallback />}>
+            <LoginContent />
+        </Suspense>
     );
 }

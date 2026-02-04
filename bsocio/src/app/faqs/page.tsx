@@ -81,22 +81,53 @@ function PlusIcon({ isOpen }: { isOpen: boolean }) {
 /* ==============================================
    LOADING SKELETON
    ============================================== */
+function FAQSidebarSkeleton() {
+  return (
+    <aside className="w-64 shrink-0 contain-layout contain-style max-lg:hidden">
+      <div className="h-5 w-28 bg-muted/60 rounded mb-4 animate-pulse" />
+      <nav className="flex flex-col gap-2">
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div
+            key={i}
+            className="w-full py-2.5 px-3 min-h-10 rounded-xl bg-muted/30 animate-pulse"
+          >
+            <div
+              className="h-4 bg-muted/60 rounded"
+              style={{ width: `${65 + (i % 3) * 10}%` }}
+            />
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
 function FAQSkeleton() {
   return (
-    <div className="flex-1 max-w-4xl flex flex-col gap-3">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="bg-(--card-bg) border border-(--card-border) rounded-xl p-4 animate-pulse"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-5 bg-(--tag-bg) rounded" />
-            <div className="flex-1 h-5 bg-(--tag-bg) rounded" />
-            <div className="w-8 h-8 bg-(--tag-bg) rounded-full" />
+    <>
+      <FAQSidebarSkeleton />
+      <div className="flex-1 max-w-4xl flex flex-col gap-3 max-lg:max-w-full">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+          >
+            <div className="py-4 px-5 flex justify-between items-center gap-4">
+              <div className="flex-1 flex flex-row items-center gap-3">
+                <div className="w-7 h-5 bg-primary/20 rounded animate-pulse shrink-0" />
+                <div className="flex-1">
+                  <div
+                    className="h-5 bg-muted rounded animate-pulse"
+                    style={{ width: `${55 + (i % 4) * 12}%` }}
+                  />
+                </div>
+              </div>
+              <div className="w-8 h-8 bg-muted rounded-full shrink-0 animate-pulse" />
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 }
 
