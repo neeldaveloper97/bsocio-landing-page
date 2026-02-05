@@ -120,22 +120,23 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - positioned below header */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 top-16 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
         aria-hidden="true"
       />
       
-      {/* Dropdown Panel from Top */}
+      {/* Dropdown Panel from Top - fixed below header */}
       <div
         className={cn(
-          "fixed left-0 right-0 top-16 z-50 lg:hidden",
+          "fixed left-0 right-0 top-16 lg:hidden",
           "transform transition-all duration-300 ease-in-out",
           "bg-background shadow-2xl border-b border-border",
+          "max-h-[calc(100vh-4rem)] overflow-y-auto",
           isOpen ? "opacity-100 visible" : "opacity-0 invisible -translate-y-4"
         )}
       >
@@ -186,9 +187,12 @@ export default function Header() {
 
   return (
     <>
+    {/* Spacer to prevent content jump when header becomes fixed */}
+    {isMenuOpen && <div className="h-16 lg:hidden" />}
     <header
       className={cn(
-        "sticky top-0 z-50 w-full",
+        "top-0 z-50 w-full",
+        isMenuOpen ? "fixed" : "sticky",
         "border-b border-border",
         "bg-background/95 backdrop-blur-md",
         "supports-[backdrop-filter]:bg-background/80",
@@ -236,14 +240,14 @@ export default function Header() {
           </button>
         </div>
       </div>
-    </header>
 
-    {/* Mobile Menu - Outside header to avoid sticky context issues */}
-    <MobileMenu
-      isOpen={isMenuOpen}
-      onClose={closeMenu}
-      pathname={pathname}
-    />
+      {/* Mobile Menu - Inside header */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={closeMenu}
+        pathname={pathname}
+      />
+    </header>
     </>
   );
 }

@@ -90,7 +90,7 @@ const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
         </div>
       )}
       <div className="flex flex-1 flex-col p-5 sm:p-7">
-        <span className="mb-3 inline-block rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-primary">
+        <span className="mb-3 w-fit rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-primary">
           {categoryLabels[article.category]}
         </span>
         <h3 className="mb-3 text-lg font-bold leading-snug text-foreground transition-colors duration-200 group-hover:text-primary sm:text-xl">
