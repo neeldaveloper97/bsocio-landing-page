@@ -80,5 +80,21 @@ export function useExportAdminUsers() {
   });
 }
 
+/**
+ * Hook for toggling admin user active status
+ */
+export function useToggleAdminUserStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      adminUsersService.toggleUserStatus(id, isActive),
+    onSuccess: () => {
+      // Invalidate all admin user queries
+      queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEYS.all });
+    },
+  });
+}
+
 // Export query keys for external use
 export { ADMIN_USERS_KEYS };

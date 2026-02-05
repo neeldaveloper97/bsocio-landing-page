@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useLegal } from '@/hooks';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { LegalDocumentType, LegalDocumentState, LegalDocument } from '@/types';
@@ -71,7 +72,7 @@ export default function LegalPage() {
 
     const handleSave = useCallback(async (state: LegalDocumentState) => {
         if (!title.trim() || !content.trim() || !effectiveDate) {
-            alert('Please fill in all required fields');
+            toast.error('Validation error', { description: 'Please fill in all required fields' });
             return;
         }
 
@@ -84,10 +85,13 @@ export default function LegalPage() {
                 versionNotes: versionNotes.trim() || undefined,
                 state,
             });
-            alert(state === 'PUBLISHED' ? 'Document published successfully!' : 'Document saved as draft!');
+            toast.success(
+                state === 'PUBLISHED' ? 'Document published' : 'Draft saved',
+                { description: state === 'PUBLISHED' ? 'Document published successfully!' : 'Document saved as draft!' }
+            );
         } catch (error) {
             console.error('Failed to save document:', error);
-            alert('Failed to save document. Please try again.');
+            toast.error('Save failed', { description: 'Failed to save document. Please try again.' });
         } finally {
             setIsSaving(false);
         }

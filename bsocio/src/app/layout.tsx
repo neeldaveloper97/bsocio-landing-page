@@ -98,7 +98,7 @@ export default function RootLayout({
         {/* Apple Touch Icon - uses favicon for now */}
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
-      <body className={`${dmSans.variable} ${arimo.variable} flex min-h-screen flex-col bg-background text-foreground antialiased font-sans`} suppressHydrationWarning>
+      <body className={`${dmSans.variable} ${arimo.variable} flex min-h-screen flex-col bg-background text-foreground antialiased font-sans m-0 p-0`} suppressHydrationWarning>
         {/* Skip to main content - Accessibility */}
         <a
           href="#main-content"

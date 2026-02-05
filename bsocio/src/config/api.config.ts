@@ -57,6 +57,11 @@ export const API_ENDPOINTS = {
     SUBMIT: '/contact',
   },
 
+  // Subscribe endpoints
+  SUBSCRIBE: {
+    NEWSLETTER: 'subscribe',
+  },
+
   // News endpoints (public - no auth required)
   NEWS: {
     LIST: 'admin-dashboard/news',

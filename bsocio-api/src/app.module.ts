@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { ContactModule } from './contact/contact.module';
 import { ImagesModule } from './images/image.module';
+import { SubscribeModule } from './subscribe/subscribe.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ImagesModule } from './images/image.module';
     AdminDashboardModule,
     ContactModule,
     ImagesModule,
+    SubscribeModule,
   ],
   controllers: [AppController],
   providers: [

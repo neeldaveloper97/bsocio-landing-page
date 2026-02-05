@@ -118,30 +118,34 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
         onClick={onClose}
         aria-hidden="true"
       />
       
-      {/* Menu Panel */}
+      {/* Dropdown Panel from Top */}
       <div
         className={cn(
-          "fixed inset-x-0 top-16 z-50 lg:hidden",
-          "animate-in slide-in-from-top-2 duration-200"
+          "fixed left-0 right-0 top-16 z-50 lg:hidden",
+          "transform transition-all duration-300 ease-in-out",
+          "bg-background shadow-2xl border-b border-border",
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible -translate-y-4"
         )}
       >
         <nav
-          className="border-b border-border bg-background shadow-lg dark:bg-card"
+          className="flex flex-col"
           role="navigation"
           aria-label="Mobile navigation"
         >
-          <div className="mx-auto max-w-[1200px] w-full px-4 flex flex-col gap-1 py-4">
+          {/* Navigation Links */}
+          <div className="flex flex-col gap-1 p-4">
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.href}

@@ -11,6 +11,13 @@ const ReactQueryDevtools = lazy(() =>
   }))
 );
 
+// Lazy load Toaster - not critical for initial render
+const Toaster = lazy(() =>
+  import("@/components/ui/sonner").then((mod) => ({
+    default: mod.Toaster,
+  }))
+);
+
 interface Props {
   children?: ReactNode;
 }
@@ -23,6 +30,9 @@ export default function ClientProviders({ children }: Props) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      <Suspense fallback={null}>
+        <Toaster richColors position="top-right" />
+      </Suspense>
       {process.env.NODE_ENV === "development" && (
         <Suspense fallback={null}>
           <ReactQueryDevtools initialIsOpen={false} position="bottom" />

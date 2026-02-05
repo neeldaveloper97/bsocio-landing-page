@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import {
     useCampaigns,
     useSendCampaign,
@@ -127,15 +128,15 @@ export default function CampaignsPage() {
 
     const handleSaveDraft = async () => {
         if (!formData.name.trim()) {
-            alert('Please enter a campaign name');
+            toast.error('Validation error', { description: 'Please enter a campaign name' });
             return;
         }
         if (!formData.subject.trim()) {
-            alert('Please enter an email subject');
+            toast.error('Validation error', { description: 'Please enter an email subject' });
             return;
         }
         if (!formData.content.trim()) {
-            alert('Please enter email content');
+            toast.error('Validation error', { description: 'Please enter email content' });
             return;
         }
 
@@ -166,28 +167,28 @@ export default function CampaignsPage() {
             await saveDraft.mutateAsync(requestData);
             await refetch();
             closeModal();
-            alert('Campaign saved as draft!');
+            toast.success('Draft saved', { description: 'Campaign saved as draft successfully!' });
         } catch (error) {
             console.error('Save draft failed:', error);
-            alert('Failed to save draft. Please try again.');
+            toast.error('Save failed', { description: 'Failed to save draft. Please try again.' });
         }
     };
 
     const handleSendCampaign = async () => {
         if (!formData.name.trim()) {
-            alert('Please enter a campaign name');
+            toast.error('Validation error', { description: 'Please enter a campaign name' });
             return;
         }
         if (!formData.subject.trim()) {
-            alert('Please enter an email subject');
+            toast.error('Validation error', { description: 'Please enter an email subject' });
             return;
         }
         if (!formData.content.trim()) {
-            alert('Please enter email content');
+            toast.error('Validation error', { description: 'Please enter email content' });
             return;
         }
         if (formData.sendType === 'SCHEDULED' && !formData.scheduledAt) {
-            alert('Please select a scheduled date and time');
+            toast.error('Validation error', { description: 'Please select a scheduled date and time' });
             return;
         }
 
@@ -218,10 +219,13 @@ export default function CampaignsPage() {
             await sendCampaign.mutateAsync(requestData);
             await refetch();
             closeModal();
-            alert(formData.sendType === 'NOW' ? 'Campaign sent successfully!' : 'Campaign scheduled successfully!');
+            toast.success(
+                formData.sendType === 'NOW' ? 'Campaign sent' : 'Campaign scheduled',
+                { description: formData.sendType === 'NOW' ? 'Campaign sent successfully!' : 'Campaign scheduled successfully!' }
+            );
         } catch (error) {
             console.error('Send campaign failed:', error);
-            alert('Failed to send campaign. Please try again.');
+            toast.error('Send failed', { description: 'Failed to send campaign. Please try again.' });
         }
     };
 
@@ -344,12 +348,20 @@ export default function CampaignsPage() {
                     {
                         key: 'name',
                         header: 'Campaign Name',
-                        render: (campaign) => <span style={{ fontWeight: 500 }}>{campaign.name}</span>,
+                        render: (campaign) => (
+                            <span className="line-clamp-2 max-w-[150px] font-medium" title={campaign.name}>
+                                {campaign.name}
+                            </span>
+                        ),
                     },
                     {
                         key: 'subject',
                         header: 'Subject',
-                        render: (campaign) => campaign.subject,
+                        render: (campaign) => (
+                            <span className="line-clamp-2 max-w-[250px]" title={campaign.subject}>
+                                {campaign.subject}
+                            </span>
+                        ),
                     },
                     {
                         key: 'audience',
@@ -365,19 +377,23 @@ export default function CampaignsPage() {
                     {
                         key: 'scheduledAt',
                         header: 'Scheduled/Sent',
-                        render: (campaign) => formatDate(campaign.scheduledAt),
+                        render: (campaign) => (
+                            <span className="whitespace-nowrap">{formatDate(campaign.scheduledAt)}</span>
+                        ),
                     },
                     {
                         key: 'createdAt',
                         header: 'Created',
-                        render: (campaign) => formatDate(campaign.createdAt),
+                        render: (campaign) => (
+                            <span className="whitespace-nowrap">{formatDate(campaign.createdAt)}</span>
+                        ),
                     },
                     {
                         key: 'actions',
                         header: 'Actions',
                         align: 'center',
                         render: (campaign) => (
-                            <div className="action-buttons" style={{ justifyContent: 'center' }}>
+                            <div className="flex items-center justify-center">
                                 <button className="action-btn" title="View" onClick={() => openViewModal(campaign)}>
                                     <ViewIcon />
                                 </button>

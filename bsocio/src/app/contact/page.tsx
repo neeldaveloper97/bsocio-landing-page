@@ -39,7 +39,7 @@ import CtaImpactSection from "@/components/layout/CtaImpactSection";
 
 const contactSchema = z.object({
   reason: z.string().min(1, "Please select a reason for contacting"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  fullName: z.string().min(2, "Full name must be at least 2 characters").max(50, "Full name must be 50 characters or less"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
   country: z.string().min(1, "Please select your country"),

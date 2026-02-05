@@ -150,15 +150,15 @@ export default function Footer() {
     >
       {/* Main Footer Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4 lg:grid-cols-4">
           {/* Brand Section */}
-          <div className="space-y-6">
+          <div className="col-span-2 space-y-6 md:col-span-1">
             <Logo variant="footer" />
-            <nav className="flex flex-wrap gap-3 mt-2" aria-label="Social media links">
+            {/* <nav className="flex flex-wrap gap-3 mt-2" aria-label="Social media links">
               {SOCIAL_LINKS.map((social) => (
                 <SocialLink key={social.label} {...social} />
               ))}
-            </nav>
+            </nav> */}
           </div>
 
           {/* Navigation Sections */}

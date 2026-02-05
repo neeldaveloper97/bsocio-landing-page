@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { 
     useSpecialGuests, 
@@ -138,13 +140,13 @@ export default function GuestsPage() {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
+            toast.error('Invalid file type', { description: 'Please upload an image file' });
             return;
         }
 
         // Validate file size (2MB max)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File size should not exceed 2MB');
+            toast.error('File too large', { description: 'File size should not exceed 2MB' });
             return;
         }
 
@@ -157,7 +159,7 @@ export default function GuestsPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            alert('Failed to upload image');
+            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
         } finally {
             setIsUploading(false);
         }
@@ -218,11 +220,11 @@ export default function GuestsPage() {
     const handleSubmit = async (status: SpecialGuestStatus) => {
         // Validation
         if (!formData.name.trim()) {
-            alert('Please enter a name');
+            toast.error('Validation error', { description: 'Please enter a name' });
             return;
         }
         if (!formData.title.trim()) {
-            alert('Please enter a title');
+            toast.error('Validation error', { description: 'Please enter a title' });
             return;
         }
 
@@ -237,15 +239,17 @@ export default function GuestsPage() {
         try {
             if (editingGuest) {
                 await updateGuest({ id: editingGuest.id, data: payload });
+                toast.success('Guest updated', { description: `${formData.name} has been updated successfully` });
             } else {
                 await createGuest(payload);
+                toast.success('Guest created', { description: `${formData.name} has been added successfully` });
             }
             setUploadedImageUrl(null);
             closeModal();
             refetch();
         } catch (error) {
             console.error('Failed to save guest:', error);
-            alert('Failed to save guest. Please try again.');
+            toast.error('Save failed', { description: 'Failed to save guest. Please try again.' });
         }
     };
 
@@ -272,10 +276,11 @@ export default function GuestsPage() {
 
         try {
             await deleteGuest(confirmModal.guestId);
+            toast.success('Guest deleted', { description: `${confirmModal.guestName} has been removed` });
             refetch();
         } catch (error) {
             console.error('Failed to delete:', error);
-            alert('Failed to delete guest');
+            toast.error('Delete failed', { description: 'Failed to delete guest. Please try again.' });
         } finally {
             closeConfirmModal();
         }
@@ -352,12 +357,16 @@ export default function GuestsPage() {
                         render: (guest) => (
                             <div className="flex items-center gap-3">
                                 {guest.imageUrl ? (
-                                    <img
-                                        src={guest.imageUrl}
-                                        alt=""
-                                        loading="lazy"
-                                        className="w-10 h-10 object-cover rounded-full shrink-0 bg-[#F3F4F6]"
-                                    />
+                                    <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-[#F3F4F6]">
+                                        <Image
+                                            src={guest.imageUrl}
+                                            alt=""
+                                            fill
+                                            sizes="40px"
+                                            className="object-cover"
+                                            loading="lazy"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-10 h-10 rounded-full bg-[#F3F4F6] shrink-0 flex items-center justify-center text-sm font-medium">
                                         {guest.name.charAt(0)}
@@ -514,11 +523,13 @@ export default function GuestsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative">
-                                            <img
+                                        <div className="relative w-24 h-24">
+                                            <Image
                                                 src={imagePreview}
                                                 alt="Preview"
-                                                className="w-24 h-24 rounded-full object-cover"
+                                                fill
+                                                sizes="96px"
+                                                className="rounded-full object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -527,7 +538,7 @@ export default function GuestsPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, imageUrl: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center"
+                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
                                             >
                                                 ×
                                             </button>

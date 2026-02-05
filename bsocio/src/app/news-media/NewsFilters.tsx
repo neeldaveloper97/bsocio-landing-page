@@ -4,6 +4,8 @@ import { useState, useMemo, useCallback, memo } from "react";
 import Link from "next/link";
 import { useNews } from "@/hooks";
 import { cn } from "@/lib/utils";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { NewsArticle, NewsCategory } from "@/types";
 
 const categoryLabels: Record<NewsCategory, string> = {
@@ -71,33 +73,33 @@ const FilterButton = memo(function FilterButton({
 const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
   return (
     <article
-      className="group block overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:transform-none"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:transform-none"
       data-category={categoryToFilter[article.category]}
     >
-      <div className="flex h-48 w-full items-center justify-center overflow-hidden bg-muted text-sm text-white/70">
-        {article.featuredImage ? (
-          <img
-            src={article.featuredImage}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        ) : (
+      {article.featuredImage ? (
+        <ImageWithSkeleton
+          src={article.featuredImage}
+          alt={article.title}
+          containerClassName="aspect-[16/10] w-full flex-shrink-0"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+          objectPosition="center"
+        />
+      ) : (
+        <div className="flex aspect-[16/10] w-full flex-shrink-0 items-center justify-center bg-muted text-sm text-muted-foreground">
           <span aria-hidden="true">[Featured Image]</span>
-        )}
-      </div>
-      <div className="p-5 sm:p-7">
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-5 sm:p-7">
         <span className="mb-3 inline-block rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-primary">
           {categoryLabels[article.category]}
         </span>
         <h3 className="mb-3 text-lg font-bold leading-snug text-foreground transition-colors duration-200 group-hover:text-primary sm:text-xl">
           {article.title}
         </h3>
-        <p className="mb-5 text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {article.excerpt || article.content?.substring(0, 150) + '...'}
+        <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          {article.excerpt || article.content?.substring(0, 150)}
         </p>
-        <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <div className="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4">
           <time
             className="text-xs text-muted-foreground sm:text-sm"
             dateTime={article.publicationDate || article.createdAt}
@@ -106,7 +108,7 @@ const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
           </time>
           <Link
             href={`/news-media/${article.id}`}
-            className="inline-flex min-h-11 items-center py-2 font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             aria-label={`Read more about ${article.title}`}
           >
             Read More →
@@ -119,13 +121,16 @@ const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
 
 function NewsCardSkeleton() {
   return (
-    <article className="overflow-hidden rounded-xl border border-border bg-card" aria-hidden="true">
-      <div className="h-48 w-full animate-pulse bg-muted" />
-      <div className="p-5 sm:p-7">
-        <div className="mb-2 h-5 w-20 animate-pulse rounded bg-muted" />
-        <div className="mb-2 h-6 w-full animate-pulse rounded bg-muted" />
-        <div className="mb-4 h-12 w-full animate-pulse rounded bg-muted" />
-        <div className="h-4 w-28 animate-pulse rounded bg-muted" />
+    <article className="flex flex-col overflow-hidden rounded-xl border border-border bg-card" aria-hidden="true">
+      <div className="aspect-[16/10] w-full animate-pulse bg-muted" />
+      <div className="flex flex-1 flex-col p-5 sm:p-7">
+        <div className="mb-3 h-5 w-20 animate-pulse rounded bg-muted" />
+        <div className="mb-3 h-6 w-full animate-pulse rounded bg-muted" />
+        <div className="mb-5 h-16 w-full animate-pulse rounded bg-muted" />
+        <div className="mt-auto flex items-center justify-between border-t border-border pt-4">
+          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+        </div>
       </div>
     </article>
   );
@@ -133,12 +138,25 @@ function NewsCardSkeleton() {
 
 export default function NewsFilters() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
   
   const category = filterToCategory[activeFilter];
-  const { articles, isLoading, isError } = useNews({ category });
+  const { articles, isLoading, isError, pagination } = useNews({ 
+    category,
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+  });
 
   const handleFilterClick = useCallback((filter: FilterType) => {
     setActiveFilter(filter);
+    setCurrentPage(1); // Reset to first page when filter changes
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of news section
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const filterButtons = useMemo(() => [
@@ -152,7 +170,7 @@ export default function NewsFilters() {
     <>
       {/* Filters */}
       <section
-        className="flex justify-center border-b border-border bg-muted/30 px-4 py-6"
+        className="sticky top-16 z-30 flex justify-center border-b border-border bg-background px-4 py-6 shadow-sm"
         aria-label="News category filters"
       >
         <div
@@ -207,6 +225,97 @@ export default function NewsFilters() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {!isLoading && !isError && pagination.totalPages > 1 && (
+          <nav
+            className="mx-auto mt-12 flex max-w-7xl items-center justify-center gap-3"
+            aria-label="Pagination"
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={cn(
+                "flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 font-medium transition-colors",
+                currentPage === 1
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:border-primary hover:bg-primary/10 hover:text-primary"
+              )}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {/* Generate page buttons */}
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                const showPage =
+                  page === 1 ||
+                  page === pagination.totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1);
+
+                if (page === 2 && currentPage > 4) {
+                  return (
+                    <span key="ellipsis-start" className="px-2 text-muted-foreground">
+                      ...
+                    </span>
+                  );
+                }
+
+                if (page === pagination.totalPages - 1 && currentPage < pagination.totalPages - 3) {
+                  return (
+                    <span key="ellipsis-end" className="px-2 text-muted-foreground">
+                      ...
+                    </span>
+                  );
+                }
+
+                if (!showPage) return null;
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={cn(
+                      "flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors",
+                      page === currentPage
+                        ? "border-primary bg-primary text-white"
+                        : "border-border hover:border-primary hover:bg-primary/10 hover:text-primary"
+                    )}
+                    aria-label={`Page ${page}`}
+                    aria-current={page === currentPage ? "page" : undefined}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === pagination.totalPages}
+              className={cn(
+                "flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-4 font-medium transition-colors",
+                currentPage === pagination.totalPages
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:border-primary hover:bg-primary/10 hover:text-primary"
+              )}
+              aria-label="Next page"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </nav>
+        )}
+
+        {/* Page info */}
+        {!isLoading && !isError && pagination.total > 0 && (
+          <p className="mx-auto mt-4 max-w-7xl text-center text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of {pagination.total} articles
+          </p>
+        )}
       </section>
     </>
   );

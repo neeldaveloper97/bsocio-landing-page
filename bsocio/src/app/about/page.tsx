@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next";
-import Image from "next/image";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { generateMetadata as generateSeoMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
@@ -227,18 +227,13 @@ export default function AboutPage() {
               <strong>strategic kindness can solve humanity&apos;s greatest challenges</strong>.
             </p>
           </div>
-          <div className="h-48 w-full flex-1 overflow-hidden rounded-2xl shadow-lg sm:h-56 md:h-72 md:max-w-xl">
-            <Image
-              src="https://bsocio-bucket.s3.us-east-1.amazonaws.com/images/images/unity-collaboration.png"
-              alt="Our Story"
-              width={600}
-              height={400}
-              priority
-              quality={85}
-              sizes="(max-width: 768px) 100vw, 600px"
-              className="h-full w-full object-cover"
-            />
-          </div>
+          <ImageWithSkeleton
+            src="https://bsocio-bucket.s3.us-east-1.amazonaws.com/images/images/unity-collaboration.png"
+            alt="Our Story"
+            priority
+            sizes="(max-width: 768px) 100vw, 600px"
+            containerClassName="h-48 w-full flex-1 rounded-2xl shadow-lg sm:h-56 md:h-72 md:max-w-xl"
+          />
         </section>
 
         {/* Mission, Vision, Belief Cards */}

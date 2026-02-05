@@ -45,7 +45,23 @@ class AdminUsersService {
       const page = Math.floor(skip / take) + 1;
       const limit = take;
 
-      const response = await apiClient.get<AdminUserResponse>(
+      const response = await apiClient.get<{
+        data: Array<{
+          id: string;
+          email: string;
+          role: string;
+          createdAt: string;
+          isPermanentUser?: boolean;
+          oauthProvider?: string;
+          isActive?: boolean;
+        }>;
+        meta: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>(
         API_ENDPOINTS.ADMIN.USERS.BASE,
         {
           params: {
@@ -57,7 +73,45 @@ class AdminUsersService {
         }
       );
 
-      return response.data;
+      // Transform backend response to frontend expected format
+      const roleLabels: Record<string, string> = {
+        SUPER_ADMIN: 'Super Admin',
+        CONTENT_ADMIN: 'Content Manager',
+        COMMUNICATIONS_ADMIN: 'Communications Manager',
+        ANALYTICS_VIEWER: 'Analytics Viewer',
+        USER: 'User',
+      };
+
+      const rolePermissions: Record<string, string[]> = {
+        SUPER_ADMIN: ['All Access'],
+        CONTENT_ADMIN: ['Manage Content', 'View Analytics'],
+        COMMUNICATIONS_ADMIN: ['Manage Campaigns', 'Send Emails'],
+        ANALYTICS_VIEWER: ['View Analytics'],
+        USER: ['View Only'],
+      };
+
+      const items: AdminUser[] = response.data.data.map((user) => ({
+        id: user.id,
+        name: user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1),
+        email: user.email,
+        role: roleLabels[user.role] || user.role,
+        roleKey: user.role as AdminRoleKey,
+        permissions: rolePermissions[user.role] || [],
+        lastLogin: new Date(user.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        status: user.isActive !== false ? 'active' : 'inactive',
+        createdAt: user.createdAt,
+      }));
+
+      return {
+        items,
+        total: response.data.meta.total,
+        skip: skip,
+        take: take,
+      };
     } catch (error) {
       throw parseApiError(error);
     }
@@ -139,6 +193,21 @@ class AdminUsersService {
       }
 
       return await response.blob();
+    } catch (error) {
+      throw parseApiError(error);
+    }
+  }
+
+  /**
+   * Toggle user active status (activate/deactivate)
+   */
+  async toggleUserStatus(id: string, isActive: boolean): Promise<{ id: string; isActive: boolean }> {
+    try {
+      const response = await apiClient.put<{ id: string; isActive: boolean }>(
+        API_ENDPOINTS.ADMIN.USERS.STATUS(id),
+        { isActive }
+      );
+      return response.data;
     } catch (error) {
       throw parseApiError(error);
     }

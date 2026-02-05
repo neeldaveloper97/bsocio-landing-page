@@ -11,8 +11,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Download, Users, AlertCircle } from 'lucide-react';
-import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers } from '@/hooks';
+import { Download, Users, AlertCircle, Power, Edit2 } from 'lucide-react';
+import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers, useToggleAdminUserStatus } from '@/hooks';
 import { useAdminActivityOptimized } from '@/hooks';
 import type { AdminUser, AdminRoleKey, AdminActivity } from '@/types';
 
@@ -143,6 +143,7 @@ export default function UsersSystemPage() {
     
     // Modal state
     const [showAssignRolesModal, setShowAssignRolesModal] = useState(false);
+    const [showStatusModal, setShowStatusModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
     const [selectedRole, setSelectedRole] = useState<AdminRoleKey | ''>('');
 
@@ -170,6 +171,7 @@ export default function UsersSystemPage() {
 
     const updateRoleMutation = useUpdateAdminUserRole();
     const exportUsersMutation = useExportAdminUsers();
+    const toggleStatusMutation = useToggleAdminUserStatus();
 
     // ============================================
     // API HOOKS - SYSTEM LOGS (Activity)
@@ -247,6 +249,30 @@ export default function UsersSystemPage() {
         });
     };
 
+    const handleToggleStatus = (user: AdminUser) => {
+        if (user.roleKey === 'SUPER_ADMIN') {
+            return;
+        }
+        setSelectedUser(user);
+        setShowStatusModal(true);
+    };
+
+    const confirmToggleStatus = async () => {
+        if (!selectedUser) return;
+        
+        const newStatus = selectedUser.status === 'active' ? false : true;
+        try {
+            await toggleStatusMutation.mutateAsync({
+                id: selectedUser.id,
+                isActive: newStatus,
+            });
+            setShowStatusModal(false);
+            setSelectedUser(null);
+        } catch (error) {
+            console.error('Failed to toggle user status:', error);
+        }
+    };
+
     // ============================================
     // TABLE COLUMNS
     // ============================================
@@ -256,14 +282,14 @@ export default function UsersSystemPage() {
             key: 'name',
             header: 'Name',
             render: (user) => (
-                <span className="font-semibold text-gray-900">{user.name}</span>
+                <span className="font-semibold text-gray-900 line-clamp-2 max-w-[180px]">{user.name}</span>
             ),
         },
         {
             key: 'email',
             header: 'Email',
             render: (user) => (
-                <span className="text-gray-600">{user.email}</span>
+                <span className="text-gray-600 line-clamp-1 max-w-[200px]" title={user.email}>{user.email}</span>
             ),
         },
         {
@@ -275,14 +301,16 @@ export default function UsersSystemPage() {
             key: 'permissions',
             header: 'Permissions',
             render: (user) => (
-                <span className="text-gray-600">{user.permissions.join(', ')}</span>
+                <span className="text-gray-600 line-clamp-2 max-w-[180px]" title={user.permissions.join(', ')}>
+                    {user.permissions.join(', ')}
+                </span>
             ),
         },
         {
             key: 'lastLogin',
             header: 'Last Login',
             render: (user) => (
-                <span className="text-gray-500 text-sm">{user.lastLogin}</span>
+                <span className="text-gray-500 text-sm whitespace-nowrap">{user.lastLogin}</span>
             ),
         },
         {
@@ -298,22 +326,39 @@ export default function UsersSystemPage() {
         {
             key: 'actions',
             header: 'Actions',
+            align: 'center',
             render: (user) => (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 justify-center">
                     <button
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors"
                         onClick={() => {
                             setSelectedUser(user);
                             setSelectedRole(user.roleKey);
                             setShowAssignRolesModal(true);
                         }}
+                        title="Assign Roles"
                     >
-                        Assign Roles
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                        className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            user.roleKey === 'SUPER_ADMIN'
+                                ? "text-gray-300 cursor-not-allowed"
+                                : user.status === 'active'
+                                    ? "text-red-500 hover:bg-red-50 hover:text-red-700"
+                                    : "text-green-500 hover:bg-green-50 hover:text-green-700"
+                        )}
+                        onClick={() => handleToggleStatus(user)}
+                        disabled={toggleStatusMutation.isPending || user.roleKey === 'SUPER_ADMIN'}
+                        title={user.roleKey === 'SUPER_ADMIN' ? 'Cannot deactivate Super Admin' : user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+                    >
+                        <Power className="w-4 h-4" />
                     </button>
                 </div>
             ),
         },
-    ], []);
+    ], [toggleStatusMutation.isPending]);
 
     const logColumns: DataTableColumn<AdminActivity>[] = useMemo(() => [
         {
@@ -456,14 +501,6 @@ export default function UsersSystemPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <button 
-                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        onClick={handleExportUsers}
-                                        disabled={exportUsersMutation.isPending}
-                                    >
-                                        <Download className="w-4 h-4" />
-                                        {exportUsersMutation.isPending ? 'Exporting...' : 'Export'}
-                                    </button>
                                 </div>
                             }
                         />
@@ -614,6 +651,66 @@ export default function UsersSystemPage() {
                             >
                                 {updateRoleMutation.isPending ? 'Saving...' : 'Save Changes'}
                             </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* ============================================ */}
+            {/* TOGGLE STATUS CONFIRMATION MODAL */}
+            {/* ============================================ */}
+            {showStatusModal && selectedUser && typeof window !== 'undefined' && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && setShowStatusModal(false)}>
+                    <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-xl">
+                        <div className="p-6">
+                            <div className={cn(
+                                "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4",
+                                selectedUser.status === 'active' ? "bg-red-100" : "bg-green-100"
+                            )}>
+                                <Power className={cn(
+                                    "w-6 h-6",
+                                    selectedUser.status === 'active' ? "text-red-600" : "text-green-600"
+                                )} />
+                            </div>
+                            <h2 className="text-xl font-bold text-center text-gray-900 mb-2">
+                                {selectedUser.status === 'active' ? 'Deactivate' : 'Activate'} Admin
+                            </h2>
+                            <p className="text-gray-600 text-center mb-6">
+                                Are you sure you want to {selectedUser.status === 'active' ? 'deactivate' : 'activate'}{' '}
+                                <span className="font-semibold">{selectedUser.name}</span>?
+                                {selectedUser.status === 'active' && (
+                                    <span className="block mt-2 text-sm text-gray-500">
+                                        This user will no longer be able to access the admin dashboard.
+                                    </span>
+                                )}
+                            </p>
+                            <div className="flex gap-3">
+                                <button 
+                                    className="flex-1 py-2.5 px-4 font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    onClick={() => {
+                                        setShowStatusModal(false);
+                                        setSelectedUser(null);
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className={cn(
+                                        "flex-1 py-2.5 px-4 font-semibold text-white rounded-lg transition-colors disabled:opacity-60",
+                                        selectedUser.status === 'active' 
+                                            ? "bg-red-600 hover:bg-red-700" 
+                                            : "bg-green-600 hover:bg-green-700"
+                                    )}
+                                    onClick={confirmToggleStatus}
+                                    disabled={toggleStatusMutation.isPending}
+                                >
+                                    {toggleStatusMutation.isPending 
+                                        ? 'Processing...' 
+                                        : selectedUser.status === 'active' ? 'Deactivate' : 'Activate'
+                                    }
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>,

@@ -33,9 +33,50 @@ function LegalSkeleton({ title }: { title: string }) {
         >
           {title}
         </h1>
-        <p className="font-arimo font-normal text-base leading-6 text-(--text-secondary) m-0">
-          Loading...
-        </p>
+        <div className="h-5 w-48 bg-muted rounded animate-pulse" />
+      </div>
+
+      {/* Content Skeleton */}
+      <div className={cn("flex flex-col gap-8 w-4xl", "max-lg:w-full max-lg:max-w-4xl")}>
+        {/* Section 1 */}
+        <div className="space-y-4">
+          <div className="h-8 w-64 bg-muted rounded animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-muted/60 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Section 2 */}
+        <div className="space-y-4">
+          <div className="h-7 w-52 bg-muted rounded animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-5/6 bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-muted/60 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Section 3 */}
+        <div className="space-y-4">
+          <div className="h-7 w-44 bg-muted rounded animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-4/5 bg-muted/60 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Section 4 */}
+        <div className="space-y-4">
+          <div className="h-7 w-56 bg-muted rounded animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-muted/60 rounded animate-pulse" />
+          </div>
+        </div>
       </div>
     </div>
   );

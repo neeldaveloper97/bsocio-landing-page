@@ -166,7 +166,11 @@ export default function CommunicationsPage() {
                         key: 'fullName',
                         header: 'Name',
                         render: (inquiry) => (
-                            <span style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}>
+                            <span 
+                                className="line-clamp-2 max-w-[180px]" 
+                                style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}
+                                title={inquiry.fullName}
+                            >
                                 {inquiry.fullName}
                             </span>
                         ),
@@ -174,7 +178,11 @@ export default function CommunicationsPage() {
                     {
                         key: 'email',
                         header: 'Email',
-                        render: (inquiry) => inquiry.email,
+                        render: (inquiry) => (
+                            <span className="line-clamp-1 max-w-[180px]" title={inquiry.email}>
+                                {inquiry.email}
+                            </span>
+                        ),
                     },
                     {
                         key: 'reason',
@@ -184,23 +192,31 @@ export default function CommunicationsPage() {
                     {
                         key: 'country',
                         header: 'Country',
-                        render: (inquiry) => inquiry.country,
+                        render: (inquiry) => (
+                            <span className="line-clamp-1 max-w-[120px]" title={inquiry.country}>
+                                {inquiry.country}
+                            </span>
+                        ),
                     },
                     {
                         key: 'status',
                         header: 'Status',
+                        align: 'center',
                         render: (inquiry) => getStatusBadge(inquiry.status),
                     },
                     {
                         key: 'createdAt',
                         header: 'Date',
-                        render: (inquiry) => formatDate(inquiry.createdAt),
+                        render: (inquiry) => (
+                            <span className="whitespace-nowrap">{formatDate(inquiry.createdAt)}</span>
+                        ),
                     },
                     {
                         key: 'actions',
                         header: 'Actions',
+                        align: 'center',
                         render: (inquiry) => (
-                            <div className="action-buttons">
+                            <div className="flex items-center justify-center">
                                 <button 
                                     className="action-btn" 
                                     title="View Details"

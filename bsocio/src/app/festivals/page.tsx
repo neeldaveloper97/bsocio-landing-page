@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
-import { useEvents, useEventStatistics } from "@/hooks";
+import { useEvents } from "@/hooks";
 import { useAwardCategories, useApprovedNominees, useActiveGuests } from "@/hooks";
 import { cn } from "@/lib/utils";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+} from "@/components/ui/modal";
 import type { Event, AwardCategory, Nominee, SpecialGuest } from "@/types";
 
 type TabType = "awards" | "events" | "guests";
@@ -44,7 +52,7 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
   return (
     <button
       className={cn(
-        "border-b-4 border-transparent bg-transparent py-4 text-base font-bold leading-6 transition-all duration-300",
+        "cursor-pointer border-b-4 border-transparent bg-transparent py-4 text-base font-bold leading-6 transition-all duration-300",
         "hover:text-primary",
         active ? "border-b-primary text-primary" : "text-muted-foreground"
       )}
@@ -88,21 +96,28 @@ function CategoryCard({ category, onClick }: CategoryCardProps) {
 interface NomineeCardProps {
   nominee: Nominee;
   showCategory?: boolean;
+  onViewProfile?: () => void;
 }
 
-function NomineeCard({ nominee, showCategory }: NomineeCardProps) {
+function NomineeCard({ nominee, showCategory, onViewProfile }: NomineeCardProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative flex h-64 items-center justify-center bg-muted text-sm font-medium text-primary">
+      <div className="relative aspect-[4/3] w-full bg-muted">
         {nominee.imageUrl ? (
-          <img
+          <Image
             src={nominee.imageUrl}
             alt={nominee.name}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover object-top"
+            loading="lazy"
+            quality={75}
           />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
-            {nominee.name.charAt(0)}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
+              {nominee.name.charAt(0)}
+            </div>
           </div>
         )}
         {nominee.isWinner && (
@@ -130,7 +145,10 @@ function NomineeCard({ nominee, showCategory }: NomineeCardProps) {
             dangerouslySetInnerHTML={{ __html: nominee.about }}
           />
         )}
-        <button className="w-full rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white">
+        <button
+          onClick={onViewProfile}
+          className="block w-full cursor-pointer rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white"
+        >
           View Profile
         </button>
       </div>
@@ -139,15 +157,17 @@ function NomineeCard({ nominee, showCategory }: NomineeCardProps) {
 }
 
 interface EventCardProps {
+  id: string;
   title: string;
   date: string;
   location: string;
   venue: string;
   description: string;
   mainEvent: boolean;
+  onViewDetails?: () => void;
 }
 
-function EventCard({ title, date, location, venue, description, mainEvent }: EventCardProps) {
+function EventCard({ id, title, date, location, venue, description, mainEvent, onViewDetails }: EventCardProps) {
   return (
     <div className="relative rounded-lg border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-8">
       <span
@@ -173,10 +193,13 @@ function EventCard({ title, date, location, venue, description, mainEvent }: Eve
         </p>
       </div>
       <div
-        className="mb-4 leading-relaxed text-muted-foreground"
+        className="mb-4 leading-relaxed text-muted-foreground line-clamp-3"
         dangerouslySetInnerHTML={{ __html: description }}
       />
-      <button className="w-full rounded-lg bg-primary px-6 py-3 text-center font-bold text-white transition-all duration-300 hover:bg-primary/90">
+      <button
+        onClick={onViewDetails}
+        className="block w-full cursor-pointer rounded-lg bg-primary px-6 py-3 text-center font-bold text-white transition-all duration-300 hover:bg-primary/90"
+      >
         View Event Details
       </button>
     </div>
@@ -185,31 +208,38 @@ function EventCard({ title, date, location, venue, description, mainEvent }: Eve
 
 interface GuestCardProps {
   guest: SpecialGuest;
+  onViewProfile?: () => void;
 }
 
-function GuestCard({ guest }: GuestCardProps) {
+function GuestCard({ guest, onViewProfile }: GuestCardProps) {
   return (
-    <div className="flex min-h-[500px] w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:min-h-[530px]">
-      <div className="relative flex h-64 shrink-0 items-center justify-center bg-muted text-sm font-medium text-primary sm:h-72 md:h-80">
+    <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <div className="relative aspect-[3/4] w-full shrink-0 bg-muted">
         {guest.imageUrl ? (
-          <img
+          <Image
             src={guest.imageUrl}
             alt={guest.name}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover object-top"
+            loading="lazy"
+            quality={75}
           />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
-            {guest.name.charAt(0)}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/20 text-4xl font-bold text-primary">
+              {guest.name.charAt(0)}
+            </div>
           </div>
         )}
       </div>
-      <div className="flex min-h-[180px] flex-1 flex-col justify-between p-5 sm:min-h-[200px] sm:p-6">
+      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
         <div>
           <h4 className="mb-2 text-lg font-bold leading-7 text-foreground sm:text-xl">
             {guest.name}
           </h4>
           {guest.title && (
-            <p className="mb-2 min-h-[40px] text-sm leading-5 text-muted-foreground">
+            <p className="mb-2 text-sm leading-5 text-muted-foreground line-clamp-2">
               {guest.title}
             </p>
           )}
@@ -220,7 +250,10 @@ function GuestCard({ guest }: GuestCardProps) {
             />
           )}
         </div>
-        <button className="mt-auto w-full shrink-0 rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white">
+        <button
+          onClick={onViewProfile}
+          className="mt-auto block w-full shrink-0 cursor-pointer rounded-lg border-2 border-primary bg-transparent px-6 py-2.5 text-center font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white"
+        >
           View Profile
         </button>
       </div>
@@ -249,7 +282,7 @@ function CategoryCardSkeleton() {
 function NomineeCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card animate-pulse">
-      <div className="h-64 w-full bg-muted" />
+      <div className="aspect-[4/3] w-full bg-muted" />
       <div className="p-6">
         <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
         <div className="mb-2 h-5 w-1/2 rounded bg-muted" />
@@ -285,9 +318,9 @@ function EventCardSkeleton() {
 
 function GuestCardSkeleton() {
   return (
-    <div className="flex min-h-[500px] w-full flex-col overflow-hidden rounded-lg border border-border bg-card md:min-h-[530px] animate-pulse">
-      <div className="h-64 shrink-0 bg-muted sm:h-72 md:h-80" />
-      <div className="flex min-h-[180px] flex-1 flex-col justify-between p-5 sm:min-h-[200px] sm:p-6">
+    <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card animate-pulse">
+      <div className="aspect-[3/4] w-full shrink-0 bg-muted" />
+      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
         <div>
           <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
           <div className="mb-2 h-10 w-full rounded bg-muted" />
@@ -306,8 +339,16 @@ function GuestCardSkeleton() {
 // MAIN PAGE COMPONENT
 // ============================================
 
+// Type for modal data
+type ModalData = 
+  | { type: 'event'; data: { id: string; title: string; date: string; location: string; venue: string; description: string; mainEvent: boolean } }
+  | { type: 'nominee'; data: Nominee }
+  | { type: 'guest'; data: SpecialGuest }
+  | null;
+
 export default function FestivalsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("awards");
+  const [modalData, setModalData] = useState<ModalData>(null);
 
   // Events API data
   const { events: apiEvents, isLoading: eventsLoading, isError: eventsError } = useEvents({
@@ -315,7 +356,6 @@ export default function FestivalsPage() {
     sortBy: 'eventDate',
     sortOrder: 'asc',
   });
-  const { statistics } = useEventStatistics();
 
   // Awards API data - Load all nominees at once
   const { categories, isLoading: categoriesLoading, isError: categoriesError } = useAwardCategories('ACTIVE');
@@ -365,9 +405,18 @@ export default function FestivalsPage() {
     <>
       {/* Hero Section */}
       <section
-        className="relative flex h-[420px] w-full items-center justify-center bg-cover bg-center sm:h-[500px] md:h-[600px]"
-        style={{ background: "linear-gradient(135deg, #1F6AE1 0%, #009689 100%)" }}
+        className="relative flex h-[420px] w-full items-center justify-center overflow-hidden sm:h-[500px] md:h-[600px]"
       >
+        {/* Background Image */}
+        <Image
+          src="https://bsocio-bucket.s3.us-east-1.amazonaws.com/images/images/festivalbackground.png"
+          alt="Bsocio Hero Festivals Background"
+          fill
+          priority
+          quality={85}
+          sizes="100vw"
+          className="object-cover object-center"
+        />
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 max-w-[642px] px-5 text-center sm:px-6">
           <h1 className="mb-4 text-3xl font-bold leading-none text-white sm:text-4xl md:text-5xl lg:text-6xl">
@@ -473,7 +522,12 @@ export default function FestivalsPage() {
                     </h3>
                     <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
                       {categoryNominees.map((nominee) => (
-                        <NomineeCard key={nominee.id} nominee={nominee} showCategory={false} />
+                        <NomineeCard
+                          key={nominee.id}
+                          nominee={nominee}
+                          showCategory={false}
+                          onViewProfile={() => setModalData({ type: 'nominee', data: nominee })}
+                        />
                       ))}
                     </div>
                   </div>
@@ -503,13 +557,6 @@ export default function FestivalsPage() {
             <p className="mx-auto max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
               From award ceremonies to thought-leadership gatherings, Bsocio events are designed to connect purpose-driven leaders and celebrate shared values that shape a better future.
             </p>
-            {statistics && (
-              <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-8">
-                <span><strong>{statistics.upcomingEvents}</strong> Upcoming Events</span>
-                <span><strong>{statistics.pastEvents}</strong> Past Events</span>
-                <span><strong>{statistics.totalAttendees.toLocaleString()}</strong> Total Attendees</span>
-              </div>
-            )}
           </div>
 
           {eventsLoading ? (
@@ -530,7 +577,11 @@ export default function FestivalsPage() {
           ) : (
             <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
               {events.map((event) => (
-                <EventCard key={event.id} {...event} />
+                <EventCard
+                  key={event.id}
+                  {...event}
+                  onViewDetails={() => setModalData({ type: 'event', data: event })}
+                />
               ))}
             </div>
           )}
@@ -568,7 +619,11 @@ export default function FestivalsPage() {
           ) : Array.isArray(guests) && guests.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
               {guests.map((guest) => (
-                <GuestCard key={guest.id} guest={guest} />
+                <GuestCard
+                  key={guest.id}
+                  guest={guest}
+                  onViewProfile={() => setModalData({ type: 'guest', data: guest })}
+                />
               ))}
             </div>
           ) : (
@@ -581,6 +636,155 @@ export default function FestivalsPage() {
 
       {/* CTA Impact Section */}
       <CtaImpactSection />
+
+      {/* Details Modal */}
+      <Modal open={modalData !== null} onOpenChange={(open) => !open && setModalData(null)}>
+        <ModalContent className="max-w-2xl">
+          {modalData?.type === 'event' && (
+            <>
+              <ModalHeader className="space-y-3">
+                <span
+                  className={cn(
+                    "inline-block w-fit rounded-full px-4 py-1.5 text-sm font-bold text-white",
+                    modalData.data.mainEvent ? "bg-secondary" : "bg-[#7CB342]"
+                  )}
+                >
+                  {modalData.data.mainEvent ? "Main Event" : "Featured"}
+                </span>
+                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.title}</ModalTitle>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                {/* Info section with left border */}
+                <div className="border-l-4 border-primary pl-4 space-y-1">
+                  <p className="text-base text-foreground">
+                    <span className="font-bold text-muted-foreground">Date:</span>{" "}
+                    <span className="text-primary">{modalData.data.date}</span>
+                  </p>
+                  <p className="text-base text-foreground">
+                    <span className="font-bold text-muted-foreground">Location:</span>{" "}
+                    <span className="text-primary">{modalData.data.location}</span>
+                  </p>
+                  <p className="text-base text-foreground">
+                    <span className="font-bold text-muted-foreground">Venue:</span>{" "}
+                    <span className="text-primary">{modalData.data.venue}</span>
+                  </p>
+                </div>
+                
+                {/* Description */}
+                <div
+                  className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: modalData.data.description }}
+                />
+              </ModalBody>
+            </>
+          )}
+
+          {modalData?.type === 'nominee' && (
+            <>
+              <ModalHeader className="space-y-3 pb-0">
+                {modalData.data.imageUrl && (
+                  <div className="-mx-6 -mt-6 mb-4 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                    <Image
+                      src={modalData.data.imageUrl}
+                      alt={modalData.data.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 672px"
+                      className="object-cover object-top"
+                      priority
+                      quality={85}
+                    />
+                  </div>
+                )}
+                {modalData.data.isWinner && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-4 py-1.5 text-sm font-bold text-white w-fit">
+                    🏆 Winner
+                  </span>
+                )}
+                {modalData.data.category && (
+                  <span className="inline-block w-fit rounded-full bg-[#7CB342] px-4 py-1.5 text-sm font-bold text-white">
+                    {modalData.data.category.name}
+                  </span>
+                )}
+                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.name}</ModalTitle>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                {/* Info section with left border */}
+                <div className="border-l-4 border-primary pl-4 space-y-1">
+                  {modalData.data.title && (
+                    <p className="text-base text-foreground">
+                      <span className="font-bold text-muted-foreground">Title:</span>{" "}
+                      <span className="text-primary">{modalData.data.title}</span>
+                    </p>
+                  )}
+                  {modalData.data.organization && (
+                    <p className="text-base text-foreground">
+                      <span className="font-bold text-muted-foreground">Organization:</span>{" "}
+                      <span className="text-primary">{modalData.data.organization}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* About section */}
+                {modalData.data.about && (
+                  <div>
+                    <h4 className="text-lg font-bold text-foreground mb-3">About</h4>
+                    <div
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
+                      dangerouslySetInnerHTML={{ __html: modalData.data.about }}
+                    />
+                  </div>
+                )}
+              </ModalBody>
+            </>
+          )}
+
+          {modalData?.type === 'guest' && (
+            <>
+              <ModalHeader className="space-y-3 pb-0">
+                {modalData.data.imageUrl && (
+                  <div className="-mx-6 -mt-6 mb-4 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                    <Image
+                      src={modalData.data.imageUrl}
+                      alt={modalData.data.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 672px"
+                      className="object-cover object-top"
+                      priority
+                      quality={85}
+                    />
+                  </div>
+                )}
+                <span className="inline-block w-fit rounded-full bg-[#7CB342] px-4 py-1.5 text-sm font-bold text-white">
+                  Special Guest
+                </span>
+                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.name}</ModalTitle>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                {/* Info section with left border */}
+                {modalData.data.title && (
+                  <div className="border-l-4 border-primary pl-4 space-y-1">
+                    <p className="text-base text-foreground">
+                      <span className="font-bold text-muted-foreground">Title:</span>{" "}
+                      <span className="text-primary">{modalData.data.title}</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Bio section */}
+                {modalData.data.bio && (
+                  <div>
+                    <h4 className="text-lg font-bold text-foreground mb-3">Biography</h4>
+                    <div
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
+                      dangerouslySetInnerHTML={{ __html: modalData.data.bio }}
+                    />
+                  </div>
+                )}
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </>
   );
 }

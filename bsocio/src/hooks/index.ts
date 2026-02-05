@@ -40,6 +40,9 @@ export {
   useAwardsStatistics,
 } from './useAwards';
 
+// Subscribe Hooks
+export { useSubscribe } from './useSubscribe';
+
 // Re-export TanStack Query utilities for convenience
 export { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export { queryKeys, queryClient } from '@/lib/query-client';

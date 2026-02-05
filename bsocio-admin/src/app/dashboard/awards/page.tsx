@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { 
     useAwardCategories, 
@@ -128,15 +129,17 @@ export default function AwardsPage() {
         try {
             if (editingCategory) {
                 await updateCategory({ id: editingCategory.id, data: formData });
+                toast.success('Category updated', { description: `${formData.name} has been updated successfully` });
             } else {
                 await createCategory(formData as CreateAwardCategoryRequest);
+                toast.success('Category created', { description: `${formData.name} has been added successfully` });
             }
             setShowModal(false);
             resetForm();
             refetch();
         } catch (error) {
             console.error('Failed to save category:', error);
-            alert('Failed to save category');
+            toast.error('Save failed', { description: 'Failed to save category. Please try again.' });
         }
     };
 
@@ -144,12 +147,13 @@ export default function AwardsPage() {
         if (!deletingCategory) return;
         try {
             await deleteCategory(deletingCategory.id);
+            toast.success('Category deleted', { description: `${deletingCategory.name} has been removed` });
             setShowDeleteModal(false);
             setDeletingCategory(null);
             refetch();
         } catch (error) {
             console.error('Failed to delete category:', error);
-            alert('Failed to delete category');
+            toast.error('Delete failed', { description: 'Failed to delete category. Please try again.' });
         }
     };
 
@@ -249,7 +253,7 @@ export default function AwardsPage() {
                         icon={<span>🎭</span>}
                         title="Award Ceremony"
                         description="Schedule new ceremony"
-                        onClick={() => alert('Ceremony scheduling coming soon!')}
+                        onClick={() => toast.info('Coming soon', { description: 'Ceremony scheduling feature is coming soon!' })}
                     />
                 </div>
             </div>

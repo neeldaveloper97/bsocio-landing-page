@@ -66,6 +66,13 @@ export function GoogleSignInButton({
 
       if (!response.ok) {
         const error = await response.json();
+        // Handle specific error cases
+        if (response.status === 409 || error.message?.toLowerCase().includes('already')) {
+          throw new Error('An account with this email already exists. Please sign in instead.');
+        }
+        if (response.status === 400 && error.message?.toLowerCase().includes('exist')) {
+          throw new Error('This email is already registered. Please use the login page.');
+        }
         throw new Error(error.message || 'Failed to authenticate with backend');
       }
 
@@ -135,6 +142,12 @@ export function GoogleSignInButton({
           const errorData = await response.json().catch(() => ({}));
           if (response.status === 404) {
             throw new Error('Google authentication is not yet available. Please try again later or use email signup.');
+          }
+          if (response.status === 409 || errorData.message?.toLowerCase().includes('already')) {
+            throw new Error('An account with this email already exists. Please sign in instead.');
+          }
+          if (response.status === 400 && errorData.message?.toLowerCase().includes('exist')) {
+            throw new Error('This email is already registered. Please use the login page.');
           }
           throw new Error(errorData.message || 'Failed to authenticate with backend');
         }

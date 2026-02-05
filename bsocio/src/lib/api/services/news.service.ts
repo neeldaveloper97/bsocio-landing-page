@@ -16,6 +16,11 @@ interface NewsListResponse {
   take: number;
 }
 
+interface PaginatedNewsResponse {
+  articles: NewsArticle[];
+  total: number;
+}
+
 /**
  * News Service
  */
@@ -23,7 +28,7 @@ export const newsService = {
   /**
    * Get all published news articles
    */
-  async getPublished(params?: { limit?: number; page?: number; category?: string }): Promise<NewsArticle[]> {
+  async getPublished(params?: { limit?: number; page?: number; category?: string }): Promise<PaginatedNewsResponse> {
     const queryParams: Record<string, any> = {};
 
     if (params?.limit) queryParams.limit = params.limit;
@@ -37,8 +42,9 @@ export const newsService = {
     // The API returns {items: [...articles], total, skip, take}
     // So we need response.data.items to get the articles array
     const articles = Array.isArray(response.data) ? response.data : (response.data?.items || response.data?.items || []);
+    const total = response.data?.total || articles.length;
 
-    return articles;
+    return { articles, total };
   },
 
   /**

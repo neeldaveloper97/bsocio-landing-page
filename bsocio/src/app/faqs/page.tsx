@@ -51,7 +51,7 @@ function PlusIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <div
       className={cn(
-        "w-8 h-8 bg-(--tag-bg) rounded-full flex items-center justify-center shrink-0",
+        "w-8 h-8 bg-muted rounded-full flex items-center justify-center shrink-0",
         "transition-all duration-300 ease-out relative",
         isOpen && "bg-primary rotate-45"
       )}
@@ -61,7 +61,7 @@ function PlusIcon({ isOpen }: { isOpen: boolean }) {
         <span
           className={cn(
             "absolute w-3.5 h-0.5 left-0 top-1/2 -translate-y-1/2",
-            "bg-(--text-secondary) transition-colors duration-300",
+            "bg-foreground transition-colors duration-300",
             isOpen && "bg-white"
           )}
         />
@@ -69,7 +69,7 @@ function PlusIcon({ isOpen }: { isOpen: boolean }) {
         <span
           className={cn(
             "absolute w-0.5 h-3.5 left-1/2 top-0 -translate-x-1/2",
-            "bg-(--text-secondary) transition-colors duration-300",
+            "bg-foreground transition-colors duration-300",
             isOpen && "bg-white"
           )}
         />

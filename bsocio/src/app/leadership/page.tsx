@@ -4,8 +4,8 @@
  */
 
 import type { Metadata } from "next";
-import Image from "next/image";
 import { generateMetadata as createMetadata } from "@/lib/seo";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
 
 export const metadata: Metadata = createMetadata({
@@ -87,18 +87,16 @@ function MemberCard({ member }: { member: LeadershipMember }) {
     <article className="flex flex-col pb-12 border-b border-gray-200 last:border-b-0">
         <div className="flex flex-col lg:flex-row gap-8">
         {/* Photo */}
-        <div className="relative w-full max-w-[400px] lg:w-[400px] mx-auto lg:mx-0 rounded bg-gradient-to-br from-[#667eea] to-[#764ba2] flex-shrink-0 overflow-hidden" style={{ aspectRatio: '400/450' }}>
-          {member.image && (
-            <Image
-              src={member.image}
-              alt={member.name}
-              fill
-              className="object-cover object-center"
-              sizes="(max-width: 1024px) 100vw, 400px"
-              priority={false}
-            />
-          )}
-        </div>
+        {member.image && (
+          <ImageWithSkeleton
+            src={member.image}
+            alt={member.name}
+            sizes="(max-width: 1024px) 100vw, 400px"
+            containerClassName="w-full max-w-[400px] lg:w-[400px] mx-auto lg:mx-0 rounded-lg flex-shrink-0"
+            aspectRatio="400/450"
+            objectPosition="top"
+          />
+        )}
 
         {/* Info */}
         <div className="flex flex-col justify-center gap-1 flex-1">

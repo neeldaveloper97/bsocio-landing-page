@@ -28,6 +28,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ============================================
 // TYPE DEFINITIONS
@@ -89,7 +96,6 @@ const MONTHS: SelectOption[] = [
 const GENDER_OPTIONS: SelectOption[] = [
   { value: "MALE", label: "Male" },
   { value: "FEMALE", label: "Female" },
-  { value: "NON_BINARY", label: "Non-binary" },
   { value: "PREFER_NOT_TO_SAY", label: "Prefer not to say" },
 ];
 
@@ -180,20 +186,28 @@ function SelectField({
   required 
 }: SelectFieldProps) {
   return (
-    <select
-      name={name}
-      required={required}
+    <Select
       value={value}
-      onChange={onChange}
-      className={inputStyles}
+      onValueChange={(newValue) => {
+        // Create a synthetic event to match the onChange signature
+        const syntheticEvent = {
+          target: { name, value: newValue }
+        } as React.ChangeEvent<HTMLSelectElement>;
+        onChange(syntheticEvent);
+      }}
+      required={required}
     >
-      <option value="">{placeholder}</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 

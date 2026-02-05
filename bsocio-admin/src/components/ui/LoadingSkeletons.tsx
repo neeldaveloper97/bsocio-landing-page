@@ -14,7 +14,7 @@ import React, { memo } from 'react';
  */
 export const PageLoadingSkeleton = memo(function PageLoadingSkeleton() {
   return (
-    <div className="page-content w-full" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-48 h-7 bg-gray-100 rounded" />
@@ -44,7 +44,7 @@ export const PageLoadingSkeleton = memo(function PageLoadingSkeleton() {
  */
 export const TableLoadingSkeleton = memo(function TableLoadingSkeleton() {
   return (
-    <div className="page-content w-full" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
       {/* Header with actions */}
       <div className="flex justify-between items-center flex-wrap gap-4 w-full">
         <div className="flex flex-col gap-2">
@@ -83,7 +83,7 @@ export const TableLoadingSkeleton = memo(function TableLoadingSkeleton() {
  */
 export const AnalyticsLoadingSkeleton = memo(function AnalyticsLoadingSkeleton() {
   return (
-    <div className="page-content w-full" aria-label="Loading analytics...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading analytics...">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-40 h-7 bg-gray-100 rounded" />
@@ -114,7 +114,7 @@ export const AnalyticsLoadingSkeleton = memo(function AnalyticsLoadingSkeleton()
  */
 export const FormLoadingSkeleton = memo(function FormLoadingSkeleton() {
   return (
-    <div className="page-content w-full" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-40 h-7 bg-gray-100 rounded" />
@@ -156,7 +156,7 @@ export const ErrorState = memo(function ErrorState({
   retryLabel = 'Retry',
 }: ErrorStateProps) {
   return (
-    <div className="page-content w-full">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="error-state-container">
         <span className="error-state-icon">⚠️</span>
         <h3 className="error-state-title">{title}</h3>

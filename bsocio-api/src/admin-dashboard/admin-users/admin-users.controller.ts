@@ -135,6 +135,24 @@ export class AdminUsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
   @ApiBearerAuth('access-token')
+  @Put(':id/status')
+  @ApiOperation({ summary: 'Activate or deactivate a user (Super Admin only)' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({ status: 200, description: 'User status updated successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request - Cannot deactivate self or Super Admin' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async toggleUserStatus(
+    @Param('id') id: string,
+    @Body() body: { isActive: boolean },
+    @Request() req: any,
+  ) {
+    return this.adminUsersService.toggleUserStatus(id, body.isActive, req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  @ApiBearerAuth('access-token')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID to delete' })

@@ -14,22 +14,25 @@ export class AdminUsersService {
     const { search, role, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    // Base filter: Only show admin users (exclude USER role)
+    const where: any = {
+      role: {
+        not: Role.USER,
+      },
+    };
 
     if (search) {
-      where.OR = [
-        { email: { contains: search, mode: 'insensitive' } },
-        // { name: { contains: search, mode: 'insensitive' } }, // User model doesn't have name? Check schema?
-        // Schema has 'id', 'email'. No 'name'. 'adminActivities' have 'actor' but user table seems to be auth only?
-        // Wait, 'Nominee' has name. 'ContactInquiry' has fullName.
-        // User model (Step 41) has: id, email, password, role, dob, oauthProvider, gender, invitationLink, phone.
-        // NO NAME in User model? That's odd.
-        // Ah, maybe usage is purely email based? Or name is in a profile relation?
-        // Looking at schema: User has no name. Okay. Search email only.
+      where.AND = [
+        {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 
-    if (role) {
+    // If specific role is requested, add it to the filter
+    if (role && role !== Role.USER) {
       where.role = role;
     }
 
@@ -48,6 +51,7 @@ export class AdminUsersService {
           dob: true,
           isPhoneVerified: true,
           gender: true,
+          isActive: true,
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -64,6 +68,41 @@ export class AdminUsersService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  /**
+   * Deactivate or activate a user
+   */
+  async toggleUserStatus(id: string, isActive: boolean, currentUserId: string) {
+    // Cannot deactivate yourself
+    if (id === currentUserId) {
+      throw new BadRequestException('Cannot deactivate your own account');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Cannot deactivate super admin users (extra protection)
+    if (user.role === Role.SUPER_ADMIN && !isActive) {
+      throw new BadRequestException('Cannot deactivate Super Admin accounts');
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { isActive },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+      },
+    });
   }
 
   async exportUsers(query: { search?: string; role?: Role }) {

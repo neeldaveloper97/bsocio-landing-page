@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { 
     useAwardCategories,
@@ -147,13 +149,13 @@ export default function NomineesPage() {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
+            toast.error('Invalid file type', { description: 'Please upload an image file' });
             return;
         }
 
         // Validate file size (2MB max)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File size should not exceed 2MB');
+            toast.error('File too large', { description: 'File size should not exceed 2MB' });
             return;
         }
 
@@ -166,7 +168,7 @@ export default function NomineesPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            alert('Failed to upload image');
+            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
         } finally {
             setIsUploading(false);
         }
@@ -230,11 +232,11 @@ export default function NomineesPage() {
     const handleSubmit = async (status: NomineeStatus) => {
         // Validation
         if (!formData.name.trim()) {
-            alert('Please enter a name');
+            toast.error('Validation error', { description: 'Please enter a name' });
             return;
         }
         if (!formData.categoryId) {
-            alert('Please select a category');
+            toast.error('Validation error', { description: 'Please select a category' });
             return;
         }
 
@@ -252,15 +254,17 @@ export default function NomineesPage() {
         try {
             if (editingNominee) {
                 await updateNominee({ id: editingNominee.id, data: payload });
+                toast.success('Nominee updated', { description: `${formData.name} has been updated successfully` });
             } else {
                 await createNominee(payload);
+                toast.success('Nominee created', { description: `${formData.name} has been added successfully` });
             }
             setUploadedImageUrl(null);
             closeModal();
             refetch();
         } catch (error) {
             console.error('Failed to save nominee:', error);
-            alert('Failed to save nominee. Please try again.');
+            toast.error('Save failed', { description: 'Failed to save nominee. Please try again.' });
         }
     };
 
@@ -287,10 +291,11 @@ export default function NomineesPage() {
 
         try {
             await deleteNominee(confirmModal.nomineeId);
+            toast.success('Nominee deleted', { description: `${confirmModal.nomineeName} has been removed` });
             refetch();
         } catch (error) {
             console.error('Failed to delete:', error);
-            alert('Failed to delete nominee');
+            toast.error('Delete failed', { description: 'Failed to delete nominee. Please try again.' });
         } finally {
             closeConfirmModal();
         }
@@ -371,12 +376,16 @@ export default function NomineesPage() {
                         render: (nominee) => (
                             <div className="flex items-center gap-3">
                                 {nominee.imageUrl ? (
-                                    <img
-                                        src={nominee.imageUrl}
-                                        alt=""
-                                        loading="lazy"
-                                        className="w-10 h-10 object-cover rounded-full shrink-0 bg-[#F3F4F6]"
-                                    />
+                                    <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-[#F3F4F6]">
+                                        <Image
+                                            src={nominee.imageUrl}
+                                            alt=""
+                                            fill
+                                            sizes="40px"
+                                            className="object-cover"
+                                            loading="lazy"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-10 h-10 rounded-full bg-[#F3F4F6] shrink-0 flex items-center justify-center text-sm font-medium">
                                         {nominee.name.charAt(0)}
@@ -556,11 +565,13 @@ export default function NomineesPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative">
-                                            <img
+                                        <div className="relative w-24 h-24">
+                                            <Image
                                                 src={imagePreview}
                                                 alt="Preview"
-                                                className="w-24 h-24 rounded-full object-cover"
+                                                fill
+                                                sizes="96px"
+                                                className="rounded-full object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -569,7 +580,7 @@ export default function NomineesPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, imageUrl: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center"
+                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
                                             >
                                                 ×
                                             </button>

@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
       STATS: '/admin/users/stats',
       EXPORT: '/admin/users/export',
       BY_ID: (id: string) => `/admin/users/${id}`,
+      STATUS: (id: string) => `/admin/users/${id}/status`,
     },
   },
 

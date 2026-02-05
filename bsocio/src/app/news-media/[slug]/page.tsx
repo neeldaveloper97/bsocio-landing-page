@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import { useState } from "react";
 import { useNewsArticle, useRelatedArticles } from "@/hooks/useNews";
+import { useSubscribe } from "@/hooks";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // ============================================
 // HELPER FUNCTIONS
@@ -165,39 +168,78 @@ export default function NewsDetailPage() {
     article?.id,
     3
   );
+  const { subscribe, isLoading: isSubscribing } = useSubscribe();
   
   const [email, setEmail] = useState("");
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const handleShare = (type: string) => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     const title = article?.title || "";
+    const description = article?.excerpt || "";
+    
+    // Extract plain text from HTML content for better descriptions
+    const contentPreview = article?.content 
+      ? article.content.replace(/<[^>]*>/g, '').substring(0, 200) 
+      : "";
+    const shareDescription = description || contentPreview;
 
     if (type === "copy") {
       if (typeof navigator !== "undefined") {
         navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 3000);
       }
     } else if (type === "facebook") {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+      // Facebook uses Open Graph tags from the page, but we can pass the URL
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      window.open(fbUrl, "_blank", "width=600,height=400");
     } else if (type === "twitter") {
-      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, "_blank");
+      // Twitter supports url, text, hashtags, and via parameters
+      const twitterText = `${title}\n\n${shareDescription.substring(0, 150)}...`;
+      const hashtags = article?.tags?.slice(0, 3).join(',') || '';
+      const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(twitterText)}${hashtags ? `&hashtags=${encodeURIComponent(hashtags)}` : ''}&via=Bsocio`;
+      window.open(twitterUrl, "_blank", "width=600,height=400");
     } else if (type === "linkedin") {
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
+      // LinkedIn sharing - uses the URL and pulls metadata from page
+      const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+      window.open(linkedinUrl, "_blank", "width=600,height=400");
     }
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Thank you for subscribing!");
-    setEmail("");
+    
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    try {
+      await subscribe(trimmedEmail);
+      toast.success("Thank you for subscribing!", {
+        description: "You'll receive the latest articles in your inbox."
+      });
+      setEmail("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to subscribe. Please try again.");
+    }
   };
 
   // Loading state
   if (isLoading) {
     return (
       <>
-        <div className="mx-auto max-w-6xl px-6 sm:px-40">
-          <Link href="/news-media" className="flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
+        <div className="mx-auto max-w-6xl px-6">
+          <Link href="/news-media" className="inline-flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
             <BackArrowIcon />
             Back to News
           </Link>
@@ -223,8 +265,8 @@ export default function NewsDetailPage() {
   if (isError || !article) {
     return (
       <>
-        <div className="mx-auto max-w-6xl px-6 sm:px-40">
-          <Link href="/news-media" className="flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
+        <div className="mx-auto max-w-6xl px-6">
+          <Link href="/news-media" className="inline-flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
             <BackArrowIcon />
             Back to News
           </Link>
@@ -248,8 +290,8 @@ export default function NewsDetailPage() {
   return (
     <>
       {/* Back Button */}
-      <div className="mx-auto max-w-6xl px-6 sm:px-40">
-        <Link href="/news-media" className="flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
+      <div className="mx-auto max-w-6xl px-6">
+        <Link href="/news-media" className="inline-flex items-center gap-2 py-8 font-bold text-muted-foreground hover:text-primary">
           <BackArrowIcon />
           Back to News
         </Link>
@@ -278,11 +320,19 @@ export default function NewsDetailPage() {
         </div>
 
         {article.featuredImage ? (
-          <div className="mb-12 overflow-hidden rounded-xl">
-            <img src={article.featuredImage} alt={article.title} className="h-auto w-full" loading="eager" />
+          <div className="mb-12 overflow-hidden rounded-xl relative aspect-[16/9] bg-muted">
+            <Image
+              src={article.featuredImage}
+              alt={article.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px"
+              className="object-cover object-center"
+              priority
+              quality={85}
+            />
           </div>
         ) : (
-          <div className="mb-12 flex h-96 items-center justify-center rounded-xl bg-muted text-white/70">
+          <div className="mb-12 flex aspect-[16/9] items-center justify-center rounded-xl bg-muted text-muted-foreground">
             [Featured Image]
           </div>
         )}
@@ -305,7 +355,7 @@ export default function NewsDetailPage() {
         )}
 
         {/* Share Section */}
-        <div className="flex items-center gap-4 py-8">
+        <div className="relative flex items-center gap-4 py-8">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <ShareIcon />
             Share this article:
@@ -316,6 +366,13 @@ export default function NewsDetailPage() {
             <ShareButton type="linkedin" onClick={() => handleShare("linkedin")} />
             <ShareButton type="copy" onClick={() => handleShare("copy")} />
           </div>
+          
+          {/* Copy Success Toast */}
+          {copySuccess && (
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 animate-in fade-in slide-in-from-right-5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+              ✓ Link copied to clipboard!
+            </div>
+          )}
         </div>
 
         {/* Author Box */}
@@ -341,16 +398,19 @@ export default function NewsDetailPage() {
                   className="group block overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-1 hover:shadow-lg"
                 >
                   {relatedArticle.featuredImage ? (
-                    <div className="h-36 overflow-hidden">
-                      <img
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+                      <Image
                         src={relatedArticle.featuredImage}
                         alt={relatedArticle.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
+                        className="object-cover object-center"
                         loading="lazy"
-                        className="h-full w-full object-cover"
+                        quality={75}
                       />
                     </div>
                   ) : (
-                    <div className="flex h-36 items-center justify-center bg-muted text-sm text-white/70">
+                    <div className="flex aspect-[16/10] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
                       [Image]
                     </div>
                   )}
@@ -386,13 +446,20 @@ export default function NewsDetailPage() {
               placeholder="Enter your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubscribing}
               required
             />
             <button
               type="submit"
-              className="min-h-11 rounded-lg bg-white px-6 font-semibold text-primary transition-all hover:-translate-y-0.5 hover:bg-white/90"
+              disabled={isSubscribing}
+              className={cn(
+                "min-h-11 rounded-lg bg-white px-6 font-semibold text-primary transition-all",
+                isSubscribing
+                  ? "cursor-not-allowed opacity-70"
+                  : "hover:-translate-y-0.5 hover:bg-white/90"
+              )}
             >
-              Subscribe
+              {isSubscribing ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
         </div>

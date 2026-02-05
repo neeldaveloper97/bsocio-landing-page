@@ -17,11 +17,19 @@ interface UseNewsParams {
   page?: number;
 }
 
+interface PaginationInfo {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 interface UseNewsReturn {
   articles: NewsArticle[];
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
+  pagination: PaginationInfo;
   refetch: () => Promise<void>;
 }
 
@@ -30,14 +38,30 @@ export function useNews(params?: UseNewsParams): UseNewsReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: params?.page || 1,
+    limit: params?.limit || 9,
+    totalPages: 0,
+  });
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setIsError(false);
     setError(null);
     try {
-      const result = await newsService.getPublished(params);
-      setArticles(result);
+      const result = await newsService.getPublished({
+        ...params,
+        limit: params?.limit || 9,
+        page: params?.page || 1,
+      });
+      setArticles(result.articles);
+      setPagination({
+        total: result.total,
+        page: params?.page || 1,
+        limit: params?.limit || 9,
+        totalPages: Math.ceil(result.total / (params?.limit || 9)),
+      });
     } catch (err) {
       setIsError(true);
       setError(err as Error);
@@ -56,6 +80,7 @@ export function useNews(params?: UseNewsParams): UseNewsReturn {
     isLoading,
     isError,
     error,
+    pagination,
     refetch: fetchData,
   };
 }

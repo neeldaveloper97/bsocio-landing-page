@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import {
   GiftIcon,
   MedalIcon,
@@ -110,7 +110,7 @@ export default function HowItWorksPage() {
           <h1 className="max-w-[714px] font-dm-sans text-[clamp(32px,5vw,60px)] font-bold leading-tight text-primary">
             How It Works — In Just 4 Easy Steps
           </h1>
-          <p className="max-w-[767px] font-dm-sans text-lg leading-7 text-(--text-body)">
+          <p className="max-w-[767px] font-dm-sans text-lg leading-10 text-(--text-body)">
             Our intelligent giving system automates generosity, allowing anyone to make an impact — with{" "}
             <span className="inline-block rounded-full border border-secondary/20 bg-secondary/10 px-3.5 py-1.5 font-bold text-secondary shadow-sm">
               zero out-of-pocket cost
@@ -385,17 +385,12 @@ export default function HowItWorksPage() {
             </h2>
 
             <div className="grid items-center gap-10 md:grid-cols-2">
-              <div className="flex h-[500px] w-full items-center justify-center overflow-hidden">
-                <Image
-                  src="https://bsocio-bucket.s3.us-east-1.amazonaws.com/images/images/thinkinggirl.png"
-                  alt="Thinking Girl"
-                  width={500}
-                  height={500}
-                  quality={85}
-                  sizes="(max-width: 768px) 100vw, 500px"
-                  className="h-full w-auto object-contain"
-                />
-              </div>
+              <ImageWithSkeleton
+                src="https://bsocio-bucket.s3.us-east-1.amazonaws.com/images/images/thinkinggirl.png"
+                alt="Thinking Girl"
+                sizes="(max-width: 768px) 100vw, 500px"
+                containerClassName="h-[400px] w-full rounded-2xl sm:h-[500px]"
+              />
 
               <div>
                 <p className="font-dm-sans text-base leading-relaxed text-(--text-body)">

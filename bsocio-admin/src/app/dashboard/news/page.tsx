@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
@@ -172,13 +174,13 @@ export default function NewsPage() {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
+            toast.error('Invalid file type', { description: 'Please upload an image file' });
             return;
         }
 
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image must be less than 5MB');
+            toast.error('File too large', { description: 'Image must be less than 5MB' });
             return;
         }
 
@@ -200,7 +202,7 @@ export default function NewsPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            alert('Failed to upload image. Please try again.');
+            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
             setImagePreview(null);
         } finally {
             setIsUploading(false);
@@ -271,31 +273,31 @@ export default function NewsPage() {
     const handleSubmit = async (status: NewsStatus) => {
         // Validation
         if (!formData.title.trim()) {
-            alert('Please enter an article title');
+            toast.error('Validation error', { description: 'Please enter an article title' });
             return;
         }
         if (!formData.author.trim()) {
-            alert('Please enter an author name');
+            toast.error('Validation error', { description: 'Please enter an author name' });
             return;
         }
         if (!formData.category) {
-            alert('Please select a category');
+            toast.error('Validation error', { description: 'Please select a category' });
             return;
         }
         if (!formData.publicationDate) {
-            alert('Please select a publication date');
+            toast.error('Validation error', { description: 'Please select a publication date' });
             return;
         }
         if (!formData.featuredImage) {
-            alert('Please upload a featured image');
+            toast.error('Validation error', { description: 'Please upload a featured image' });
             return;
         }
         if (!formData.excerpt.trim()) {
-            alert('Please enter an excerpt/summary');
+            toast.error('Validation error', { description: 'Please enter an excerpt/summary' });
             return;
         }
         if (!formData.content.trim()) {
-            alert('Please enter article content');
+            toast.error('Validation error', { description: 'Please enter article content' });
             return;
         }
 
@@ -314,8 +316,10 @@ export default function NewsPage() {
         try {
             if (editingArticle) {
                 await updateNews.mutateAsync({ id: editingArticle.id, data: payload });
+                toast.success('Article updated', { description: `${formData.title} has been updated successfully` });
             } else {
                 await createNews.mutateAsync(payload);
+                toast.success('Article created', { description: `${formData.title} has been published successfully` });
             }
             // Article saved successfully - clear uploadedImageUrl so closeModal won't delete it
             setUploadedImageUrl(null);
@@ -328,7 +332,7 @@ export default function NewsPage() {
             refetch();
         } catch (error) {
             console.error('Failed to save article:', error);
-            alert('Failed to save article. Please try again.');
+            toast.error('Save failed', { description: 'Failed to save article. Please try again.' });
         }
     };
 
@@ -365,13 +369,15 @@ export default function NewsPage() {
         try {
             if (confirmModal.type === 'archive') {
                 await archiveNews.mutateAsync(confirmModal.articleId);
+                toast.success('Article archived', { description: `${confirmModal.articleTitle} has been archived` });
             } else if (confirmModal.type === 'delete') {
                 await deleteNews.mutateAsync(confirmModal.articleId);
+                toast.success('Article deleted', { description: `${confirmModal.articleTitle} has been deleted permanently` });
             }
             refetch();
         } catch (error) {
             console.error(`Failed to ${confirmModal.type}:`, error);
-            alert(`Failed to ${confirmModal.type} article`);
+            toast.error(`${confirmModal.type === 'archive' ? 'Archive' : 'Delete'} failed`, { description: `Failed to ${confirmModal.type} article. Please try again.` });
         } finally {
             closeConfirmModal();
         }
@@ -459,12 +465,16 @@ export default function NewsPage() {
                         render: (article) => (
                             <div className="flex items-center gap-3">
                                 {article.featuredImage ? (
-                                    <img
-                                        src={article.featuredImage}
-                                        alt=""
-                                        loading="lazy"
-                                        className="w-12 h-8 object-cover rounded-md shrink-0 bg-[#F3F4F6]"
-                                    />
+                                    <div className="relative w-12 h-8 shrink-0 rounded-md overflow-hidden bg-[#F3F4F6]">
+                                        <Image
+                                            src={article.featuredImage}
+                                            alt=""
+                                            fill
+                                            sizes="48px"
+                                            className="object-cover"
+                                            loading="lazy"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-12 h-8 rounded-md bg-[#F3F4F6] shrink-0 flex items-center justify-center text-sm">📰</div>
                                 )}
@@ -659,11 +669,13 @@ export default function NewsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative">
-                                            <img
+                                        <div className="relative w-full max-w-xs aspect-[16/9]">
+                                            <Image
                                                 src={imagePreview}
                                                 alt="Preview"
-                                                className="max-w-full max-h-50 rounded"
+                                                fill
+                                                sizes="320px"
+                                                className="rounded object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -672,7 +684,7 @@ export default function NewsPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, featuredImage: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center"
+                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
                                             >
                                                 ×
                                             </button>
