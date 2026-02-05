@@ -470,9 +470,12 @@ export interface EmailCampaign {
   audience: EmailAudience;
   sendType: EmailSendType;
   scheduledAt: string | null;
+  sentAt?: string | null;
   status: EmailCampaignStatus;
   totalSent: number;
   delivered: number;
+  successCount?: number;
+  failedCount?: number;
   openRate: number;
   clickRate: number;
   createdAt: string;

@@ -5,13 +5,8 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Root Select with modal={false} to prevent scroll lock and UI displacement
-// No Portal is used in SelectContent to avoid Radix scroll locking entirely
-const Select = ({ children, modal, ...props }: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => (
-  <SelectPrimitive.Root modal={false} {...props}>
-    {children}
-  </SelectPrimitive.Root>
-)
+// Simple Select wrapper - no Portal used in SelectContent to avoid scroll locking
+const Select = SelectPrimitive.Root
 Select.displayName = "Select"
 
 const SelectGroup = SelectPrimitive.Group
@@ -118,8 +113,8 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-3 pr-8 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 mb-0.5",
-      "max-sm:py-1.5 max-sm:pl-2.5 max-sm:pr-6 max-sm:text-xs max-sm:rounded-md",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2.5 pl-3 pr-8 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 mb-1",
+      "max-sm:py-2 max-sm:pl-2.5 max-sm:pr-6 max-sm:text-xs max-sm:rounded-md",
       className
     )}
     {...props}

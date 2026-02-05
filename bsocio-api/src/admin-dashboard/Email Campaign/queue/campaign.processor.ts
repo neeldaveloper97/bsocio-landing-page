@@ -80,9 +80,6 @@ export class CampaignProcessor extends WorkerHost {
                 break;
             }
 
-            this.logger.debug(
-                `[Job ${job.id}] Processing batch of ${users.length} users (Cursor: ${cursor})...`,
-            );
 
             // Send emails sequentially with rate limiting to avoid SMTP ban
             for (const user of users) {
@@ -95,9 +92,6 @@ export class CampaignProcessor extends WorkerHost {
                         subject: campaign.subject,
                         html: campaign.content,
                     });
-                    this.logger.debug(
-                        `[SUCCESS] Sent to ${user.email} | MsgID: ${res.messageId}`,
-                    );
                 } catch (e) {
                     this.logger.error(`[FAILURE] Failed to email ${user.email}`, e);
                 }
@@ -121,7 +115,6 @@ export class CampaignProcessor extends WorkerHost {
 
             // Checkpoint in Redis: Save cursor so if we crash we resume here
             await job.updateData({ campaignId, cursor });
-            this.logger.debug(`[Job ${job.id}] Checkpoint saved at cursor: ${cursor}`);
 
             // Extending lock implicitly by activity, but for very long jobs, standard Workers rely on lockDuration.
             // Since we are looping inside one job, we must ensure completion within lockDuration (default 30s).

@@ -376,7 +376,6 @@ export class AuthService {
     // Log magic URL for local/dev testing (do not log in production)
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
-      console.log(`[DEV] Magic sign-in URL for ${user.email}: ${magicUrl}`);
     }
   }
 
