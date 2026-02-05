@@ -72,12 +72,12 @@ export default function CampaignsPage() {
     // Lock body scroll when modal is open
     useEffect(() => {
         if (showModal || showViewModal) {
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         }
         return () => {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
     }, [showModal, showViewModal]);
 
@@ -426,11 +426,11 @@ export default function CampaignsPage() {
 
             {/* Create Campaign Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeModal()}>
-                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
-                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                    <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
                             <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Create Email Campaign</h2>
-                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828] text-2xl" onClick={closeModal}>×</button>
+                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeModal}>×</button>
                         </div>
                         <div className="p-6 max-sm:p-4 flex flex-col gap-5">
                             <div className="flex flex-col gap-2">
@@ -604,15 +604,15 @@ export default function CampaignsPage() {
 
             {/* View Campaign Modal */}
             {showViewModal && viewingCampaign && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
-                    <div className="bg-white rounded-2xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] max-sm:max-h-[85vh] overflow-hidden flex flex-col">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
+                    <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] max-sm:max-h-[85vh] overflow-hidden flex flex-col">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                        <div className="flex items-center justify-between p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
                             <div>
                                 <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Campaign Details</h2>
                                 <p className="font-sans text-sm text-muted-foreground m-0 mt-1">{viewingCampaign.name}</p>
                             </div>
-                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-muted-foreground hover:bg-background hover:text-[#101828] text-2xl" onClick={closeViewModal}>×</button>
+                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeViewModal}>×</button>
                         </div>
 
                         {/* Modal Body */}

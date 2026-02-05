@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Download, Users, AlertCircle, Power, Edit2 } from 'lucide-react';
 import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers, useToggleAdminUserStatus } from '@/hooks';
-import { useAdminActivityOptimized } from '@/hooks';
+import { useAdminActivityOptimized, useExportAdminActivity } from '@/hooks';
 import type { AdminUser, AdminRoleKey, AdminActivity } from '@/types';
 
 // ============================================
@@ -157,8 +157,8 @@ export default function UsersSystemPage() {
         error: usersError,
         refetch: refetchUsers,
     } = useAdminUsers({
-        skip: userCurrentPage * USER_PAGE_SIZE,
-        take: USER_PAGE_SIZE,
+        page: userCurrentPage + 1,
+        limit: USER_PAGE_SIZE,
         role: userRoleFilter !== 'all' ? userRoleFilter : undefined,
         search: userSearchQuery || undefined,
     });
@@ -172,6 +172,7 @@ export default function UsersSystemPage() {
     const updateRoleMutation = useUpdateAdminUserRole();
     const exportUsersMutation = useExportAdminUsers();
     const toggleStatusMutation = useToggleAdminUserStatus();
+    const exportLogsMutation = useExportAdminActivity();
 
     // ============================================
     // API HOOKS - SYSTEM LOGS (Activity)
@@ -189,17 +190,17 @@ export default function UsersSystemPage() {
         search: logSearchQuery || undefined,
     });
 
-    // Lock body scroll when modal is open
+    // Lock body scroll when any modal is open
     useEffect(() => {
-        if (showAssignRolesModal) {
-            document.body.style.overflow = 'hidden';
+        if (showAssignRolesModal || showStatusModal) {
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         }
         return () => {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
-    }, [showAssignRolesModal]);
+    }, [showAssignRolesModal, showStatusModal]);
 
     // Reset page when filters change
     useEffect(() => {
@@ -246,6 +247,13 @@ export default function UsersSystemPage() {
         exportUsersMutation.mutate({
             role: userRoleFilter !== 'all' ? userRoleFilter : undefined,
             search: userSearchQuery || undefined,
+        });
+    };
+
+    const handleExportLogs = () => {
+        exportLogsMutation.mutate({
+            type: logTypeFilter !== 'all' ? logTypeFilter : undefined,
+            search: logSearchQuery || undefined,
         });
     };
 
@@ -558,9 +566,9 @@ export default function UsersSystemPage() {
                             totalPages={logTotalPages}
                             onPageChange={setLogCurrentPage}
                             headerActions={
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 flex-nowrap">
                                     <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-[140px] min-w-[140px]">
                                             <SelectValue placeholder="All Types" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -569,9 +577,13 @@ export default function UsersSystemPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                                    <button 
+                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 whitespace-nowrap"
+                                        onClick={handleExportLogs}
+                                        disabled={exportLogsMutation.isPending}
+                                    >
                                         <Download className="w-4 h-4" />
-                                        Export
+                                        {exportLogsMutation.isPending ? 'Exporting...' : 'Export'}
                                     </button>
                                 </div>
                             }
@@ -584,27 +596,30 @@ export default function UsersSystemPage() {
             {/* ASSIGN ROLES MODAL */}
             {/* ============================================ */}
             {showAssignRolesModal && selectedUser && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && setShowAssignRolesModal(false)}>
-                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl overflow-hidden shadow-xl flex flex-col" style={{ maxHeight: '90vh' }}>
-                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] flex-shrink-0">
-                            <div>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && setShowAssignRolesModal(false)}>
+                    <div className="bg-white rounded-2xl w-full max-w-[640px] shadow-xl flex flex-col max-sm:rounded-xl" style={{ maxHeight: '90vh' }}>
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] flex-shrink-0 relative pr-14 max-sm:pr-12">
+                            <div className="flex-1 min-w-0">
                                 <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Assign Roles</h2>
-                                <p className="font-sans text-sm text-[#6B7280] mt-1">{selectedUser.name}</p>
+                                <p className="font-sans text-sm max-sm:text-xs text-[#6B7280] mt-1 truncate">{selectedUser.name}</p>
                             </div>
-                            <button className="p-2 text-2xl leading-none rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828]" onClick={() => setShowAssignRolesModal(false)}>×</button>
+                            <button 
+                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" 
+                                onClick={() => setShowAssignRolesModal(false)}
+                            >×</button>
                         </div>
                         <div className="p-6 max-sm:p-4 overflow-y-auto flex-1">
                             {/* User Info */}
                             <div className="flex flex-col gap-2 mb-4">
-                                <label className="font-sans text-sm font-semibold text-[#374151]">User Email</label>
-                                <div className="py-3 px-4 font-sans text-sm text-[#101828] bg-[#F9FAFB] border border-[#D1D5DB] rounded-lg">
+                                <label className="font-sans text-sm max-sm:text-xs font-semibold text-[#374151]">User Email</label>
+                                <div className="py-3 px-4 max-sm:py-2.5 max-sm:px-3 font-sans text-sm max-sm:text-xs text-[#101828] bg-[#F9FAFB] border border-[#D1D5DB] rounded-lg truncate">
                                     {selectedUser.email}
                                 </div>
                             </div>
 
                             {/* Role Selection */}
                             <div className="flex flex-col gap-2 mb-4">
-                                <label htmlFor="assignRole" className="font-sans text-sm font-semibold text-[#374151]">Select Role *</label>
+                                <label htmlFor="assignRole" className="font-sans text-sm max-sm:text-xs font-semibold text-[#374151]">Select Role *</label>
                                 <Select 
                                     value={selectedRole} 
                                     onValueChange={(value) => setSelectedRole(value as AdminRoleKey)}
@@ -623,8 +638,8 @@ export default function UsersSystemPage() {
 
                             {/* Current Permissions */}
                             <div className="flex flex-col gap-2">
-                                <label className="font-sans text-sm font-semibold text-[#374151]">Current Permissions</label>
-                                <div className="py-3 px-4 font-sans text-sm text-[#6B7280] bg-[#F9FAFB] border border-[#D1D5DB] rounded-lg min-h-[44px]">
+                                <label className="font-sans text-sm max-sm:text-xs font-semibold text-[#374151]">Current Permissions</label>
+                                <div className="py-3 px-4 max-sm:py-2.5 max-sm:px-3 font-sans text-sm max-sm:text-xs text-[#6B7280] bg-[#F9FAFB] border border-[#D1D5DB] rounded-lg min-h-[44px] max-sm:min-h-[40px]">
                                     {selectedUser.permissions.length > 0 ? (
                                         <div className="flex flex-wrap gap-2">
                                             {selectedUser.permissions.map((permission, index) => (
@@ -661,33 +676,33 @@ export default function UsersSystemPage() {
             {/* TOGGLE STATUS CONFIRMATION MODAL */}
             {/* ============================================ */}
             {showStatusModal && selectedUser && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && setShowStatusModal(false)}>
-                    <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-xl">
-                        <div className="p-6">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && setShowStatusModal(false)}>
+                    <div className="bg-white rounded-2xl w-full max-w-[480px] shadow-xl max-sm:rounded-xl">
+                        <div className="p-6 max-sm:p-5">
                             <div className={cn(
-                                "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4",
+                                "w-12 h-12 max-sm:w-10 max-sm:h-10 rounded-full flex items-center justify-center mx-auto mb-4",
                                 selectedUser.status === 'active' ? "bg-red-100" : "bg-green-100"
                             )}>
                                 <Power className={cn(
-                                    "w-6 h-6",
+                                    "w-6 h-6 max-sm:w-5 max-sm:h-5",
                                     selectedUser.status === 'active' ? "text-red-600" : "text-green-600"
                                 )} />
                             </div>
-                            <h2 className="text-xl font-bold text-center text-gray-900 mb-2">
+                            <h2 className="text-xl max-sm:text-lg font-bold text-center text-gray-900 mb-2">
                                 {selectedUser.status === 'active' ? 'Deactivate' : 'Activate'} Admin
                             </h2>
-                            <p className="text-gray-600 text-center mb-6">
+                            <p className="text-gray-600 max-sm:text-sm text-center mb-6 max-sm:mb-4">
                                 Are you sure you want to {selectedUser.status === 'active' ? 'deactivate' : 'activate'}{' '}
                                 <span className="font-semibold">{selectedUser.name}</span>?
                                 {selectedUser.status === 'active' && (
-                                    <span className="block mt-2 text-sm text-gray-500">
+                                    <span className="block mt-2 text-sm max-sm:text-xs text-gray-500">
                                         This user will no longer be able to access the admin dashboard.
                                     </span>
                                 )}
                             </p>
-                            <div className="flex gap-3">
+                            <div className="flex gap-3 max-sm:gap-2">
                                 <button 
-                                    className="flex-1 py-2.5 px-4 font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="flex-1 py-2.5 px-4 max-sm:py-2 max-sm:px-3 max-sm:text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     onClick={() => {
                                         setShowStatusModal(false);
                                         setSelectedUser(null);
@@ -697,7 +712,7 @@ export default function UsersSystemPage() {
                                 </button>
                                 <button 
                                     className={cn(
-                                        "flex-1 py-2.5 px-4 font-semibold text-white rounded-lg transition-colors disabled:opacity-60",
+                                        "flex-1 py-2.5 px-4 max-sm:py-2 max-sm:px-3 max-sm:text-sm font-semibold text-white rounded-lg transition-colors disabled:opacity-60",
                                         selectedUser.status === 'active' 
                                             ? "bg-red-600 hover:bg-red-700" 
                                             : "bg-green-600 hover:bg-green-700"

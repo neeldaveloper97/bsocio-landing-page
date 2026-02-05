@@ -33,12 +33,12 @@ export default function CommunicationsPage() {
     // Lock body scroll when modal is open
     useEffect(() => {
         if (showDetailModal) {
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         }
         return () => {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
     }, [showDetailModal]);
 
@@ -280,64 +280,64 @@ export default function CommunicationsPage() {
 
             {/* Detail Modal */}
             {showDetailModal && selectedInquiry && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
-                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
-                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
+                    <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[640px] max-sm:max-w-[95vw] max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative flex-shrink-0">
                             <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Inquiry Details</h2>
-                            <button className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828] text-2xl" onClick={closeDetailModal}>×</button>
+                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeDetailModal}>×</button>
                         </div>
-                        <div className="p-6 max-sm:p-4">
-                            <div className="inquiry-detail">
-                                <div className="detail-row">
-                                    <span className="detail-label">Name</span>
-                                    <span className="detail-value">{selectedInquiry.fullName}</span>
+                        <div className="p-6 max-sm:p-4 overflow-y-auto flex-1">
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Name</span>
+                                    <span className="text-gray-900 break-all">{selectedInquiry.fullName}</span>
                                 </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Email</span>
-                                    <span className="detail-value">
-                                        <a href={`mailto:${selectedInquiry.email}`}>{selectedInquiry.email}</a>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Email</span>
+                                    <span className="text-gray-900 break-all">
+                                        <a href={`mailto:${selectedInquiry.email}`} className="text-blue-600 hover:underline">{selectedInquiry.email}</a>
                                     </span>
                                 </div>
                                 {selectedInquiry.phone && (
-                                    <div className="detail-row">
-                                        <span className="detail-label">Phone</span>
-                                        <span className="detail-value">{selectedInquiry.phone}</span>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-sm font-medium text-gray-500">Phone</span>
+                                        <span className="text-gray-900">{selectedInquiry.phone}</span>
                                     </div>
                                 )}
-                                <div className="detail-row">
-                                    <span className="detail-label">Country</span>
-                                    <span className="detail-value">{selectedInquiry.country}</span>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Country</span>
+                                    <span className="text-gray-900">{selectedInquiry.country}</span>
                                 </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Reason</span>
-                                    <span className="detail-value">{getReasonBadge(selectedInquiry.reason)}</span>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Reason</span>
+                                    <span className="text-gray-900">{getReasonBadge(selectedInquiry.reason)}</span>
                                 </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Status</span>
-                                    <span className="detail-value">{getStatusBadge(selectedInquiry.status)}</span>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Status</span>
+                                    <span className="text-gray-900">{getStatusBadge(selectedInquiry.status)}</span>
                                 </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Submitted</span>
-                                    <span className="detail-value">{formatDate(selectedInquiry.createdAt)}</span>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Submitted</span>
+                                    <span className="text-gray-900">{formatDate(selectedInquiry.createdAt)}</span>
                                 </div>
-                                <div className="detail-message">
-                                    <span className="detail-label">Message</span>
-                                    <div className="message-content">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-500">Message</span>
+                                    <div className="p-3 bg-gray-50 rounded-lg text-gray-700 break-words whitespace-pre-wrap">
                                         {selectedInquiry.message}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-4">
-                                <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeDetailModal}>
-                                    Close
-                                </button>
-                                <a 
-                                    href={`mailto:${selectedInquiry.email}?subject=Re: ${REASON_LABELS[selectedInquiry.reason]}`}
-                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] no-underline"
-                                >
-                                    Reply via Email
-                                </a>
-                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] flex-shrink-0">
+                            <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeDetailModal}>
+                                Close
+                            </button>
+                            <a 
+                                href={`mailto:${selectedInquiry.email}?subject=Re: ${REASON_LABELS[selectedInquiry.reason]}`}
+                                className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] no-underline inline-flex items-center justify-center"
+                            >
+                                Reply via Email
+                            </a>
                         </div>
                     </div>
                 </div>,

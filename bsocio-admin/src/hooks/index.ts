@@ -34,6 +34,7 @@ export {
   useDashboardParallel,
   prefetchDashboardData,
   prefetchAdminActivity,
+  useExportAdminActivity,
 } from './optimized';
 export {
   useNews,

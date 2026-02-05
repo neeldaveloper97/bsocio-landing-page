@@ -39,11 +39,9 @@ class AdminUsersService {
    */
   async getAdminUsers(params?: AdminUserRequest): Promise<AdminUserResponse> {
     try {
-      // Convert skip/take to page/limit for backend
-      const skip = params?.skip ?? 0;
-      const take = params?.take ?? 10;
-      const page = Math.floor(skip / take) + 1;
-      const limit = take;
+      // Use page and limit directly
+      const page = params?.page ?? 1;
+      const limit = params?.limit ?? 10;
 
       const response = await apiClient.get<{
         data: Array<{
@@ -109,8 +107,8 @@ class AdminUsersService {
       return {
         items,
         total: response.data.meta.total,
-        skip: skip,
-        take: take,
+        page: page,
+        limit: limit,
       };
     } catch (error) {
       throw parseApiError(error);
@@ -165,11 +163,9 @@ class AdminUsersService {
    */
   async exportUsers(params?: AdminUserRequest): Promise<Blob> {
     try {
-      // Convert skip/take to page/limit for backend
-      const skip = params?.skip ?? 0;
-      const take = params?.take ?? 10;
-      const page = Math.floor(skip / take) + 1;
-      const limit = take;
+      // Use page and limit directly
+      const page = params?.page ?? 1;
+      const limit = params?.limit ?? 100; // Export more by default
 
       // Build the full URL with query params
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7000';

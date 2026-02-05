@@ -32,12 +32,12 @@ export function Modal({
 
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         }
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
     }, [isOpen, onClose]);
 
@@ -50,7 +50,7 @@ export function Modal({
 
     if (!isOpen) return null;
 
-    const sizeClass = size === 'lg' ? 'modal-lg' : size === 'xl' ? 'modal-xl' : '';
+    const sizeClass = size === 'lg' ? 'modal-dialog-lg' : size === 'xl' ? 'modal-dialog-xl' : '';
 
     const modalContent = (
         <div 
@@ -66,7 +66,7 @@ export function Modal({
             >
                 {(title || subtitle) && (
                     <div className="modal-header">
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, paddingRight: '40px' }}>
                             {title && <h2 id="modal-title">{title}</h2>}
                             {subtitle && (
                                 <p style={{ color: '#6B7280', fontSize: '14px', marginTop: '4px' }}>
@@ -79,8 +79,9 @@ export function Modal({
                             onClick={onClose}
                             aria-label="Close modal"
                             type="button"
+                            style={{ borderRadius: '50%' }}
                         >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                         </button>

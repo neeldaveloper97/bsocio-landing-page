@@ -206,8 +206,8 @@ export interface AdminUserRequest {
   role?: string;
   status?: 'active' | 'inactive' | 'all';
   search?: string;
-  skip?: number;
-  take?: number;
+  page?: number;
+  limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -215,8 +215,8 @@ export interface AdminUserRequest {
 export interface AdminUserResponse {
   items: AdminUser[];
   total: number;
-  skip: number;
-  take: number;
+  page: number;
+  limit: number;
 }
 
 export interface AdminUserStats {

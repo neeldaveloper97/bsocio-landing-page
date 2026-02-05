@@ -90,11 +90,11 @@ export default function AwardsPage() {
     // Lock body scroll when modal is open
     useEffect(() => {
         if (showModal || showDeleteModal) {
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         }
-        return () => { document.body.style.overflow = ''; };
+        return () => { document.body.classList.remove('modal-open'); };
     }, [showModal, showDeleteModal]);
 
     // Stats
@@ -181,8 +181,17 @@ export default function AwardsPage() {
                 <h2 className="text-lg font-semibold text-foreground mb-6">Award Categories</h2>
                 
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-12 w-full">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <div className="space-y-4 w-full">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="award-skeleton">
+                                <div className="skeleton-icon" />
+                                <div className="skeleton-text">
+                                    <div className="skeleton-text-line" style={{ width: '60%' }} />
+                                    <div className="skeleton-text-line" />
+                                </div>
+                                <div className="skeleton-btn" />
+                            </div>
+                        ))}
                     </div>
                 ) : categories && categories.length > 0 ? (
                     <div className="space-y-4 w-full">
@@ -216,7 +225,7 @@ export default function AwardsPage() {
                                     </div>
                                 </div>
                                 <button 
-                                    className="px-4 py-2 bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors"
+                                    className="px-3 py-1.5 text-sm bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors"
                                     onClick={() => openEditModal(category)}
                                 >
                                     Manage Category
@@ -261,19 +270,19 @@ export default function AwardsPage() {
             {/* Create/Edit Category Modal */}
             {showModal && createPortal(
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-2xl w-full max-w-[560px] max-sm:max-w-[95vw] max-sm:rounded-xl max-h-[90vh] overflow-y-auto">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-border">
+                        <div className="flex items-center justify-between p-6 max-sm:p-4 border-b border-border pr-14 max-sm:pr-12 relative">
                             <div>
-                                <h2 className="text-xl font-semibold text-foreground">
+                                <h2 className="text-xl max-sm:text-lg font-semibold text-foreground">
                                     {editingCategory ? 'Edit Category' : 'Create Category'}
                                 </h2>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm max-sm:text-xs text-muted-foreground">
                                     {editingCategory ? 'Update award category details' : 'Add a new award category'}
                                 </p>
                             </div>
                             <button 
-                                className="p-2 hover:bg-muted rounded-lg transition-colors"
+                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-lg text-gray-600 hover:text-gray-900"
                                 onClick={() => { setShowModal(false); resetForm(); }}
                             >
                                 ×
@@ -281,10 +290,10 @@ export default function AwardsPage() {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-6 space-y-5">
+                        <div className="p-6 max-sm:p-4 space-y-5 max-sm:space-y-4">
                             {/* Category Name */}
                             <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
+                                <label className="block text-sm max-sm:text-xs font-medium text-foreground mb-2">
                                     Category Name <span className="text-destructive">*</span>
                                 </label>
                                 <input
@@ -292,13 +301,13 @@ export default function AwardsPage() {
                                     value={formData.name}
                                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                     placeholder="e.g., Birthday Heroes"
-                                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="w-full px-4 py-3 max-sm:px-3 max-sm:py-2 max-sm:text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                 />
                             </div>
 
                             {/* Icon Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
+                                <label className="block text-sm max-sm:text-xs font-medium text-foreground mb-2">
                                     Icon
                                 </label>
                                 <div className="flex flex-wrap gap-2">
@@ -306,7 +315,7 @@ export default function AwardsPage() {
                                         <button
                                             key={icon}
                                             type="button"
-                                            className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center border-2 transition-all ${
+                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg text-xl max-sm:text-lg flex items-center justify-center border-2 transition-all ${
                                                 formData.icon === icon 
                                                     ? 'border-primary bg-primary/10' 
                                                     : 'border-border hover:border-primary/50'
@@ -321,7 +330,7 @@ export default function AwardsPage() {
 
                             {/* Color Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
+                                <label className="block text-sm max-sm:text-xs font-medium text-foreground mb-2">
                                     Color
                                 </label>
                                 <div className="flex flex-wrap gap-2">
@@ -329,7 +338,7 @@ export default function AwardsPage() {
                                         <button
                                             key={color}
                                             type="button"
-                                            className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg border-2 transition-all ${
                                                 formData.color === color 
                                                     ? 'border-foreground scale-110' 
                                                     : 'border-transparent hover:scale-105'
@@ -343,7 +352,7 @@ export default function AwardsPage() {
 
                             {/* Description */}
                             <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
+                                <label className="block text-sm max-sm:text-xs font-medium text-foreground mb-2">
                                     Description
                                 </label>
                                 <textarea
@@ -351,13 +360,13 @@ export default function AwardsPage() {
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                     placeholder="Describe the award category..."
                                     rows={3}
-                                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                                    className="w-full px-4 py-3 max-sm:px-3 max-sm:py-2 max-sm:text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                                 />
                             </div>
 
                             {/* Status */}
                             <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
+                                <label className="block text-sm max-sm:text-xs font-medium text-foreground mb-2">
                                     Status
                                 </label>
                                 <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as AwardCategoryStatus }))}>
@@ -373,10 +382,10 @@ export default function AwardsPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+                        <div className="flex items-center justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-border">
                             <button
                                 onClick={() => { setShowModal(false); resetForm(); }}
-                                className="px-5 py-2.5 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-muted transition-colors"
+                                className="px-5 py-2.5 max-sm:px-3 max-sm:py-2 text-sm max-sm:text-xs font-medium text-foreground bg-white border border-border rounded-lg hover:bg-muted transition-colors"
                             >
                                 Cancel
                             </button>
@@ -387,7 +396,7 @@ export default function AwardsPage() {
                                         setDeletingCategory(editingCategory);
                                         setShowDeleteModal(true);
                                     }}
-                                    className="px-5 py-2.5 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-destructive/90 transition-colors"
+                                    className="px-5 py-2.5 max-sm:px-3 max-sm:py-2 text-sm max-sm:text-xs font-medium text-white bg-destructive rounded-lg hover:bg-destructive/90 transition-colors"
                                 >
                                     Delete
                                 </button>
@@ -395,7 +404,7 @@ export default function AwardsPage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={isCreating || isUpdating || !formData.name.trim()}
-                                className="px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-5 py-2.5 max-sm:px-3 max-sm:py-2 text-sm max-sm:text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isCreating || isUpdating ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
                             </button>

@@ -77,12 +77,12 @@ export default function GuestsPage() {
     // Lock body scroll when modal is open
     useEffect(() => {
         if (showModal) {
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         }
         return () => {
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
     }, [showModal]);
 
@@ -464,9 +464,9 @@ export default function GuestsPage() {
 
             {/* Create/Edit Guest Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center max-sm:items-end justify-center p-4 max-sm:p-0" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
-                    <div className="bg-white rounded-xl max-sm:rounded-b-none w-full max-w-2xl max-h-[90vh] overflow-auto shadow-xl">
-                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB]">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                    <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] overflow-auto shadow-xl">
+                        <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
                             <div className="flex-1 min-w-0">
                                 <h2 id="modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingGuest ? 'Edit Guest' : 'Add Special Guest'}</h2>
                                 <p className="text-[#6B7280] text-sm max-sm:text-xs mt-1">
@@ -474,7 +474,7 @@ export default function GuestsPage() {
                                 </p>
                             </div>
                             <button 
-                                className="p-2 rounded-lg bg-transparent border-none cursor-pointer text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#101828] text-2xl" 
+                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" 
                                 onClick={closeModal}
                                 aria-label="Close modal"
                                 type="button"

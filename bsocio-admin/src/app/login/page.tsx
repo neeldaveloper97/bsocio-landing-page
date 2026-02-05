@@ -6,6 +6,7 @@ import { useLogin } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { Eye, EyeOff } from 'lucide-react';
 
 function LoginContent() {
     const router = useRouter();
@@ -22,6 +23,7 @@ function LoginContent() {
     const [tfaCode, setTfaCode] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
     const [showTfa, setShowTfa] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
 
     // Check for unauthorized error from URL
@@ -122,15 +124,30 @@ function LoginContent() {
                                     <label htmlFor="password" className="font-bold text-sm leading-5 text-[#364153] w-full">
                                         Password
                                     </label>
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Enter your password"
-                                        required
-                                        className={inputStyles}
-                                    />
+                                    <div className="relative w-full">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            id="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="Enter your password"
+                                            required
+                                            className={cn(inputStyles, "pr-11")}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                                            tabIndex={-1}
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-5 w-5" />
+                                            ) : (
+                                                <Eye className="h-5 w-5" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Remember Me */}

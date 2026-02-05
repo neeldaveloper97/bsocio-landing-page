@@ -5,7 +5,14 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const Select = SelectPrimitive.Root
+// Root Select with modal={false} to prevent scroll lock and UI displacement
+// No Portal is used in SelectContent to avoid Radix scroll locking entirely
+const Select = ({ children, modal, ...props }: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => (
+  <SelectPrimitive.Root modal={false} {...props}>
+    {children}
+  </SelectPrimitive.Root>
+)
+Select.displayName = "Select"
 
 const SelectGroup = SelectPrimitive.Group
 
@@ -18,14 +25,15 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "select-trigger flex h-11 w-full items-center justify-between gap-3 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "select-trigger flex h-10 w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "max-sm:h-9 max-sm:px-2.5 max-sm:py-1.5 max-sm:text-xs max-sm:gap-1.5",
       className
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+      <ChevronDown className="h-4 w-4 opacity-50 shrink-0 max-sm:h-3 max-sm:w-3" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -70,29 +78,24 @@ const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-[9999] max-h-[min(300px,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white text-gray-700 shadow-xl",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
-        className
-      )}
-      position={position}
-      side="bottom"
-      align="start"
-      sideOffset={4}
-      avoidCollisions={false}
-      {...props}
-    >
-      <SelectPrimitive.Viewport
-        className="p-1 w-full"
-      >
-        {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
+  <SelectPrimitive.Content
+    ref={ref}
+    className={cn(
+      "relative z-[9999] max-h-[280px] min-w-[var(--radix-select-trigger-width)] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg",
+      "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+      "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
+      position === "popper" &&
+        "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+      className
+    )}
+    position={position}
+    sideOffset={4}
+    {...props}
+  >
+    <SelectPrimitive.Viewport className="p-1">
+      {children}
+    </SelectPrimitive.Viewport>
+  </SelectPrimitive.Content>
 ))
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
@@ -115,14 +118,15 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2.5 pl-4 pr-10 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 mb-1",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-3 pr-8 text-sm font-medium outline-none transition-all duration-150 focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-blue-50 hover:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 mb-0.5",
+      "max-sm:py-1.5 max-sm:pl-2.5 max-sm:pr-6 max-sm:text-xs max-sm:rounded-md",
       className
     )}
     {...props}
   >
-    <span className="absolute right-3 flex h-4 w-4 items-center justify-center">
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center max-sm:right-1.5 max-sm:h-3 max-sm:w-3">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-blue-600" />
+        <Check className="h-3.5 w-3.5 text-blue-600 max-sm:h-3 max-sm:w-3" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

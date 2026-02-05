@@ -96,7 +96,7 @@ export function useAdminActivityOptimized(options: UseActivityOptions = {}) {
   const { skip = 0, take = 10, filter, type, search, enabled = true } = options;
 
   return useQuery<AdminActivityResponse, ApiException>({
-    queryKey: queryKeys.activity.list(skip, filter, type, search),
+    queryKey: queryKeys.activity.list(skip, take, filter, type, search),
     queryFn: () => adminActivityService.getActivities({
       skip,
       take,
@@ -213,7 +213,7 @@ export function useDashboardParallel(options: { enabled?: boolean } = {}) {
         enabled,
       },
       {
-        queryKey: queryKeys.activity.list(0, undefined),
+        queryKey: queryKeys.activity.list(0, 10, undefined, undefined, undefined),
         queryFn: () => adminActivityService.getActivities({ skip: 0, take: 10 }),
         staleTime: 2 * 60 * 1000,
         enabled,
@@ -253,7 +253,7 @@ export function prefetchDashboardData(queryClient: ReturnType<typeof useQueryCli
  */
 export function prefetchAdminActivity(queryClient: ReturnType<typeof useQueryClient>) {
   return queryClient.prefetchQuery({
-    queryKey: queryKeys.activity.list(0, undefined),
+    queryKey: queryKeys.activity.list(0, 10, undefined, undefined, undefined),
     queryFn: () => adminActivityService.getActivities({ skip: 0, take: 10 }),
     staleTime: 2 * 60 * 1000,
   });
@@ -288,3 +288,60 @@ export function useInvalidateQueries() {
     invalidateAll: () => queryClient.invalidateQueries(),
   };
 }
+
+// ============================================
+// EXPORT ADMIN ACTIVITY HOOK
+// ============================================
+
+import { useMutation } from '@tanstack/react-query';
+
+/**
+ * Hook for exporting admin activities to CSV (client-side generation)
+ * Since the backend doesn't have an export endpoint, we fetch the data and generate CSV locally
+ */
+export function useExportAdminActivity() {
+  return useMutation({
+    mutationFn: async (params?: {
+      skip?: number;
+      take?: number;
+      filter?: '24h' | 'week' | 'month';
+      type?: string;
+      search?: string;
+    }) => {
+      // Fetch all activities (up to 1000)
+      const response = await adminActivityService.getActivities({
+        skip: 0,
+        take: 1000,
+        filter: params?.filter,
+        type: params?.type,
+        search: params?.search,
+      });
+      
+      // Generate CSV content - response has { activities: [], total: number }
+      const headers = ['Date', 'Type', 'Title', 'Admin Name', 'Admin Email'];
+      const activities = response.activities || [];
+      const rows = activities.map((log: { createdAt: string; type: string; title: string; adminName?: string; adminEmail?: string }) => [
+        new Date(log.createdAt).toLocaleString(),
+        log.type,
+        `"${(log.title || '').replace(/"/g, '""')}"`,
+        log.adminName || 'System',
+        log.adminEmail || '-',
+      ]);
+      
+      const csvContent = [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
+      return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    },
+    onSuccess: (blob) => {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `system-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}
+

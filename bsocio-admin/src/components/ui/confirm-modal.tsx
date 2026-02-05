@@ -46,12 +46,12 @@ export function ConfirmModal({
 
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         }
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
         };
     }, [isOpen, onClose, isLoading]);
 
@@ -125,11 +125,12 @@ export function ConfirmModal({
         >
             <div
                 ref={modalRef}
+                className="confirm-modal-container"
                 style={{
                     backgroundColor: 'white',
-                    borderRadius: '12px',
+                    borderRadius: '16px',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    maxWidth: '400px',
+                    maxWidth: '420px',
                     width: '100%',
                     overflow: 'hidden',
                     animation: 'confirmModalSlideIn 0.2s ease-out',

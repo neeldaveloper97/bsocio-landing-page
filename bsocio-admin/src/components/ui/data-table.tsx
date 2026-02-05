@@ -143,7 +143,7 @@ export function DataTable<T>({
                         )}
                     </div>
                     {headerActions && (
-                        <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-3 flex-nowrap shrink-0">
                             {headerActions}
                         </div>
                     )}

@@ -105,15 +105,66 @@ export default function LegalPage() {
         currentHook.refetch();
     }, [currentHook]);
 
-    if (isLoading) {
-        return (
-            <div className="page-content w-full">
-                <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 bg-white border border-[#E5E7EB] rounded-xl w-full">
-                    <div className="w-10 h-10 border-[3px] border-[#E5E7EB] border-t-[#2563EB] rounded-full animate-spin"></div>
-                    <p className="text-[#6B7280] text-sm">Loading documents...</p>
+    // Skeleton loading component
+    const LoadingSkeleton = () => (
+        <div className="page-content w-full">
+            {/* Header skeleton */}
+            <div className="page-header-row">
+                <div className="flex flex-col gap-2">
+                    <div className="skeleton-box" style={{ width: '200px', height: '32px' }} />
+                    <div className="skeleton-box" style={{ width: '280px', height: '20px' }} />
                 </div>
             </div>
-        );
+
+            {/* Tabs skeleton */}
+            <div className="flex gap-1 border-b border-[#E5E7EB] bg-transparent">
+                <div className="skeleton-box" style={{ width: '120px', height: '44px', borderRadius: '8px 8px 0 0' }} />
+                <div className="skeleton-box" style={{ width: '120px', height: '44px', borderRadius: '8px 8px 0 0' }} />
+            </div>
+
+            {/* Content skeleton */}
+            <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 w-full">
+                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+                    <div className="skeleton-box" style={{ width: '150px', height: '28px' }} />
+                    <div className="flex gap-3">
+                        <div className="skeleton-box" style={{ width: '100px', height: '40px', borderRadius: '8px' }} />
+                        <div className="skeleton-box" style={{ width: '80px', height: '40px', borderRadius: '8px' }} />
+                        <div className="skeleton-box" style={{ width: '100px', height: '40px', borderRadius: '8px' }} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 max-md:grid-cols-1 gap-5">
+                    <div className="flex flex-col gap-2">
+                        <div className="skeleton-box" style={{ width: '100px', height: '16px' }} />
+                        <div className="skeleton-box" style={{ width: '100%', height: '44px', borderRadius: '8px' }} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <div className="skeleton-box" style={{ width: '100px', height: '16px' }} />
+                        <div className="skeleton-box" style={{ width: '100%', height: '44px', borderRadius: '8px' }} />
+                    </div>
+                    <div className="flex flex-col gap-2 col-span-full">
+                        <div className="skeleton-box" style={{ width: '180px', height: '16px' }} />
+                        <div className="skeleton-box" style={{ width: '100%', height: '300px', borderRadius: '8px' }} />
+                    </div>
+                    <div className="flex flex-col gap-2 col-span-full">
+                        <div className="skeleton-box" style={{ width: '120px', height: '16px' }} />
+                        <div className="skeleton-box" style={{ width: '100%', height: '44px', borderRadius: '8px' }} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Version Control skeleton */}
+            <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 w-full">
+                <div className="mb-6">
+                    <div className="skeleton-box" style={{ width: '150px', height: '24px', marginBottom: '8px' }} />
+                    <div className="skeleton-box" style={{ width: '250px', height: '16px' }} />
+                </div>
+                <div className="skeleton-box" style={{ width: '100%', height: '120px', borderRadius: '8px' }} />
+            </div>
+        </div>
+    );
+
+    if (isLoading) {
+        return <LoadingSkeleton />;
     }
 
     // Show error state with retry button
