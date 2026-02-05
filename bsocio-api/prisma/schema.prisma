@@ -23,6 +23,7 @@ model User {
   phone           String?
   adminActivities AdminActivity[]
   magicLinks      MagicLink[]
+  isActive        Boolean         @default(true)
 }
 
 model Faq {
