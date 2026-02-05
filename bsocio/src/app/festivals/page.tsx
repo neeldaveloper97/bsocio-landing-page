@@ -645,45 +645,59 @@ export default function FestivalsPage() {
               <ModalHeader className="space-y-3">
                 <span
                   className={cn(
-                    "inline-block w-fit rounded-full px-4 py-1.5 text-sm font-bold text-white",
+                    "inline-flex items-center gap-1.5 w-fit rounded-full px-4 py-1.5 text-sm font-bold text-white",
                     modalData.data.mainEvent ? "bg-secondary" : "bg-[#7CB342]"
                   )}
                 >
-                  {modalData.data.mainEvent ? "Main Event" : "Featured"}
+                  {modalData.data.mainEvent ? "🎉 Main Event" : "✨ Featured"}
                 </span>
-                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.title}</ModalTitle>
+                <ModalTitle className="text-2xl sm:text-3xl font-bold">{modalData.data.title}</ModalTitle>
               </ModalHeader>
-              <ModalBody className="space-y-6">
-                {/* Info section with left border */}
-                <div className="border-l-4 border-primary pl-4 space-y-1">
-                  <p className="text-base text-foreground">
-                    <span className="font-bold text-muted-foreground">Date:</span>{" "}
-                    <span className="text-primary">{modalData.data.date}</span>
-                  </p>
-                  <p className="text-base text-foreground">
-                    <span className="font-bold text-muted-foreground">Location:</span>{" "}
-                    <span className="text-primary">{modalData.data.location}</span>
-                  </p>
-                  <p className="text-base text-foreground">
-                    <span className="font-bold text-muted-foreground">Venue:</span>{" "}
-                    <span className="text-primary">{modalData.data.venue}</span>
-                  </p>
+              <ModalBody className="space-y-5">
+                {/* Event Details Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+                    <span className="text-2xl">📅</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Date</p>
+                      <p className="text-sm font-semibold text-foreground">{modalData.data.date}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                    <span className="text-2xl">📍</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Location</p>
+                      <p className="text-sm font-semibold text-foreground">{modalData.data.location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
+                    <span className="text-2xl">🏛️</span>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium">Venue</p>
+                      <p className="text-sm font-semibold text-foreground">{modalData.data.venue}</p>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Description */}
-                <div
-                  className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
-                  dangerouslySetInnerHTML={{ __html: modalData.data.description }}
-                />
+                {modalData.data.description && (
+                  <div className="pt-2">
+                    <h4 className="text-lg font-bold text-foreground mb-3">About This Event</h4>
+                    <div
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground [&_p]:mb-3"
+                      dangerouslySetInnerHTML={{ __html: modalData.data.description }}
+                    />
+                  </div>
+                )}
               </ModalBody>
             </>
           )}
 
           {modalData?.type === 'nominee' && (
             <>
-              <ModalHeader className="space-y-3 pb-0">
+              <ModalHeader className="space-y-0 pb-0">
                 {modalData.data.imageUrl && (
-                  <div className="-mx-6 -mt-6 mb-4 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                  <div className="-mx-6 -mt-6 mb-6 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
                     <Image
                       src={modalData.data.imageUrl}
                       alt={modalData.data.name}
@@ -695,43 +709,81 @@ export default function FestivalsPage() {
                     />
                   </div>
                 )}
-                {modalData.data.isWinner && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-4 py-1.5 text-sm font-bold text-white w-fit">
-                    🏆 Winner
-                  </span>
+                <ModalTitle className="text-2xl sm:text-3xl font-bold text-foreground">
+                  {modalData.data.name}
+                </ModalTitle>
+                {modalData.data.title && (
+                  <p className="text-lg text-primary font-medium mt-1">
+                    {modalData.data.title}
+                  </p>
                 )}
-                {modalData.data.category && (
-                  <span className="inline-block w-fit rounded-full bg-[#7CB342] px-4 py-1.5 text-sm font-bold text-white">
-                    {modalData.data.category.name}
-                  </span>
-                )}
-                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.name}</ModalTitle>
               </ModalHeader>
-              <ModalBody className="space-y-6">
-                {/* Info section with left border */}
-                <div className="border-l-4 border-primary pl-4 space-y-1">
-                  {modalData.data.title && (
-                    <p className="text-base text-foreground">
-                      <span className="font-bold text-muted-foreground">Title:</span>{" "}
-                      <span className="text-primary">{modalData.data.title}</span>
-                    </p>
+              <ModalBody className="space-y-5 pt-4">
+                {/* Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {modalData.data.isWinner && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm font-bold text-white">
+                      🏆 Winner
+                    </span>
                   )}
-                  {modalData.data.organization && (
-                    <p className="text-base text-foreground">
-                      <span className="font-bold text-muted-foreground">Organization:</span>{" "}
-                      <span className="text-primary">{modalData.data.organization}</span>
-                    </p>
+                  {modalData.data.category && (
+                    <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 px-3 py-1.5 text-sm font-medium">
+                      ⭐ {modalData.data.category.name}
+                    </span>
                   )}
                 </div>
 
+                {/* Organization/Location */}
+                {modalData.data.organization && (
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-red-500">📍</span>
+                    {modalData.data.organization}
+                  </p>
+                )}
+
                 {/* About section */}
                 {modalData.data.about && (
-                  <div>
+                  <div className="pt-2">
                     <h4 className="text-lg font-bold text-foreground mb-3">About</h4>
                     <div
-                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground [&_p]:mb-3"
                       dangerouslySetInnerHTML={{ __html: modalData.data.about }}
                     />
+                  </div>
+                )}
+
+                {/* Key Achievements */}
+                {modalData.data.keyAchievements && modalData.data.keyAchievements.length > 0 && (
+                  <div className="pt-2">
+                    <h4 className="text-lg font-bold text-foreground mb-3">Key Achievements</h4>
+                    <ul className="space-y-3">
+                      {modalData.data.keyAchievements.map((achievement: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3 text-muted-foreground">
+                          <span className="text-green-500 mt-0.5 shrink-0">✓</span>
+                          <span className="leading-relaxed">{achievement}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Impact Story */}
+                {modalData.data.impactStory && (
+                  <div className="pt-2">
+                    <h4 className="text-lg font-bold text-foreground mb-3">Impact Story</h4>
+                    <div
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground [&_p]:mb-3"
+                      dangerouslySetInnerHTML={{ __html: modalData.data.impactStory }}
+                    />
+                  </div>
+                )}
+
+                {/* Quote */}
+                {modalData.data.quote && (
+                  <div className="pt-2 p-4 bg-primary/5 rounded-xl border-l-4 border-primary">
+                    <p className="text-foreground italic leading-relaxed">
+                      &ldquo;{modalData.data.quote}&rdquo;
+                    </p>
                   </div>
                 )}
               </ModalBody>
@@ -740,9 +792,9 @@ export default function FestivalsPage() {
 
           {modalData?.type === 'guest' && (
             <>
-              <ModalHeader className="space-y-3 pb-0">
+              <ModalHeader className="space-y-0 pb-0">
                 {modalData.data.imageUrl && (
-                  <div className="-mx-6 -mt-6 mb-4 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                  <div className="-mx-6 -mt-6 mb-6 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
                     <Image
                       src={modalData.data.imageUrl}
                       alt={modalData.data.name}
@@ -754,28 +806,29 @@ export default function FestivalsPage() {
                     />
                   </div>
                 )}
-                <span className="inline-block w-fit rounded-full bg-[#7CB342] px-4 py-1.5 text-sm font-bold text-white">
-                  Special Guest
-                </span>
-                <ModalTitle className="text-2xl sm:text-3xl">{modalData.data.name}</ModalTitle>
-              </ModalHeader>
-              <ModalBody className="space-y-6">
-                {/* Info section with left border */}
+                <ModalTitle className="text-2xl sm:text-3xl font-bold text-foreground">
+                  {modalData.data.name}
+                </ModalTitle>
                 {modalData.data.title && (
-                  <div className="border-l-4 border-primary pl-4 space-y-1">
-                    <p className="text-base text-foreground">
-                      <span className="font-bold text-muted-foreground">Title:</span>{" "}
-                      <span className="text-primary">{modalData.data.title}</span>
-                    </p>
-                  </div>
+                  <p className="text-lg text-primary font-medium mt-1">
+                    {modalData.data.title}
+                  </p>
                 )}
+              </ModalHeader>
+              <ModalBody className="space-y-5 pt-4">
+                {/* Badge */}
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 px-3 py-1.5 text-sm font-medium">
+                    <span>⭐</span> Special Guest
+                  </span>
+                </div>
 
                 {/* Bio section */}
                 {modalData.data.bio && (
-                  <div>
+                  <div className="pt-2">
                     <h4 className="text-lg font-bold text-foreground mb-3">Biography</h4>
                     <div
-                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground"
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground [&_p]:text-muted-foreground [&_p]:mb-3"
                       dangerouslySetInnerHTML={{ __html: modalData.data.bio }}
                     />
                   </div>
