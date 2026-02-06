@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
 import {
@@ -169,6 +171,28 @@ export default function EventsPage() {
     };
 
     const handleSubmit = async () => {
+        // Validation matching API rules
+        if (!formData.title.trim()) {
+            toast.error('Validation error', { description: 'Please enter an event title' });
+            return;
+        }
+        if (formData.title.trim().length > 200) {
+            toast.error('Validation error', { description: 'Title must be 200 characters or less' });
+            return;
+        }
+        if (!formData.eventDate) {
+            toast.error('Validation error', { description: 'Please select an event date' });
+            return;
+        }
+        if (!formData.venue.trim()) {
+            toast.error('Validation error', { description: 'Please enter a venue' });
+            return;
+        }
+        if (formData.maxAttendees && parseInt(formData.maxAttendees) < 1) {
+            toast.error('Validation error', { description: 'Max attendees must be at least 1' });
+            return;
+        }
+
         try {
             const payload: CreateEventRequest | UpdateEventRequest = {
                 title: formData.title,
@@ -183,8 +207,10 @@ export default function EventsPage() {
 
             if (editingEvent) {
                 await updateEvent({ id: editingEvent.id, data: payload as UpdateEventRequest });
+                showSuccessToast('Event updated', 'Event has been updated successfully');
             } else {
                 await createEvent(payload as CreateEventRequest);
+                showSuccessToast('Event created', 'Event has been created successfully');
             }
 
             setShowModal(false);
@@ -192,6 +218,7 @@ export default function EventsPage() {
             refetch();
         } catch (error) {
             console.error('Failed to save event:', error);
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -199,11 +226,13 @@ export default function EventsPage() {
         if (!deletingEvent) return;
         try {
             await deleteEvent(deletingEvent.id);
+            showSuccessToast('Event deleted', 'Event has been removed successfully');
             setShowDeleteModal(false);
             setDeletingEvent(null);
             refetch();
         } catch (error) {
             console.error('Failed to delete event:', error);
+            showErrorToast(error, 'Delete failed');
         }
     };
 
@@ -440,7 +469,7 @@ export default function EventsPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
                                     <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as EventStatus }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -452,7 +481,7 @@ export default function EventsPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="visibility" className="font-sans text-sm font-semibold text-[#374151]">Visibility</label>
                                     <Select value={formData.visibility} onValueChange={(value) => setFormData(prev => ({ ...prev, visibility: value as EventVisibility }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select visibility" />
                                         </SelectTrigger>
                                         <SelectContent>

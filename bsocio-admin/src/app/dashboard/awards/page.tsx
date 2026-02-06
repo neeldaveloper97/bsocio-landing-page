@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import Link from 'next/link';
 import { 
     useAwardCategories, 
@@ -140,20 +141,34 @@ export default function AwardsPage() {
     };
 
     const handleSubmit = async () => {
+        // Validation matching API rules
+        if (!formData.name.trim()) {
+            toast.error('Validation error', { description: 'Please enter a category name' });
+            return;
+        }
+        if (formData.name.trim().length > 100) {
+            toast.error('Validation error', { description: 'Category name must be 100 characters or less' });
+            return;
+        }
+        if (!formData.description.trim()) {
+            toast.error('Validation error', { description: 'Please enter a description' });
+            return;
+        }
+
         try {
             if (editingCategory) {
                 await updateCategory({ id: editingCategory.id, data: formData });
-                toast.success('Category updated', { description: `${formData.name} has been updated successfully` });
+                showSuccessToast('Category updated', `${formData.name} has been updated successfully`);
             } else {
                 await createCategory(formData as CreateAwardCategoryRequest);
-                toast.success('Category created', { description: `${formData.name} has been added successfully` });
+                showSuccessToast('Category created', `${formData.name} has been added successfully`);
             }
             setShowModal(false);
             resetForm();
             refetch();
         } catch (error) {
             console.error('Failed to save category:', error);
-            toast.error('Save failed', { description: 'Failed to save category. Please try again.' });
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -161,13 +176,13 @@ export default function AwardsPage() {
         if (!deletingCategory) return;
         try {
             await deleteCategory(deletingCategory.id);
-            toast.success('Category deleted', { description: `${deletingCategory.name} has been removed` });
+            showSuccessToast('Category deleted', `${deletingCategory.name} has been removed`);
             setShowDeleteModal(false);
             setDeletingCategory(null);
             refetch();
         } catch (error) {
             console.error('Failed to delete category:', error);
-            toast.error('Delete failed', { description: 'Failed to delete category. Please try again.' });
+            showErrorToast(error, 'Delete failed');
         }
     };
 
@@ -386,7 +401,7 @@ export default function AwardsPage() {
                                     Status
                                 </label>
                                 <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as AwardCategoryStatus }))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>

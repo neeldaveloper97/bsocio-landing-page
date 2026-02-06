@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { 
     useSpecialGuests, 
@@ -159,7 +160,7 @@ export default function GuestsPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
+            showErrorToast(error, 'Upload failed');
         } finally {
             setIsUploading(false);
         }
@@ -223,6 +224,10 @@ export default function GuestsPage() {
             toast.error('Validation error', { description: 'Please enter a name' });
             return;
         }
+        if (formData.name.trim().length > 100) {
+            toast.error('Validation error', { description: 'Name must be 100 characters or less' });
+            return;
+        }
         if (!formData.title.trim()) {
             toast.error('Validation error', { description: 'Please enter a title' });
             return;
@@ -239,17 +244,17 @@ export default function GuestsPage() {
         try {
             if (editingGuest) {
                 await updateGuest({ id: editingGuest.id, data: payload });
-                toast.success('Guest updated', { description: `${formData.name} has been updated successfully` });
+                showSuccessToast('Guest updated', `${formData.name} has been updated successfully`);
             } else {
                 await createGuest(payload);
-                toast.success('Guest created', { description: `${formData.name} has been added successfully` });
+                showSuccessToast('Guest created', `${formData.name} has been added successfully`);
             }
             setUploadedImageUrl(null);
             closeModal();
             refetch();
         } catch (error) {
             console.error('Failed to save guest:', error);
-            toast.error('Save failed', { description: 'Failed to save guest. Please try again.' });
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -276,11 +281,11 @@ export default function GuestsPage() {
 
         try {
             await deleteGuest(confirmModal.guestId);
-            toast.success('Guest deleted', { description: `${confirmModal.guestName} has been removed` });
+            showSuccessToast('Guest deleted', `${confirmModal.guestName} has been removed`);
             refetch();
         } catch (error) {
             console.error('Failed to delete:', error);
-            toast.error('Delete failed', { description: 'Failed to delete guest. Please try again.' });
+            showErrorToast(error, 'Delete failed');
         } finally {
             closeConfirmModal();
         }

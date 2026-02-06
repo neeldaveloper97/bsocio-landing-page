@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
@@ -202,7 +203,7 @@ export default function NewsPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
+            showErrorToast(error, 'Upload failed');
             setImagePreview(null);
         } finally {
             setIsUploading(false);
@@ -276,6 +277,10 @@ export default function NewsPage() {
             toast.error('Validation error', { description: 'Please enter an article title' });
             return;
         }
+        if (formData.title.trim().length < 5) {
+            toast.error('Validation error', { description: 'Title must be at least 5 characters' });
+            return;
+        }
         if (!formData.author.trim()) {
             toast.error('Validation error', { description: 'Please enter an author name' });
             return;
@@ -316,10 +321,10 @@ export default function NewsPage() {
         try {
             if (editingArticle) {
                 await updateNews.mutateAsync({ id: editingArticle.id, data: payload });
-                toast.success('Article updated', { description: `${formData.title} has been updated successfully` });
+                showSuccessToast('Article updated', `${formData.title} has been updated successfully`);
             } else {
                 await createNews.mutateAsync(payload);
-                toast.success('Article created', { description: `${formData.title} has been published successfully` });
+                showSuccessToast('Article created', `${formData.title} has been published successfully`);
             }
             // Article saved successfully - clear uploadedImageUrl so closeModal won't delete it
             setUploadedImageUrl(null);
@@ -332,7 +337,7 @@ export default function NewsPage() {
             refetch();
         } catch (error) {
             console.error('Failed to save article:', error);
-            toast.error('Save failed', { description: 'Failed to save article. Please try again.' });
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -369,15 +374,15 @@ export default function NewsPage() {
         try {
             if (confirmModal.type === 'archive') {
                 await archiveNews.mutateAsync(confirmModal.articleId);
-                toast.success('Article archived', { description: `${confirmModal.articleTitle} has been archived` });
+                showSuccessToast('Article archived', `${confirmModal.articleTitle} has been archived`);
             } else if (confirmModal.type === 'delete') {
                 await deleteNews.mutateAsync(confirmModal.articleId);
-                toast.success('Article deleted', { description: `${confirmModal.articleTitle} has been deleted permanently` });
+                showSuccessToast('Article deleted', `${confirmModal.articleTitle} has been deleted permanently`);
             }
             refetch();
         } catch (error) {
             console.error(`Failed to ${confirmModal.type}:`, error);
-            toast.error(`${confirmModal.type === 'archive' ? 'Archive' : 'Delete'} failed`, { description: `Failed to ${confirmModal.type} article. Please try again.` });
+            showErrorToast(error, `${confirmModal.type === 'archive' ? 'Archive' : 'Delete'} failed`);
         } finally {
             closeConfirmModal();
         }
@@ -637,7 +642,7 @@ export default function NewsPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category *</label>
                                     <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as NewsCategory }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                         <SelectContent>

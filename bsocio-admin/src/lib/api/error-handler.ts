@@ -137,8 +137,16 @@ export function parseApiError(error: unknown): ApiException {
       const statusCode = apiError.statusCode || 500;
       const code = getErrorCodeFromStatus(statusCode);
       
+      // Handle message being a string or an array of strings (NestJS validation pipe)
+      let message: string;
+      if (Array.isArray(apiError.message)) {
+        message = apiError.message.join('. ');
+      } else {
+        message = apiError.message || ERROR_MESSAGES[code];
+      }
+      
       return new ApiException(
-        apiError.message || ERROR_MESSAGES[code],
+        message,
         code,
         statusCode,
         apiError.errors,

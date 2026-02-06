@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { useLegal } from '@/hooks';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { LegalDocumentType, LegalDocumentState, LegalDocument } from '@/types';
@@ -85,13 +86,13 @@ export default function LegalPage() {
                 versionNotes: versionNotes.trim() || undefined,
                 state,
             });
-            toast.success(
+            showSuccessToast(
                 state === 'PUBLISHED' ? 'Document published' : 'Draft saved',
-                { description: state === 'PUBLISHED' ? 'Document published successfully!' : 'Document saved as draft!' }
+                state === 'PUBLISHED' ? 'Document published successfully!' : 'Document saved as draft!'
             );
         } catch (error) {
             console.error('Failed to save document:', error);
-            toast.error('Save failed', { description: 'Failed to save document. Please try again.' });
+            showErrorToast(error, 'Save failed');
         } finally {
             setIsSaving(false);
         }
@@ -287,9 +288,9 @@ export default function LegalPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 max-md:grid-cols-1 gap-5">
+                <div className="flex flex-wrap gap-5">
                     {/* Policy Title */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 flex-1 min-w-[280px] max-w-[400px]">
                         <label htmlFor="policyTitle" className="font-sans text-sm font-semibold text-[#374151]">Policy Title</label>
                         <input
                             type="text"
@@ -302,7 +303,7 @@ export default function LegalPage() {
                     </div>
 
                     {/* Effective Date */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 flex-1 min-w-[280px] max-w-[400px]">
                         <label htmlFor="effectiveDate" className="font-sans text-sm font-semibold text-[#374151]">Effective Date</label>
                         <input
                             type="date"
@@ -314,7 +315,7 @@ export default function LegalPage() {
                     </div>
 
                     {/* Content Editor */}
-                    <div className="flex flex-col gap-2 col-span-full">
+                    <div className="flex flex-col gap-2 w-full">
                         <label className="font-sans text-sm font-semibold text-[#374151]">{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
                         {showPreview ? (
                             <div className="min-h-80 p-6 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg overflow-auto">

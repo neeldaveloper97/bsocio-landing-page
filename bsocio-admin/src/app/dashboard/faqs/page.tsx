@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { useFAQs } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
@@ -44,7 +45,7 @@ export default function FAQsPage() {
         limit: PAGE_SIZE,
     }), [sortBy, sortOrder, currentPage]);
 
-    const { faqs, data, isLoading, isError, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
+    const { faqs, data, isLoading, isError, error, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
     const totalFAQs = data?.total ?? faqs.length;
     
     // Confirmation modal state
@@ -132,8 +133,15 @@ export default function FAQsPage() {
     const handleSubmit = async () => {
         if (!question.trim() || !answer.trim()) return;
 
+        let result;
         if (editingFAQ) {
-            await updateFAQ(editingFAQ.id, { question, answer, category, status, state, visibility });
+            result = await updateFAQ(editingFAQ.id, { question, answer, category, status, state, visibility });
+            if (result) {
+                showSuccessToast('FAQ updated', 'FAQ has been updated successfully');
+                closeModal();
+            } else {
+                showErrorToast(error || new Error('Failed to update FAQ'), 'Update failed');
+            }
         } else {
             // Calculate sortOrder - use the max sortOrder + 1, or 1 if no FAQs exist
             const maxSortOrder = faqs.length > 0 ? Math.max(...faqs.map(f => f.sortOrder)) : 0;
@@ -146,9 +154,14 @@ export default function FAQsPage() {
                 visibility, 
                 sortOrder: maxSortOrder + 1 
             };
-            await createFAQ(data);
+            result = await createFAQ(data);
+            if (result) {
+                showSuccessToast('FAQ created', 'FAQ has been created successfully');
+                closeModal();
+            } else {
+                showErrorToast(error || new Error('Failed to create FAQ'), 'Create failed');
+            }
         }
-        closeModal();
     };
 
     const openDeleteConfirm = (faq: FAQ) => {
@@ -169,7 +182,12 @@ export default function FAQsPage() {
 
     const handleConfirmDelete = async () => {
         if (!confirmModal.faqId) return;
-        await deleteFAQ(confirmModal.faqId);
+        const success = await deleteFAQ(confirmModal.faqId);
+        if (success) {
+            showSuccessToast('FAQ deleted', 'FAQ has been removed successfully');
+        } else {
+            showErrorToast(error || new Error('Failed to delete FAQ'), 'Delete failed');
+        }
         closeConfirmModal();
     };
 
@@ -312,7 +330,7 @@ export default function FAQsPage() {
                                     <div className="flex flex-col gap-2">
                                         <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category</label>
                                         <Select value={category} onValueChange={(value) => setCategory(value as FAQCategory)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -326,7 +344,7 @@ export default function FAQsPage() {
                                     <div className="flex flex-col gap-2">
                                         <label htmlFor="status" className="font-sans text-sm font-semibold text-[#374151]">Status</label>
                                         <Select value={status} onValueChange={(value) => setStatus(value as FAQStatus)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select status" />
                                             </SelectTrigger>
                                             <SelectContent>

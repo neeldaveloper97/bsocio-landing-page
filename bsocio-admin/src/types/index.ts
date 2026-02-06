@@ -18,7 +18,7 @@ export interface ApiResponse<T = unknown> {
 
 export interface ApiError {
   success: false;
-  message: string;
+  message: string | string[];
   statusCode: number;
   errors?: Record<string, string[]>;
   timestamp?: string;

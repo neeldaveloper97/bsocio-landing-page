@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
@@ -256,11 +257,13 @@ export default function UsersSystemPage() {
                 id: selectedUser.id,
                 role: selectedRole,
             });
+            showSuccessToast('Role updated', 'User role has been updated successfully');
             setShowAssignRolesModal(false);
             setSelectedUser(null);
             setSelectedRole('');
         } catch (error) {
             console.error('Failed to update role:', error);
+            showErrorToast(error, 'Update failed');
         }
     };
 
@@ -295,10 +298,15 @@ export default function UsersSystemPage() {
                 id: selectedUser.id,
                 isActive: newStatus,
             });
+            showSuccessToast(
+                newStatus ? 'User activated' : 'User deactivated',
+                `User has been ${newStatus ? 'activated' : 'deactivated'} successfully`
+            );
             setShowStatusModal(false);
             setSelectedUser(null);
         } catch (error) {
             console.error('Failed to toggle user status:', error);
+            showErrorToast(error, 'Update failed');
         }
     };
 

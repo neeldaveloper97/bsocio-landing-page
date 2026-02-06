@@ -4,6 +4,7 @@ import { useState, ReactNode, useCallback, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { Power } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { prefetchDashboardData, prefetchAdminActivity } from '@/hooks';
 import { AuthGuard } from './AuthGuard';
@@ -225,9 +226,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="sidebar-footer-section">
                         <button 
                             onClick={handleLogout} 
-                            className="sidebar-logout-btn"
+                            className="sidebar-logout-btn flex items-center justify-center gap-2"
                         >
-                            🚪 Logout
+                            <Power className="w-4 h-4 text-red-500" />
+                            Logout
                         </button>
                     </div>
                 </aside>

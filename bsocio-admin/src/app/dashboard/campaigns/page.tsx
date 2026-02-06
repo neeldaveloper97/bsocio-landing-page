@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import {
     useCampaigns,
     useSendCampaign,
@@ -38,6 +39,33 @@ const AUDIENCE_OPTIONS: { value: EmailAudience; label: string }[] = [
 const SEND_TYPE_OPTIONS: { value: EmailSendType; label: string }[] = [
     { value: 'NOW', label: 'Send Now' },
     { value: 'SCHEDULED', label: 'Schedule for Later' },
+];
+
+const COUNTRY_OPTIONS = [
+    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia',
+    'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus',
+    'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil',
+    'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada',
+    'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+    'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+    'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia',
+    'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada',
+    'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India',
+    'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan',
+    'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia',
+    'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives',
+    'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
+    'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
+    'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia',
+    'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru',
+    'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis',
+    'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+    'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+    'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka',
+    'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
+    'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
+    'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
+    'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
 ];
 
 interface FormData {
@@ -144,8 +172,16 @@ export default function CampaignsPage() {
             toast.error('Validation error', { description: 'Please enter a campaign name' });
             return;
         }
+        if (formData.name.trim().length < 5) {
+            toast.error('Validation error', { description: 'Campaign name must be at least 5 characters' });
+            return;
+        }
         if (!formData.subject.trim()) {
             toast.error('Validation error', { description: 'Please enter an email subject' });
+            return;
+        }
+        if (formData.subject.trim().length < 5) {
+            toast.error('Validation error', { description: 'Email subject must be at least 5 characters' });
             return;
         }
         if (!formData.content.trim()) {
@@ -180,10 +216,10 @@ export default function CampaignsPage() {
             await saveDraft.mutateAsync(requestData);
             await refetch();
             closeModal();
-            toast.success('Draft saved', { description: 'Campaign saved as draft successfully!' });
+            showSuccessToast('Draft saved', 'Campaign saved as draft successfully!');
         } catch (error) {
             console.error('Save draft failed:', error);
-            toast.error('Save failed', { description: 'Failed to save draft. Please try again.' });
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -192,8 +228,16 @@ export default function CampaignsPage() {
             toast.error('Validation error', { description: 'Please enter a campaign name' });
             return;
         }
+        if (formData.name.trim().length < 5) {
+            toast.error('Validation error', { description: 'Campaign name must be at least 5 characters' });
+            return;
+        }
         if (!formData.subject.trim()) {
             toast.error('Validation error', { description: 'Please enter an email subject' });
+            return;
+        }
+        if (formData.subject.trim().length < 5) {
+            toast.error('Validation error', { description: 'Email subject must be at least 5 characters' });
             return;
         }
         if (!formData.content.trim()) {
@@ -232,13 +276,13 @@ export default function CampaignsPage() {
             await sendCampaign.mutateAsync(requestData);
             await refetch();
             closeModal();
-            toast.success(
+            showSuccessToast(
                 formData.sendType === 'NOW' ? 'Campaign sent' : 'Campaign scheduled',
-                { description: formData.sendType === 'NOW' ? 'Campaign sent successfully!' : 'Campaign scheduled successfully!' }
+                formData.sendType === 'NOW' ? 'Campaign sent successfully!' : 'Campaign scheduled successfully!'
             );
         } catch (error) {
             console.error('Send campaign failed:', error);
-            toast.error('Send failed', { description: 'Failed to send campaign. Please try again.' });
+            showErrorToast(error, 'Send failed');
         }
     };
 
@@ -485,7 +529,7 @@ export default function CampaignsPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="audience" className="font-sans text-sm font-semibold text-[#374151]">Audience *</label>
                                     <Select value={formData.audience} onValueChange={(value) => setFormData(prev => ({ ...prev, audience: value as EmailAudience }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select audience" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -498,7 +542,7 @@ export default function CampaignsPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="sendType" className="font-sans text-sm font-semibold text-[#374151]">Send Type *</label>
                                     <Select value={formData.sendType} onValueChange={(value) => setFormData(prev => ({ ...prev, sendType: value as EmailSendType }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select send type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -516,26 +560,25 @@ export default function CampaignsPage() {
                                     <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
                                         <div className="flex flex-col gap-2">
                                             <label htmlFor="filterRole" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Role</label>
-                                            <Select value={formData.filters?.role || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, role: value } }))}>
-                                                <SelectTrigger>
+                                            <Select value={formData.filters?.role || 'all'} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, role: value === 'all' ? '' : value } }))}>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="All Roles" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">All Roles</SelectItem>
+                                                    <SelectItem value="all">All Roles</SelectItem>
                                                     <SelectItem value="USER">Users</SelectItem>
-                                                    <SelectItem value="ORGANIZER">Organizers</SelectItem>
                                                     <SelectItem value="ADMIN">Admins</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             <label htmlFor="filterStatus" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Status</label>
-                                            <Select value={formData.filters?.status || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, status: value } }))}>
-                                                <SelectTrigger>
+                                            <Select value={formData.filters?.status || 'all'} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, status: value === 'all' ? '' : value } }))}>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="All Statuses" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">All Statuses</SelectItem>
+                                                    <SelectItem value="all">All Statuses</SelectItem>
                                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                                     <SelectItem value="INACTIVE">Inactive</SelectItem>
                                                     <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -545,18 +588,17 @@ export default function CampaignsPage() {
                                     </div>
                                     <div className="flex flex-col gap-2 mt-4">
                                         <label htmlFor="filterCountry" className="font-sans text-xs font-medium text-[#6B7280]">Filter by Country</label>
-                                        <input
-                                            type="text"
-                                            id="filterCountry"
-                                            name="filterCountry"
-                                            className="py-2.5 px-3 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
-                                            placeholder="e.g., USA, Canada, UK"
-                                            value={formData.filters?.country || ''}
-                                            onChange={(e) => setFormData(prev => ({
-                                                ...prev,
-                                                filters: { ...prev.filters, country: e.target.value }
-                                            }))}
-                                        />
+                                        <Select value={formData.filters?.country || 'all'} onValueChange={(value) => setFormData(prev => ({ ...prev, filters: { ...prev.filters, country: value === 'all' ? '' : value } }))}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="All Countries" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[200px]">
+                                                <SelectItem value="all">All Countries</SelectItem>
+                                                {COUNTRY_OPTIONS.map(country => (
+                                                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <p className="text-xs text-[#6B7280] mt-2">💡 Only users matching these filters will receive this campaign</p>
                                 </div>

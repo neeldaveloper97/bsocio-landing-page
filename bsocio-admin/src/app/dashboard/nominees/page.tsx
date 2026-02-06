@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { 
     useAwardCategories,
@@ -168,7 +169,7 @@ export default function NomineesPage() {
             setUploadedImageUrl(imageUrl);
         } catch (error) {
             console.error('Upload failed:', error);
-            toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' });
+            showErrorToast(error, 'Upload failed');
         } finally {
             setIsUploading(false);
         }
@@ -235,6 +236,10 @@ export default function NomineesPage() {
             toast.error('Validation error', { description: 'Please enter a name' });
             return;
         }
+        if (formData.name.trim().length > 100) {
+            toast.error('Validation error', { description: 'Name must be 100 characters or less' });
+            return;
+        }
         if (!formData.categoryId) {
             toast.error('Validation error', { description: 'Please select a category' });
             return;
@@ -254,17 +259,17 @@ export default function NomineesPage() {
         try {
             if (editingNominee) {
                 await updateNominee({ id: editingNominee.id, data: payload });
-                toast.success('Nominee updated', { description: `${formData.name} has been updated successfully` });
+                showSuccessToast('Nominee updated', `${formData.name} has been updated successfully`);
             } else {
                 await createNominee(payload);
-                toast.success('Nominee created', { description: `${formData.name} has been added successfully` });
+                showSuccessToast('Nominee created', `${formData.name} has been added successfully`);
             }
             setUploadedImageUrl(null);
             closeModal();
             refetch();
         } catch (error) {
             console.error('Failed to save nominee:', error);
-            toast.error('Save failed', { description: 'Failed to save nominee. Please try again.' });
+            showErrorToast(error, 'Save failed');
         }
     };
 
@@ -291,11 +296,11 @@ export default function NomineesPage() {
 
         try {
             await deleteNominee(confirmModal.nomineeId);
-            toast.success('Nominee deleted', { description: `${confirmModal.nomineeName} has been removed` });
+            showSuccessToast('Nominee deleted', `${confirmModal.nomineeName} has been removed`);
             refetch();
         } catch (error) {
             console.error('Failed to delete:', error);
-            toast.error('Delete failed', { description: 'Failed to delete nominee. Please try again.' });
+            showErrorToast(error, 'Delete failed');
         } finally {
             closeConfirmModal();
         }
@@ -384,6 +389,7 @@ export default function NomineesPage() {
                                             sizes="40px"
                                             className="object-cover"
                                             loading="lazy"
+                                            quality={75}
                                         />
                                     </div>
                                 ) : (
@@ -517,7 +523,7 @@ export default function NomineesPage() {
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="categoryId" className="font-sans text-sm font-semibold text-[#374151]">Award Category *</label>
                                     <Select value={formData.categoryId} onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -574,6 +580,8 @@ export default function NomineesPage() {
                                                 fill
                                                 sizes="96px"
                                                 className="rounded-full object-cover"
+                                                priority
+                                                quality={85}
                                             />
                                             <button
                                                 type="button"
