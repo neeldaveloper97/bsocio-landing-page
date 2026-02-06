@@ -18,7 +18,7 @@ export const queryKeys = {
   
   // Admin Activity
   activity: {
-    list: (skip: number, take: number, filter?: string, type?: string, search?: string) => ['activity', 'list', skip, take, filter, type, search] as const,
+    list: (skip: number, take: number, filter?: string, type?: string, search?: string, includeLogin?: boolean) => ['activity', 'list', skip, take, filter, type, search, includeLogin] as const,
     infinite: (filter?: string) => ['activity', 'infinite', filter] as const,
   },
   

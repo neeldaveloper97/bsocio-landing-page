@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
   // Admin Activity
   ADMIN: {
     ACTIVITY: '/admin-dashboard/activity',
+    ACTIVITY_STATS: '/admin-dashboard/activity/stats',
     USERS: {
       BASE: '/admin/users',
       STATS: '/admin/users/stats',

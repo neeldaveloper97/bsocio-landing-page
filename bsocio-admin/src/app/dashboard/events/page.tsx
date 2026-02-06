@@ -34,6 +34,13 @@ const formatDateForInput = (dateString: string): string => {
     return date.toISOString().split('T')[0];
 };
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 // Determine status based on event date
 const getEventStatus = (eventDate: string): 'upcoming' | 'ongoing' | 'past' => {
     const date = new Date(eventDate);
@@ -289,15 +296,22 @@ export default function EventsPage() {
                         header: 'Event Name',
                         width: '25%',
                         render: (event) => (
-                            <div>
-                                <strong>{event.title}</strong>
+                            <div title={event.title}>
+                                <strong>{truncateText(event.title, 25)}</strong>
                                 {event.visibility === 'PRIVATE' && (
                                     <span className="text-xs text-[#6B7280] ml-2">🔒</span>
                                 )}
                             </div>
                         )
                     },
-                    { key: 'venue', header: 'Venue', width: '20%' },
+                    { 
+                        key: 'venue', 
+                        header: 'Venue', 
+                        width: '20%',
+                        render: (event) => (
+                            <span title={event.venue}>{truncateText(event.venue, 20)}</span>
+                        )
+                    },
                     { 
                         key: 'eventDate', 
                         header: 'Date',
@@ -331,13 +345,13 @@ export default function EventsPage() {
                     {
                         key: 'actions',
                         header: 'Actions',
-                        width: '13%',
+                        align: 'center',
                         render: (event) => (
-                            <div className="flex items-center gap-2">
-                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Edit" onClick={() => openEditModal(event)}>
+                            <div className="flex items-center gap-2 justify-center">
+                                <button type="button" className="action-btn" title="Edit" onClick={() => openEditModal(event)}>
                                     <EditIcon />
                                 </button>
-                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Delete" onClick={() => openDeleteModal(event)}>
+                                <button type="button" className="action-btn" title="Delete" onClick={() => openDeleteModal(event)}>
                                     <DeleteIcon />
                                 </button>
                             </div>

@@ -28,6 +28,7 @@ export { useAdminActivity } from './useAdminActivity';
 export {
   useDashboardOptimized,
   useAdminActivityOptimized,
+  useAdminActivityStatsOptimized,
   useFAQsOptimized,
   useLegalOptimized,
   useAnalyticsOptimized,

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Download, Users, AlertCircle, Power, Edit2 } from 'lucide-react';
 import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers, useToggleAdminUserStatus } from '@/hooks';
-import { useAdminActivityOptimized, useExportAdminActivity } from '@/hooks';
+import { useAdminActivityOptimized, useAdminActivityStatsOptimized, useExportAdminActivity } from '@/hooks';
 import type { AdminUser, AdminRoleKey, AdminActivity } from '@/types';
 
 // ============================================
@@ -33,6 +33,7 @@ const ROLE_OPTIONS: { value: AdminRoleKey | 'all'; label: string }[] = [
 
 const LOG_TYPE_OPTIONS = [
     { value: 'all', label: 'All Types' },
+    { value: 'USER_LOGIN', label: 'User Login' },
     { value: 'FAQ_CREATED', label: 'FAQ Created' },
     { value: 'FAQ_UPDATED', label: 'FAQ Updated' },
     { value: 'NEWS_CREATED', label: 'News Created' },
@@ -43,12 +44,28 @@ const LOG_TYPE_OPTIONS = [
     { value: 'LEGAL_UPDATED', label: 'Legal Updated' },
 ];
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 // ============================================
 // BADGE COMPONENTS
 // ============================================
 
+// Helper function to format role names (removes underscores and capitalizes properly)
+const formatRoleName = (role: string): string => {
+    // If already properly formatted (has spaces), return as-is
+    if (role.includes(' ')) return role;
+    // Convert SUPER_ADMIN -> Super Admin
+    return role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+};
+
 const RoleBadge = ({ role }: { role: string }) => {
-    const isSuperAdmin = role === 'Super Admin';
+    const formattedRole = formatRoleName(role);
+    const isSuperAdmin = formattedRole === 'Super Admin';
     return (
         <span
             className={cn(
@@ -58,7 +75,7 @@ const RoleBadge = ({ role }: { role: string }) => {
                     : "bg-gray-100 text-gray-700 border border-gray-200"
             )}
         >
-            {role}
+            {formattedRole}
         </span>
     );
 };
@@ -188,7 +205,11 @@ export default function UsersSystemPage() {
         take: LOG_PAGE_SIZE,
         type: logTypeFilter !== 'all' ? logTypeFilter : undefined,
         search: logSearchQuery || undefined,
+        includeLogin: true, // System Logs page should show ALL logs including login
     });
+
+    // Activity stats for dashboard
+    const { data: activityStats } = useAdminActivityStatsOptimized();
 
     // Lock body scroll when any modal is open
     useEffect(() => {
@@ -290,14 +311,14 @@ export default function UsersSystemPage() {
             key: 'name',
             header: 'Name',
             render: (user) => (
-                <span className="font-semibold text-gray-900 line-clamp-2 max-w-[180px]">{user.name}</span>
+                <span className="font-semibold text-gray-900" title={user.name}>{truncateText(user.name, 12)}</span>
             ),
         },
         {
             key: 'email',
             header: 'Email',
             render: (user) => (
-                <span className="text-gray-600 line-clamp-1 max-w-[200px]" title={user.email}>{user.email}</span>
+                <span className="text-gray-600" title={user.email}>{truncateText(user.email, 18)}</span>
             ),
         },
         {
@@ -309,8 +330,8 @@ export default function UsersSystemPage() {
             key: 'permissions',
             header: 'Permissions',
             render: (user) => (
-                <span className="text-gray-600 line-clamp-2 max-w-[180px]" title={user.permissions.join(', ')}>
-                    {user.permissions.join(', ')}
+                <span className="text-gray-600" title={user.permissions.join(', ')}>
+                    {truncateText(user.permissions.join(', '), 15)}
                 </span>
             ),
         },
@@ -338,7 +359,8 @@ export default function UsersSystemPage() {
             render: (user) => (
                 <div className="flex items-center gap-2 justify-center">
                     <button
-                        className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-800 transition-colors"
+                        type="button"
+                        className="action-btn text-blue-600 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-200"
                         onClick={() => {
                             setSelectedUser(user);
                             setSelectedRole(user.roleKey);
@@ -349,13 +371,14 @@ export default function UsersSystemPage() {
                         <Edit2 className="w-4 h-4" />
                     </button>
                     <button
+                        type="button"
                         className={cn(
-                            "p-2 rounded-lg transition-colors",
+                            "action-btn",
                             user.roleKey === 'SUPER_ADMIN'
                                 ? "text-gray-300 cursor-not-allowed"
                                 : user.status === 'active'
-                                    ? "text-red-500 hover:bg-red-50 hover:text-red-700"
-                                    : "text-green-500 hover:bg-green-50 hover:text-green-700"
+                                    ? "text-red-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                                    : "text-green-500 hover:bg-green-50 hover:text-green-700 hover:border-green-200"
                         )}
                         onClick={() => handleToggleStatus(user)}
                         disabled={toggleStatusMutation.isPending || user.roleKey === 'SUPER_ADMIN'}
@@ -378,14 +401,14 @@ export default function UsersSystemPage() {
             key: 'adminEmail',
             header: 'User',
             render: (log) => (
-                <span className="text-gray-700">{log.adminEmail}</span>
+                <span className="text-gray-700" title={log.adminEmail}>{truncateText(log.adminEmail, 15)}</span>
             ),
         },
         {
             key: 'title',
             header: 'Action',
             render: (log) => (
-                <span className="text-gray-600 max-w-[300px] truncate block">{log.title}</span>
+                <span className="text-gray-600" title={log.title}>{truncateText(log.title, 25)}</span>
             ),
         },
         {
@@ -448,32 +471,32 @@ export default function UsersSystemPage() {
                     {/* Stats Cards - Using data from users list */}
                     <div className="stats-grid-4">
                         <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#2563EB]">👥</div>
-                            <div className="stat-value-responsive">
-                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : usersData?.total || 0}
-                            </div>
-                            <div className="stat-label-responsive">Total Admins</div>
-                        </div>
-                        <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#10B981]">👑</div>
+                            <div className="stat-icon-responsive text-[#2563EB]">👑</div>
                             <div className="stat-value-responsive">
                                 {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'SUPER_ADMIN').length}
                             </div>
-                            <div className="stat-label-responsive">Super Admins</div>
+                            <div className="stat-label-responsive">Super Admin</div>
                         </div>
                         <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#2563EB]">📝</div>
+                            <div className="stat-icon-responsive text-[#10B981]">📝</div>
                             <div className="stat-value-responsive">
                                 {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'CONTENT_ADMIN').length}
                             </div>
-                            <div className="stat-label-responsive">Content Admins</div>
+                            <div className="stat-label-responsive">Content Manager</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#F59E0B]">📢</div>
                             <div className="stat-value-responsive">
                                 {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'COMMUNICATIONS_ADMIN').length}
                             </div>
-                            <div className="stat-label-responsive">Communications</div>
+                            <div className="stat-label-responsive">Communications Manager</div>
+                        </div>
+                        <div className="stat-card-responsive">
+                            <div className="stat-icon-responsive text-[#6366F1]">📊</div>
+                            <div className="stat-value-responsive">
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'ANALYTICS_VIEWER').length}
+                            </div>
+                            <div className="stat-label-responsive">Analytics Viewer</div>
                         </div>
                     </div>
 
@@ -498,18 +521,16 @@ export default function UsersSystemPage() {
                             totalPages={userTotalPages}
                             onPageChange={setUserCurrentPage}
                             headerActions={
-                                <div className="flex items-center gap-3">
-                                    <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="All Roles" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ROLE_OPTIONS.map(opt => (
-                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Roles" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {ROLE_OPTIONS.map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             }
                         />
                     )}
@@ -525,23 +546,23 @@ export default function UsersSystemPage() {
                     <div className="stats-grid-4">
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#2563EB]">📋</div>
-                            <div className="stat-value-responsive">{logTotal.toLocaleString()}</div>
+                            <div className="stat-value-responsive">{(activityStats?.totalLogs ?? logTotal).toLocaleString()}</div>
                             <div className="stat-label-responsive">Total Logs</div>
                         </div>
                         <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#10B981]">✅</div>
-                            <div className="stat-value-responsive">{logTotal.toLocaleString()}</div>
-                            <div className="stat-label-responsive">Activity Records</div>
+                            <div className="stat-icon-responsive text-[#10B981]">🔐</div>
+                            <div className="stat-value-responsive">{(activityStats?.loginActivity ?? 0).toLocaleString()}</div>
+                            <div className="stat-label-responsive">Login Activity</div>
                         </div>
                         <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#2563EB]">📄</div>
-                            <div className="stat-value-responsive">{LOG_PAGE_SIZE}</div>
-                            <div className="stat-label-responsive">Page Size</div>
+                            <div className="stat-icon-responsive text-[#6366F1]">📝</div>
+                            <div className="stat-value-responsive">{(activityStats?.contentChanges ?? 0).toLocaleString()}</div>
+                            <div className="stat-label-responsive">Content Changes</div>
                         </div>
                         <div className="stat-card-responsive">
-                            <div className="stat-icon-responsive text-[#F59E0B]">📑</div>
-                            <div className="stat-value-responsive">{logCurrentPage + 1}</div>
-                            <div className="stat-label-responsive">Current Page</div>
+                            <div className="stat-icon-responsive text-[#F59E0B]">📧</div>
+                            <div className="stat-value-responsive">{(activityStats?.emailCampaigns ?? 0).toLocaleString()}</div>
+                            <div className="stat-label-responsive">Email Campaigns</div>
                         </div>
                     </div>
 
@@ -566,9 +587,9 @@ export default function UsersSystemPage() {
                             totalPages={logTotalPages}
                             onPageChange={setLogCurrentPage}
                             headerActions={
-                                <div className="flex items-center gap-2 flex-nowrap">
+                                <>
                                     <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>
-                                        <SelectTrigger className="w-[140px] min-w-[140px]">
+                                        <SelectTrigger className="w-[130px] min-w-[100px]">
                                             <SelectValue placeholder="All Types" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -578,14 +599,14 @@ export default function UsersSystemPage() {
                                         </SelectContent>
                                     </Select>
                                     <button 
-                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 whitespace-nowrap"
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 whitespace-nowrap"
                                         onClick={handleExportLogs}
                                         disabled={exportLogsMutation.isPending}
                                     >
                                         <Download className="w-4 h-4" />
-                                        {exportLogsMutation.isPending ? 'Exporting...' : 'Export'}
+                                        <span className="hidden sm:inline">{exportLogsMutation.isPending ? 'Exporting...' : 'Export'}</span>
                                     </button>
-                                </div>
+                                </>
                             }
                         />
                     )}

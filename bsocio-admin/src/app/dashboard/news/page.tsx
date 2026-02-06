@@ -521,7 +521,8 @@ export default function NewsPage() {
                         render: (article) => (
                             <div className="flex items-center gap-2 justify-center">
                                 <button
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    type="button"
+                                    className="action-btn"
                                     title="Edit"
                                     aria-label={`Edit ${article.title}`}
                                     onClick={() => openEditModal(article)}
@@ -529,7 +530,8 @@ export default function NewsPage() {
                                     <EditIcon />
                                 </button>
                                 <button
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed"
+                                    type="button"
+                                    className="action-btn disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={article.status === 'ARCHIVED' ? 'Already Archived' : 'Archive'}
                                     aria-label={`Archive ${article.title}`}
                                     onClick={() => openArchiveConfirm(article)}
@@ -538,7 +540,8 @@ export default function NewsPage() {
                                     <ArchiveIcon />
                                 </button>
                                 <button
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    type="button"
+                                    className="action-btn"
                                     title="Delete"
                                     aria-label={`Delete ${article.title}`}
                                     onClick={() => openDeleteConfirm(article)}

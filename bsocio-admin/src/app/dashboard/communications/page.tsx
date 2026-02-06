@@ -22,6 +22,13 @@ const REASON_LABELS: Record<ContactReason, string> = {
     'GENERAL_INQUIRY': 'General Inquiry',
 };
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 export default function CommunicationsPage() {
     const [statusFilter, setStatusFilter] = useState<ContactStatus | ''>('');
     const [reasonFilter, setReasonFilter] = useState<ContactReason | ''>('');
@@ -42,7 +49,7 @@ export default function CommunicationsPage() {
         };
     }, [showDetailModal]);
 
-    // Hooks
+    // Hooks - fetch current page with filters
     const { data: contactsData, isLoading } = useContacts({
         status: statusFilter || undefined,
         reason: reasonFilter || undefined,
@@ -50,13 +57,25 @@ export default function CommunicationsPage() {
         take: pageSize,
     });
 
+    // Fetch all contacts for accurate counts (without pagination)
+    const { data: allContactsData } = useContacts({
+        take: 1000, // Fetch all for counts
+    });
+
     const contacts = contactsData?.items || [];
     const total = contactsData?.total || 0;
 
-    // Calculate stats (client-side estimate based on current filters)
-    const newCount = contacts.filter((c: ContactInquiry) => c.status === 'NEW').length;
-    const inProgressCount = contacts.filter((c: ContactInquiry) => c.status === 'IN_PROGRESS').length;
-    const resolvedCount = contacts.filter((c: ContactInquiry) => c.status === 'RESOLVED').length;
+    // Calculate stats from all contacts (for accurate filter counts)
+    const allContacts = allContactsData?.items || [];
+    const newCount = allContacts.filter((c: ContactInquiry) => c.status === 'NEW').length;
+    const inProgressCount = allContacts.filter((c: ContactInquiry) => c.status === 'IN_PROGRESS').length;
+    const resolvedCount = allContacts.filter((c: ContactInquiry) => c.status === 'RESOLVED').length;
+    
+    // Reason counts
+    const mediaPressCount = allContacts.filter((c: ContactInquiry) => c.reason === 'MEDIA_PRESS').length;
+    const partnershipsCount = allContacts.filter((c: ContactInquiry) => c.reason === 'PARTNERSHIPS').length;
+    const reportScamCount = allContacts.filter((c: ContactInquiry) => c.reason === 'REPORT_SCAM').length;
+    const generalInquiryCount = allContacts.filter((c: ContactInquiry) => c.reason === 'GENERAL_INQUIRY').length;
 
     const getStatusBadge = (status: ContactStatus) => {
         switch (status) {
@@ -167,11 +186,10 @@ export default function CommunicationsPage() {
                         header: 'Name',
                         render: (inquiry) => (
                             <span 
-                                className="line-clamp-2 max-w-[180px]" 
                                 style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}
                                 title={inquiry.fullName}
                             >
-                                {inquiry.fullName}
+                                {truncateText(inquiry.fullName, 15)}
                             </span>
                         ),
                     },
@@ -179,8 +197,8 @@ export default function CommunicationsPage() {
                         key: 'email',
                         header: 'Email',
                         render: (inquiry) => (
-                            <span className="line-clamp-1 max-w-[180px]" title={inquiry.email}>
-                                {inquiry.email}
+                            <span title={inquiry.email}>
+                                {truncateText(inquiry.email, 18)}
                             </span>
                         ),
                     },
@@ -193,8 +211,8 @@ export default function CommunicationsPage() {
                         key: 'country',
                         header: 'Country',
                         render: (inquiry) => (
-                            <span className="line-clamp-1 max-w-[120px]" title={inquiry.country}>
-                                {inquiry.country}
+                            <span title={inquiry.country}>
+                                {truncateText(inquiry.country, 15)}
                             </span>
                         ),
                     },
@@ -232,7 +250,7 @@ export default function CommunicationsPage() {
                 title="Contact Inquiries"
                 totalCount={total}
                 headerActions={
-                    <div className="flex items-center gap-3">
+                    <>
                         <Select 
                             value={statusFilter || 'all'} 
                             onValueChange={(value) => {
@@ -245,9 +263,9 @@ export default function CommunicationsPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="NEW">New</SelectItem>
-                                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                                <SelectItem value="RESOLVED">Resolved</SelectItem>
+                                <SelectItem value="NEW" disabled={newCount === 0}>New ({newCount})</SelectItem>
+                                <SelectItem value="IN_PROGRESS" disabled={inProgressCount === 0}>In Progress ({inProgressCount})</SelectItem>
+                                <SelectItem value="RESOLVED" disabled={resolvedCount === 0}>Resolved ({resolvedCount})</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select 
@@ -262,13 +280,13 @@ export default function CommunicationsPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Reasons</SelectItem>
-                                <SelectItem value="MEDIA_PRESS">Media/Press</SelectItem>
-                                <SelectItem value="PARTNERSHIPS">Partnerships</SelectItem>
-                                <SelectItem value="REPORT_SCAM">Report Scam</SelectItem>
-                                <SelectItem value="GENERAL_INQUIRY">General Inquiry</SelectItem>
+                                <SelectItem value="MEDIA_PRESS" disabled={mediaPressCount === 0}>Media/Press ({mediaPressCount})</SelectItem>
+                                <SelectItem value="PARTNERSHIPS" disabled={partnershipsCount === 0}>Partnerships ({partnershipsCount})</SelectItem>
+                                <SelectItem value="REPORT_SCAM" disabled={reportScamCount === 0}>Report Scam ({reportScamCount})</SelectItem>
+                                <SelectItem value="GENERAL_INQUIRY" disabled={generalInquiryCount === 0}>General Inquiry ({generalInquiryCount})</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
+                    </>
                 }
                 emptyIcon="✉️"
                 emptyTitle="No inquiries found"
@@ -283,18 +301,18 @@ export default function CommunicationsPage() {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[640px] max-sm:max-w-[95vw] max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative flex-shrink-0">
-                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Inquiry Details</h2>
+                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0 truncate max-w-[80%]">Inquiry Details</h2>
                             <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeDetailModal}>×</button>
                         </div>
-                        <div className="p-6 max-sm:p-4 overflow-y-auto flex-1">
-                            <div className="space-y-4">
+                        <div className="p-6 max-sm:p-4 overflow-y-auto flex-1 min-w-0">
+                            <div className="space-y-4 w-full overflow-hidden">
                                 <div className="flex flex-col gap-1">
                                     <span className="text-sm font-medium text-gray-500">Name</span>
-                                    <span className="text-gray-900 break-all">{selectedInquiry.fullName}</span>
+                                    <span className="text-gray-900 break-words overflow-hidden">{selectedInquiry.fullName}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <span className="text-sm font-medium text-gray-500">Email</span>
-                                    <span className="text-gray-900 break-all">
+                                    <span className="text-gray-900 break-all overflow-hidden">
                                         <a href={`mailto:${selectedInquiry.email}`} className="text-blue-600 hover:underline">{selectedInquiry.email}</a>
                                     </span>
                                 </div>

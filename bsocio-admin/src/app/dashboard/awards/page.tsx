@@ -9,7 +9,8 @@ import {
     useCreateAwardCategory, 
     useUpdateAwardCategory, 
     useDeleteAwardCategory,
-    useAwardsStatistics 
+    useAwardsStatistics,
+    useEventStatistics 
 } from '@/hooks';
 import type { AwardCategory, CreateAwardCategoryRequest, AwardCategoryStatus } from '@/types';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -25,6 +26,13 @@ import {
 // ICON COMPONENTS
 // ============================================
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 function CategoryIcon({ icon, color }: { icon?: string; color?: string }) {
     const bgColor = color || '#1F6AE1';
     return (
@@ -37,13 +45,18 @@ function CategoryIcon({ icon, color }: { icon?: string; color?: string }) {
     );
 }
 
-function StatCard({ label, value, color = 'text-foreground' }: { label: string; value: number | string; color?: string }) {
-    return (
-        <div className="bg-white rounded-xl border border-border p-5">
+function StatCard({ label, value, color = 'text-foreground', href }: { label: string; value: number | string; color?: string; href?: string }) {
+    const content = (
+        <div className={`bg-white rounded-xl border border-border p-5 ${href ? 'cursor-pointer hover:border-primary hover:shadow-md transition-all' : ''}`}>
             <p className="text-sm text-muted-foreground mb-1">{label}</p>
             <p className={`text-3xl font-bold ${color}`}>{value}</p>
         </div>
     );
+    
+    if (href) {
+        return <Link href={href}>{content}</Link>;
+    }
+    return content;
 }
 
 function QuickActionCard({ icon, title, description, onClick }: { icon: React.ReactNode; title: string; description: string; onClick: () => void }) {
@@ -68,6 +81,7 @@ export default function AwardsPage() {
     const { data, isLoading, refetch } = useAwardCategories();
     const categories = data?.items ?? [];
     const { data: statistics } = useAwardsStatistics();
+    const { data: eventStats } = useEventStatistics();
     const { mutateAsync: createCategory, isPending: isCreating } = useCreateAwardCategory();
     const { mutateAsync: updateCategory, isPending: isUpdating } = useUpdateAwardCategory();
     const { mutateAsync: deleteCategory, isPending: isDeleting } = useDeleteAwardCategory();
@@ -101,7 +115,7 @@ export default function AwardsPage() {
     const totalCategories = statistics?.totalCategories || categories?.length || 0;
     const totalNominees = statistics?.totalNominees || 0;
     const activeAwards = statistics?.activeAwards || 0;
-    const upcomingCeremonies = statistics?.upcomingCeremonies || 0;
+    const upcomingCeremonies = eventStats?.upcomingEvents || 0;
 
     const resetForm = () => {
         setFormData({ name: '', description: '', icon: '🏆', color: '#1F6AE1', status: 'ACTIVE' });
@@ -171,14 +185,14 @@ export default function AwardsPage() {
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard label="Total Categories" value={totalCategories} color="text-primary" />
-                <StatCard label="Total Nominees" value={totalNominees} />
+                <StatCard label="Total Nominees" value={totalNominees} href="/dashboard/nominees" />
                 <StatCard label="Active Awards" value={activeAwards} color="text-primary" />
-                <StatCard label="Upcoming Ceremonies" value={upcomingCeremonies} color="text-primary" />
+                <StatCard label="Upcoming Ceremonies" value={upcomingCeremonies} color="text-primary" href="/dashboard/events" />
             </div>
 
             {/* Award Categories Section */}
-            <div className="bg-white rounded-xl border border-border p-6 mb-8 w-full">
-                <h2 className="text-lg font-semibold text-foreground mb-6">Award Categories</h2>
+            <div className="bg-white rounded-xl border border-border p-4 sm:p-6 mb-8 w-full overflow-hidden">
+                <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">Award Categories</h2>
                 
                 {isLoading ? (
                     <div className="space-y-4 w-full">
@@ -198,14 +212,14 @@ export default function AwardsPage() {
                         {categories.map((category) => (
                             <div 
                                 key={category.id} 
-                                className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/30 transition-all"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl border border-border hover:border-primary/30 transition-all gap-4"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                     <CategoryIcon icon={category.icon} color={category.color} />
-                                    <div>
-                                        <h3 className="font-semibold text-foreground">{category.name}</h3>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">{category.description}</p>
-                                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-semibold text-foreground" title={category.name}>{truncateText(category.name, 30)}</h3>
+                                        <p className="text-sm text-muted-foreground" title={category.description}>{truncateText(category.description || '', 50)}</p>
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -225,7 +239,7 @@ export default function AwardsPage() {
                                     </div>
                                 </div>
                                 <button 
-                                    className="px-3 py-1.5 text-sm bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors"
+                                    className="w-full sm:w-auto px-4 py-2 text-sm bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors shrink-0"
                                     onClick={() => openEditModal(category)}
                                 >
                                     Manage Category
@@ -241,9 +255,9 @@ export default function AwardsPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-xl border border-border p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-6">Quick Actions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-border p-4 sm:p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">Quick Actions</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <QuickActionCard
                         icon={<span>○</span>}
                         title="Add New Category"
@@ -258,12 +272,14 @@ export default function AwardsPage() {
                             onClick={() => {}}
                         />
                     </Link>
-                    <QuickActionCard
-                        icon={<span>🎭</span>}
-                        title="Award Ceremony"
-                        description="Schedule new ceremony"
-                        onClick={() => toast.info('Coming soon', { description: 'Ceremony scheduling feature is coming soon!' })}
-                    />
+                   <Link href="/dashboard/events">
+                        <QuickActionCard
+                            icon={<span>🎭</span>}
+                            title="Award Ceremony"
+                            description="Schedule new ceremony"
+                            onClick={() => {}}
+                        />
+                    </Link>
                 </div>
             </div>
 

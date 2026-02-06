@@ -5,9 +5,11 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Simple Select wrapper - no Portal used in SelectContent to avoid scroll locking
+/**
+ * Select - Simple wrapper around Radix Select
+ * Uses item-aligned position by default to prevent scroll lock displacement
+ */
 const Select = SelectPrimitive.Root
-Select.displayName = "Select"
 
 const SelectGroup = SelectPrimitive.Group
 
@@ -20,8 +22,8 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "select-trigger flex h-10 w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      "max-sm:h-9 max-sm:px-2.5 max-sm:py-1.5 max-sm:text-xs max-sm:gap-1.5",
+      "select-trigger flex h-10 w-fit min-w-[120px] items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "max-sm:h-9 max-sm:px-2.5 max-sm:py-1.5 max-sm:text-xs max-sm:gap-1.5 max-sm:min-w-[100px]",
       className
     )}
     {...props}
@@ -72,26 +74,80 @@ SelectScrollDownButton.displayName =
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Content
-    ref={ref}
-    className={cn(
-      "relative z-[9999] max-h-[280px] min-w-[var(--radix-select-trigger-width)] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg",
-      "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-      "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
-      position === "popper" &&
-        "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-      className
-    )}
-    position={position}
-    sideOffset={4}
-    {...props}
-  >
-    <SelectPrimitive.Viewport className="p-1">
-      {children}
-    </SelectPrimitive.Viewport>
-  </SelectPrimitive.Content>
-))
+>(({ className, children, position = "popper", ...props }, ref) => {
+  // Effect to prevent Radix scroll lock from causing displacement
+  React.useLayoutEffect(() => {
+    // Store original styles
+    const originalHtmlStyle = document.documentElement.style.cssText
+    const originalBodyStyle = document.body.style.cssText
+    
+    // Create a MutationObserver to catch and immediately revert scroll lock changes
+    const observer = new MutationObserver(() => {
+      // Remove any padding-right/margin-right that Radix adds for scrollbar compensation
+      if (document.documentElement.style.paddingRight) {
+        document.documentElement.style.paddingRight = ''
+      }
+      if (document.body.style.paddingRight) {
+        document.body.style.paddingRight = ''
+      }
+      if (document.documentElement.style.marginRight) {
+        document.documentElement.style.marginRight = ''
+      }
+      if (document.body.style.marginRight) {
+        document.body.style.marginRight = ''
+      }
+      // Don't lock overflow for Select - keep page scrollable
+      if (document.documentElement.style.overflow === 'hidden' && !document.body.classList.contains('modal-open')) {
+        document.documentElement.style.overflow = ''
+      }
+      if (document.body.style.overflow === 'hidden' && !document.body.classList.contains('modal-open')) {
+        document.body.style.overflow = ''
+      }
+    })
+
+    // Observe both html and body for style and attribute changes
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['style', 'data-scroll-locked'] 
+    })
+    observer.observe(document.body, { 
+      attributes: true, 
+      attributeFilter: ['style', 'data-scroll-locked'] 
+    })
+
+    return () => {
+      observer.disconnect()
+      // Restore original styles if needed (only if no modal is open)
+      if (!document.body.classList.contains('modal-open')) {
+        document.documentElement.style.cssText = originalHtmlStyle
+        document.body.style.cssText = originalBodyStyle
+      }
+    }
+  }, [])
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={ref}
+        className={cn(
+          "relative z-[99999] max-h-[280px] min-w-[var(--radix-select-trigger-width)] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
+          position === "popper" &&
+            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          className
+        )}
+        position={position}
+        sideOffset={4}
+        {...props}
+      >
+        <SelectPrimitive.Viewport className="p-1">
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  )
+})
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectLabel = React.forwardRef<

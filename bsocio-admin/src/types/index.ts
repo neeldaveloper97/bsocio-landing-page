@@ -177,11 +177,19 @@ export interface AdminActivityRequest {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  includeLogin?: boolean;
 }
 
 export interface AdminActivityResponse {
   activities: AdminActivity[];
   total: number;
+}
+
+export interface AdminActivityStats {
+  totalLogs: number;
+  loginActivity: number;
+  contentChanges: number;
+  emailCampaigns: number;
 }
 
 // ============================================

@@ -46,17 +46,21 @@ export class AdminActivityService {
     search?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    includeLogin?: boolean;
   }) {
-    const { skip = 0, take = 10, filter, type, search, sortBy, sortOrder } = params;
+    const { skip = 0, take = 10, filter, type, search, sortBy, sortOrder, includeLogin = false } = params;
 
     const dateFrom = this.getDateFilter(filter);
 
-    // Only get activities from admin role users (exclude USER_LOGIN type and non-admin actors)
+    // Only get activities from admin role users
+    // Exclude USER_LOGIN type by default unless includeLogin is true or type filter is set
     const where: any = {
-      // Exclude USER_LOGIN type unless specifically filtered
+      // Exclude USER_LOGIN type unless specifically filtered or includeLogin is true
       ...(type && type !== 'all'
         ? { type: type as AdminActivityType }
-        : { type: { not: AdminActivityType.USER_LOGIN } }),
+        : includeLogin 
+          ? {} 
+          : { type: { not: AdminActivityType.USER_LOGIN } }),
       // Only include activities from users with admin roles (exclude USER role)
       actor: {
         role: {
@@ -113,6 +117,88 @@ export class AdminActivityService {
         createdAt: a.createdAt.toISOString(),
       })),
       total,
+    };
+  }
+
+  /**
+   * Get activity statistics for dashboard
+   * Returns counts for: login activity, content changes, email campaigns
+   */
+  async getStats() {
+    const [
+      totalLogs,
+      loginActivity,
+      contentChanges,
+      emailCampaigns,
+    ] = await Promise.all([
+      // Total logs (excluding USER_LOGIN from non-admin users)
+      this.prisma.adminActivity.count({
+        where: {
+          actor: {
+            role: { not: Role.USER },
+          },
+        },
+      }),
+      // Login activity count
+      this.prisma.adminActivity.count({
+        where: {
+          type: AdminActivityType.USER_LOGIN,
+          actor: {
+            role: { not: Role.USER },
+          },
+        },
+      }),
+      // Content changes (FAQ, NEWS, LEGAL, EVENT, AWARD, NOMINEE, CEREMONY, SPECIAL_GUEST - CREATED, UPDATED, DELETED, ARCHIVED)
+      this.prisma.adminActivity.count({
+        where: {
+          type: {
+            in: [
+              AdminActivityType.FAQ_CREATED,
+              AdminActivityType.FAQ_UPDATED,
+              AdminActivityType.FAQ_ARCHIVED,
+              AdminActivityType.NEWS_CREATED,
+              AdminActivityType.NEWS_UPDATED,
+              AdminActivityType.NEWS_ARCHIVED,
+              AdminActivityType.LEGAL_CREATED,
+              AdminActivityType.LEGAL_UPDATED,
+              AdminActivityType.EVENT_CREATED,
+              AdminActivityType.EVENT_UPDATED,
+              AdminActivityType.EVENT_DELETED,
+              AdminActivityType.AWARD_CATEGORY_CREATED,
+              AdminActivityType.AWARD_CATEGORY_UPDATED,
+              AdminActivityType.AWARD_CATEGORY_DELETED,
+              AdminActivityType.NOMINEE_CREATED,
+              AdminActivityType.NOMINEE_UPDATED,
+              AdminActivityType.NOMINEE_DELETED,
+              AdminActivityType.CEREMONY_CREATED,
+              AdminActivityType.CEREMONY_UPDATED,
+              AdminActivityType.CEREMONY_DELETED,
+              AdminActivityType.SPECIAL_GUEST_CREATED,
+              AdminActivityType.SPECIAL_GUEST_UPDATED,
+              AdminActivityType.SPECIAL_GUEST_DELETED,
+            ],
+          },
+          actor: {
+            role: { not: Role.USER },
+          },
+        },
+      }),
+      // Email campaigns count - using SYSTEM type or we can add EMAIL_CAMPAIGN types later
+      this.prisma.adminActivity.count({
+        where: {
+          type: AdminActivityType.SYSTEM,
+          actor: {
+            role: { not: Role.USER },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      totalLogs,
+      loginActivity,
+      contentChanges,
+      emailCampaigns,
     };
   }
 }

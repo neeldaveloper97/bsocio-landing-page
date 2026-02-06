@@ -57,6 +57,12 @@ export class AdminActivityController {
     required: false,
     description: 'Search by title or message',
   })
+  @ApiQuery({
+    name: 'includeLogin',
+    required: false,
+    description: 'Include login activities (default: false)',
+    example: 'true',
+  })
   async getActivities(
     @Query('skip') skip?: string,
     @Query('take') take?: string,
@@ -65,6 +71,7 @@ export class AdminActivityController {
     @Query('search') search?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query('includeLogin') includeLogin?: string,
   ) {
     const skipNum = skip ? parseInt(skip, 10) : 0;
     const takeNum = take ? Math.min(Math.max(parseInt(take, 10), 1), 50) : 10;
@@ -76,6 +83,16 @@ export class AdminActivityController {
       search,
       sortBy,
       sortOrder,
+      includeLogin: includeLogin === 'true',
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('stats')
+  @ApiOperation({
+    summary: 'Get activity statistics for dashboard',
+  })
+  async getStats() {
+    return this.service.getStats();
   }
 }

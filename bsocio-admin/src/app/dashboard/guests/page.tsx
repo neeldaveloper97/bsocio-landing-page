@@ -413,7 +413,8 @@ export default function GuestsPage() {
                         render: (guest) => (
                             <div className="flex items-center gap-2 justify-center">
                                 <button
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    type="button"
+                                    className="action-btn"
                                     title="Edit"
                                     aria-label={`Edit ${guest.name}`}
                                     onClick={() => openEditModal(guest)}
@@ -421,7 +422,8 @@ export default function GuestsPage() {
                                     <EditIcon />
                                 </button>
                                 <button
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
+                                    type="button"
+                                    className="action-btn"
                                     title="Delete"
                                     aria-label={`Delete ${guest.name}`}
                                     onClick={() => openDeleteConfirm(guest)}

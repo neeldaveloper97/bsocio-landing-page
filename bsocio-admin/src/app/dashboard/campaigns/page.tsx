@@ -23,6 +23,13 @@ import './campaigns.css';
 
 const PAGE_SIZE = 5;
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 const AUDIENCE_OPTIONS: { value: EmailAudience; label: string }[] = [
     { value: 'ALL_USERS', label: 'All Users' },
     { value: 'SEGMENTED_USERS', label: 'Segmented Users' },
@@ -81,25 +88,31 @@ export default function CampaignsPage() {
         };
     }, [showModal, showViewModal]);
 
-    // Hooks
-    const { data: campaigns, isLoading, refetch } = useCampaigns(
-        statusFilter !== 'all' ? { status: statusFilter as 'DRAFT' | 'SCHEDULED' | 'SENT' } : undefined
-    );
+    // Hooks - fetch all campaigns for accurate counts, then filter client-side
+    const { data: allCampaigns, isLoading, refetch } = useCampaigns();
     const sendCampaign = useSendCampaign();
     const saveDraft = useSaveCampaignDraft();
 
-    // Stats
-    const totalCampaigns = campaigns?.length || 0;
-    const draftCount = campaigns?.filter((c: EmailCampaign) => c.status === 'DRAFT').length || 0;
-    const scheduledCount = campaigns?.filter((c: EmailCampaign) => c.status === 'SCHEDULED').length || 0;
-    const sentCount = campaigns?.filter((c: EmailCampaign) => c.status === 'SENT').length || 0;
+    // Stats from all campaigns (for filter counts)
+    const draftCount = allCampaigns?.filter((c: EmailCampaign) => c.status === 'DRAFT').length || 0;
+    const scheduledCount = allCampaigns?.filter((c: EmailCampaign) => c.status === 'SCHEDULED').length || 0;
+    const sentCount = allCampaigns?.filter((c: EmailCampaign) => c.status === 'SENT').length || 0;
+
+    // Apply filter client-side
+    const filteredCampaigns = useMemo(() => {
+        if (!allCampaigns) return [];
+        if (statusFilter === 'all') return allCampaigns;
+        return allCampaigns.filter((c: EmailCampaign) => c.status === statusFilter);
+    }, [allCampaigns, statusFilter]);
+
+    const totalCampaigns = filteredCampaigns.length;
 
     // Pagination
     const totalPages = Math.ceil(totalCampaigns / PAGE_SIZE);
     const paginatedCampaigns = useMemo(() => {
         const start = currentPage * PAGE_SIZE;
-        return campaigns?.slice(start, start + PAGE_SIZE) || [];
-    }, [campaigns, currentPage]);
+        return filteredCampaigns.slice(start, start + PAGE_SIZE);
+    }, [filteredCampaigns, currentPage]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -349,8 +362,8 @@ export default function CampaignsPage() {
                         key: 'name',
                         header: 'Campaign Name',
                         render: (campaign) => (
-                            <span className="line-clamp-2 max-w-[150px] font-medium" title={campaign.name}>
-                                {campaign.name}
+                            <span className="font-medium" title={campaign.name}>
+                                {truncateText(campaign.name, 15)}
                             </span>
                         ),
                     },
@@ -358,8 +371,8 @@ export default function CampaignsPage() {
                         key: 'subject',
                         header: 'Subject',
                         render: (campaign) => (
-                            <span className="line-clamp-2 max-w-[250px]" title={campaign.subject}>
-                                {campaign.subject}
+                            <span title={campaign.subject}>
+                                {truncateText(campaign.subject, 25)}
                             </span>
                         ),
                     },
@@ -394,7 +407,16 @@ export default function CampaignsPage() {
                         align: 'center',
                         render: (campaign) => (
                             <div className="flex items-center justify-center">
-                                <button className="action-btn" title="View" onClick={() => openViewModal(campaign)}>
+                                <button 
+                                    type="button"
+                                    className="action-btn" 
+                                    title="View Campaign" 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openViewModal(campaign);
+                                    }}
+                                >
                                     <ViewIcon />
                                 </button>
                             </div>
@@ -410,9 +432,9 @@ export default function CampaignsPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="DRAFT">Drafts ({draftCount})</SelectItem>
-                            <SelectItem value="SCHEDULED">Scheduled ({scheduledCount})</SelectItem>
-                            <SelectItem value="SENT">Sent ({sentCount})</SelectItem>
+                            <SelectItem value="DRAFT" disabled={draftCount === 0}>Drafts ({draftCount})</SelectItem>
+                            <SelectItem value="SCHEDULED" disabled={scheduledCount === 0}>Scheduled ({scheduledCount})</SelectItem>
+                            <SelectItem value="SENT" disabled={sentCount === 0}>Sent ({sentCount})</SelectItem>
                         </SelectContent>
                     </Select>
                 }

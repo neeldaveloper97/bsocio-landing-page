@@ -11,6 +11,7 @@ import { API_ENDPOINTS } from '@/config';
 import type {
   AdminActivityRequest,
   AdminActivityResponse,
+  AdminActivityStats,
 } from '@/types';
 
 /**
@@ -43,6 +44,7 @@ class AdminActivityService {
       const search = params?.search;
       const sortBy = params?.sortBy;
       const sortOrder = params?.sortOrder;
+      const includeLogin = params?.includeLogin;
 
       const response = await apiClient.get<AdminActivityResponse>(
         API_ENDPOINTS.ADMIN.ACTIVITY,
@@ -55,11 +57,26 @@ class AdminActivityService {
             ...(search ? { search } : {}),
             ...(sortBy ? { sortBy } : {}),
             ...(sortOrder ? { sortOrder } : {}),
+            ...(includeLogin ? { includeLogin: 'true' } : {}),
           },
         }
       );
 
       // Backend returns data directly, not wrapped
+      return response.data;
+    } catch (error) {
+      throw parseApiError(error);
+    }
+  }
+
+  /**
+   * Get activity statistics for dashboard
+   */
+  async getStats(): Promise<AdminActivityStats> {
+    try {
+      const response = await apiClient.get<AdminActivityStats>(
+        API_ENDPOINTS.ADMIN.ACTIVITY_STATS
+      );
       return response.data;
     } catch (error) {
       throw parseApiError(error);

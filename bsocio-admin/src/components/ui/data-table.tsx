@@ -136,14 +136,11 @@ export function DataTable<T>({
             {/* Table Header */}
             {(title || headerActions) && (
                 <div className="table-header-row">
-                    <div className="flex items-center gap-3">
+                    <div className="table-header-title-group">
                         {title && <h2 className="table-title-responsive">{title}</h2>}
-                        {totalCount !== undefined && (
-                            <span className="pagination-info">{totalCount} total</span>
-                        )}
                     </div>
                     {headerActions && (
-                        <div className="flex items-center gap-3 flex-nowrap shrink-0">
+                        <div className="table-header-actions">
                             {headerActions}
                         </div>
                     )}

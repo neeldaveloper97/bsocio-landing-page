@@ -19,6 +19,13 @@ import type { FAQ, CreateFAQRequest, FAQCategory, FAQStatus, FAQState, FAQVisibi
 
 const PAGE_SIZE = 5;
 
+// Helper to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 export default function FAQsPage() {
     // State
     const [showModal, setShowModal] = useState(false);
@@ -219,7 +226,10 @@ export default function FAQsPage() {
                     { 
                         key: 'question', 
                         header: 'Question',
-                        sortable: true
+                        sortable: true,
+                        render: (faq) => (
+                            <span title={faq.question}>{truncateText(faq.question, 40)}</span>
+                        )
                     },
                     { 
                         key: 'category', 
@@ -242,10 +252,21 @@ export default function FAQsPage() {
                         align: 'center',
                         render: (faq) => (
                             <div className="flex items-center gap-2 justify-center">
-                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Edit" onClick={() => openModal(faq)}>
+                                <button 
+                                    type="button"
+                                    className="action-btn" 
+                                    title="Edit" 
+                                    onClick={() => openModal(faq)}
+                                >
                                     <EditIcon />
                                 </button>
-                                <button className="p-2 rounded-lg bg-transparent border border-[#E5E7EB] cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" title="Delete" onClick={() => openDeleteConfirm(faq)} disabled={isMutating}>
+                                <button 
+                                    type="button"
+                                    className="action-btn" 
+                                    title="Delete" 
+                                    onClick={() => openDeleteConfirm(faq)} 
+                                    disabled={isMutating}
+                                >
                                     <DeleteIcon />
                                 </button>
                             </div>

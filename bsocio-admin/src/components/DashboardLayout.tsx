@@ -56,10 +56,9 @@ const NavItemLink = memo(function NavItemLink({
             className={cn(
                 "flex items-center gap-2.5 px-3 py-2.5 w-full min-h-11 rounded-xl",
                 "font-sans text-sm leading-5 no-underline transition-all duration-300",
-                "hover:bg-primary/10",
                 isActive 
-                    ? "bg-primary text-white" 
-                    : "bg-transparent text-[#D1D5DB]"
+                    ? "bg-primary text-white hover:bg-primary" 
+                    : "bg-transparent text-[#D1D5DB] hover:bg-blue-300"
             )}
             onClick={onClick}
             onMouseEnter={onPrefetch}
@@ -118,6 +117,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         router.push('/login');
     }, [logout, router]);
 
+    // Format role name - convert SUPER_ADMIN to Super Admin
+    const formatRoleName = useCallback((role: string): string => {
+        if (!role) return 'Admin';
+        if (role.includes(' ')) return role;
+        return role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }, []);
+
     // Memoize user display values
     const userInitials = useMemo(() => {
         if (user?.email) {
@@ -129,6 +135,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const userDisplayName = useMemo(() => {
         return user?.email?.split('@')[0] || 'Admin';
     }, [user?.email]);
+
+    const displayRole = useMemo(() => {
+        return formatRoleName(user?.role || '');
+    }, [user?.role, formatRoleName]);
 
     return (
         <AuthGuard>
@@ -194,7 +204,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {/* Role */}
                     <div className="sidebar-role-section">
                         <span className="sidebar-role-text">
-                            Role: {user?.role || 'Admin'}
+                            Role: {displayRole}
                         </span>
                     </div>
 

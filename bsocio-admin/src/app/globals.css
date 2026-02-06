@@ -109,6 +109,8 @@
 
 html {
     overflow-y: scroll;
+    /* Force stable scrollbar to prevent layout shift */
+    scrollbar-gutter: stable;
 }
 
 html, body {
@@ -125,25 +127,40 @@ body {
     overflow-x: hidden;
 }
 
-/* Modal scroll lock */
+/* Modal scroll lock - applied via JS when modal opens */
 body.modal-open {
-    overflow: hidden;
+    overflow: hidden !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* ==========================================
-   RADIX UI SCROLL LOCK FIX
-   Prevents layout shift when Select/Dialog opens
-   The key fix is removing vw units from layout and using %
+   RADIX UI SCROLL LOCK PREVENTION
+   Completely prevents any layout shift from Radix components
+   These rules have maximum specificity with !important
    ========================================== */
-body[data-scroll-locked] {
-    overflow: auto !important;
+
+/* Force NO padding/margin compensation from Radix scroll lock */
+html[data-scroll-locked],
+body[data-scroll-locked],
+html[data-scroll-locked] body,
+[data-scroll-locked="true"],
+[data-scroll-locked="1"] {
+    overflow: unset !important;
     padding-right: 0 !important;
     margin-right: 0 !important;
+    position: static !important;
+    padding: 0 !important;
 }
 
-body[data-scroll-locked] > * {
-    padding-right: 0 !important;
-    margin-right: 0 !important;
+/* When modal is open AND scroll locked, keep overflow hidden */
+body.modal-open[data-scroll-locked] {
+    overflow: hidden !important;
+}
+
+/* Ensure Radix popper content is positioned correctly */
+[data-radix-popper-content-wrapper] {
+    z-index: 99999 !important;
 }
 
 /* ==========================================
@@ -1273,6 +1290,8 @@ body[data-scroll-locked] > * {
     justify-content: center;
     width: 36px;
     height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     padding: 0;
     background: transparent;
     border: 1px solid #E5E7EB;
@@ -1281,11 +1300,24 @@ body[data-scroll-locked] > * {
     transition: all 0.2s ease;
 }
 
+.action-btn svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
 @media (max-width: 768px) {
     .btn-icon,
     .action-btn {
         width: 32px;
         height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+    }
+    
+    .action-btn svg {
+        width: 14px;
+        height: 14px;
     }
 }
 
@@ -1294,7 +1326,14 @@ body[data-scroll-locked] > * {
     .action-btn {
         width: 28px;
         height: 28px;
+        min-width: 28px;
+        min-height: 28px;
         border-radius: 6px;
+    }
+    
+    .action-btn svg {
+        width: 12px;
+        height: 12px;
     }
 }
 
@@ -2458,32 +2497,62 @@ body[data-scroll-locked] > * {
     flex-wrap: nowrap;
     gap: 16px;
     box-sizing: border-box;
+    min-width: 0;
 }
 
 @media (max-width: 768px) {
     .table-header-row {
-        padding: 16px 20px;
+        padding: 16px;
         gap: 12px;
     }
 }
 
 @media (max-width: 640px) {
     .table-header-row {
-        padding: 12px 16px;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        padding: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        flex-wrap: wrap;
     }
     
     .table-header-row > div:first-child {
-        flex: 1;
         min-width: 0;
+        width: 100%;
     }
     
     .table-header-row > div:last-child {
-        flex-shrink: 0;
+        width: 100%;
+    }
+}
+
+.table-header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.table-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .table-header-title-group {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .table-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 }
 
@@ -2493,11 +2562,18 @@ body[data-scroll-locked] > * {
     font-size: 18px;
     color: #101828;
     margin: 0;
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {
     .table-title-responsive {
         font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .table-title-responsive {
+        font-size: 14px;
     }
 }
 
@@ -2777,14 +2853,23 @@ body[data-scroll-locked] > * {
     box-sizing: border-box;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .pagination-btn {
         min-width: 32px;
-        height: 34px;
+        height: 32px;
         padding: 0 10px;
         font-size: 13px;
-        flex: 1;
-        max-width: 120px;
+        border-radius: 6px;
+    }
+}
+
+@media (max-width: 640px) {
+    .pagination-btn {
+        min-width: 28px;
+        height: 28px;
+        padding: 0 8px;
+        font-size: 11px;
+        border-radius: 6px;
     }
 }
 

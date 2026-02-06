@@ -32,6 +32,7 @@ import type {
   DashboardOverviewResponse, 
   DashboardOverviewRequest,
   AdminActivityResponse,
+  AdminActivityStats,
   FAQ,
   LegalDocument,
   LegalDocumentType,
@@ -87,28 +88,46 @@ interface UseActivityOptions {
   type?: string;
   search?: string;
   enabled?: boolean;
+  includeLogin?: boolean;
 }
 
 /**
  * Optimized admin activity hook with pagination
  */
 export function useAdminActivityOptimized(options: UseActivityOptions = {}) {
-  const { skip = 0, take = 10, filter, type, search, enabled = true } = options;
+  const { skip = 0, take = 10, filter, type, search, enabled = true, includeLogin = false } = options;
 
   return useQuery<AdminActivityResponse, ApiException>({
-    queryKey: queryKeys.activity.list(skip, take, filter, type, search),
+    queryKey: queryKeys.activity.list(skip, take, filter, type, search, includeLogin),
     queryFn: () => adminActivityService.getActivities({
       skip,
       take,
       filter,
       type,
       search,
+      includeLogin,
     }),
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes - activity updates more frequently
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     placeholderData: (previousData) => previousData, // Keep previous data while refetching
+  });
+}
+
+/**
+ * Hook for getting activity statistics (total logs, login activity, content changes, email campaigns)
+ */
+export function useAdminActivityStatsOptimized(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options;
+
+  return useQuery<AdminActivityStats, ApiException>({
+    queryKey: ['activity', 'stats'],
+    queryFn: () => adminActivityService.getStats(),
+    enabled,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 }
 
