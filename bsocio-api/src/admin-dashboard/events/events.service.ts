@@ -1,18 +1,43 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AdminActivityService } from '../activity/admin-activity.service';
 import { AdminActivityType } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import Redis from 'ioredis';
 
 @Injectable()
 export class EventsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityService: AdminActivityService,
-  ) {}
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) { }
+
+  private async invalidateCache() {
+    /*const keys = await this.redis.keys('events:*');
+    if (keys.length > 0) {
+      await this.redis.del(keys);
+    }*/
+  }
 
   async create(dto: CreateEventDto, actorId?: string) {
+    // Check for duplicates: Title + Date + Time + Venue must be unique
+    const existing = await this.prisma.event.findFirst({
+      where: {
+        title: { equals: dto.title, mode: 'insensitive' },
+        eventDate: new Date(dto.eventDate),
+        eventTime: dto.eventTime,
+        venue: { equals: dto.venue, mode: 'insensitive' },
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        'An event with this title, date, time, and venue already exists.',
+      );
+    }
+
     const event = await this.prisma.event.create({
       data: {
         title: dto.title,
@@ -26,6 +51,9 @@ export class EventsService {
         visibility: dto.visibility || 'PUBLIC',
       },
     });
+
+    // Invalidate cache
+    await this.invalidateCache();
 
     // Log activity
     await this.activityService.log({
@@ -47,6 +75,17 @@ export class EventsService {
     take?: number,
     search?: string,
   ) {
+    // Generate cache key
+    const cacheKey = `events:list:${JSON.stringify({
+      filter, status, sortBy, sortOrder, skip, take, search
+    })}`;
+
+    // 1. Try cache
+    /*const cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }*/
+
     const where: any = {};
 
     // Filter by status
@@ -98,22 +137,66 @@ export class EventsService {
       this.prisma.event.count({ where }),
     ]);
 
-    return { items, total, skip: actualSkip, take: actualTake };
+    const result = { items, total, skip: actualSkip, take: actualTake };
+
+    // 2. Save cache (TTL: 60s)
+    // await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
+
+    return result;
   }
 
   async getById(id: string) {
+    const cacheKey = `events:detail:${id}`;
+
+    // 1. Try cache
+    /*const cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }*/
+
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    // 2. Save cache (TTL: 5m)
+    // await this.redis.set(cacheKey, JSON.stringify(event), 'EX', 300);
+
     return event;
   }
 
   async update(id: string, dto: UpdateEventDto, actorId?: string) {
     // Check if event exists
-    await this.getById(id);
+    const event = await this.getById(id);
 
-    const event = await this.prisma.event.update({
+    // If any key field is changing, check for collisions
+    const newTitle = dto.title ?? event.title;
+    const newDate = dto.eventDate ? new Date(dto.eventDate) : event.eventDate;
+    const newTime = dto.eventTime ?? event.eventTime;
+    const newVenue = dto.venue ?? event.venue;
+
+    const isKeyFieldChanged =
+      dto.title || dto.eventDate || dto.eventTime || dto.venue;
+
+    if (isKeyFieldChanged) {
+      const existing = await this.prisma.event.findFirst({
+        where: {
+          title: { equals: newTitle, mode: 'insensitive' },
+          eventDate: newDate,
+          eventTime: newTime,
+          venue: { equals: newVenue, mode: 'insensitive' },
+          id: { not: id }, // Exclude self
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          'Another event with this title, date, time, and venue already exists.',
+        );
+      }
+    }
+
+    const updatedEvent = await this.prisma.event.update({
       where: { id },
       data: {
         ...(dto.title && { title: dto.title }),
@@ -130,21 +213,27 @@ export class EventsService {
       },
     });
 
+    // Invalidate cache
+    await this.invalidateCache();
+
     // Log activity
     await this.activityService.log({
       type: AdminActivityType.EVENT_UPDATED,
       title: 'Event Updated',
-      message: `Updated event: "${event.title}"`,
+      message: `Updated event: "${updatedEvent.title}"`,
       actorId,
     });
 
-    return event;
+    return updatedEvent;
   }
 
   async delete(id: string, actorId?: string) {
     const event = await this.getById(id);
 
     await this.prisma.event.delete({ where: { id } });
+
+    // Invalidate cache
+    await this.invalidateCache();
 
     // Log activity
     await this.activityService.log({
@@ -158,6 +247,14 @@ export class EventsService {
   }
 
   async getStatistics() {
+    const cacheKey = 'events:statistics';
+
+    // 1. Try cache
+    /*const cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }*/
+
     const now = new Date();
 
     const [upcomingEvents, pastEvents, totalAttendeesResult] =
@@ -184,19 +281,29 @@ export class EventsService {
         }),
       ]);
 
-    return {
+    const result = {
       upcomingEvents,
       pastEvents,
       totalAttendees: totalAttendeesResult._sum.currentAttendees || 0,
     };
+
+    // 2. Save cache (TTL: 60s)
+    // await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
+
+    return result;
   }
 
   async updateAttendeeCount(id: string, count: number) {
     const event = await this.getById(id);
 
-    return this.prisma.event.update({
+    const result = await this.prisma.event.update({
       where: { id },
       data: { currentAttendees: count },
     });
+
+    // Invalidate cache
+    await this.invalidateCache();
+
+    return result;
   }
 }

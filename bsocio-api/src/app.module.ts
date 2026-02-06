@@ -13,6 +13,7 @@ import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { ContactModule } from './contact/contact.module';
 import { ImagesModule } from './images/image.module';
 import { SubscribeModule } from './subscribe/subscribe.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -27,6 +28,8 @@ import { SubscribeModule } from './subscribe/subscribe.module';
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: Number(process.env.REDIS_PORT) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        username: process.env.REDIS_USERNAME || undefined,
       },
     }),
     PrismaModule,
@@ -37,6 +40,7 @@ import { SubscribeModule } from './subscribe/subscribe.module';
     ContactModule,
     ImagesModule,
     SubscribeModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [

@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Inject,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AdminActivityService } from '../activity/admin-activity.service';
@@ -9,16 +11,37 @@ import { AdminActivityType } from '@prisma/client';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { ListFaqQueryDto } from './dto/list-faq.query';
 import { UpdateFaqDto } from './dto/update-faq.dto';
+import Redis from 'ioredis';
 
 @Injectable()
 export class FaqService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityService: AdminActivityService,
-  ) {}
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) { }
+
+  private async invalidateCache() {
+    /*const keys = await this.redis.keys('faq:*');
+    if (keys.length > 0) {
+      await this.redis.del(keys);
+    }*/
+  }
 
   async create(dto: CreateFaqDto, actorId?: string) {
+    const existing = await this.prisma.faq.findFirst({
+      where: {
+        question: { equals: dto.question, mode: 'insensitive' },
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException('This FAQ question already exists.');
+    }
+
     const faq = await this.prisma.faq.create({ data: dto });
+
+    await this.invalidateCache();
 
     // Log activity
     await this.activityService.log({
@@ -32,6 +55,10 @@ export class FaqService {
   }
 
   async list(query: any) {
+    const cacheKey = `faq:list:${JSON.stringify(query)}`;
+    /*const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);*/
+
     const where: any = {
       ...(query.state ? { state: query.state } : {}),
       ...(query.status ? { status: query.status } : {}),
@@ -39,11 +66,11 @@ export class FaqService {
       ...(query.category ? { category: query.category } : {}),
       ...(query.q
         ? {
-            OR: [
-              { question: { contains: query.q, mode: 'insensitive' } },
-              { answer: { contains: query.q, mode: 'insensitive' } },
-            ],
-          }
+          OR: [
+            { question: { contains: query.q, mode: 'insensitive' } },
+            { answer: { contains: query.q, mode: 'insensitive' } },
+          ],
+        }
         : {}),
     };
 
@@ -79,18 +106,44 @@ export class FaqService {
       this.prisma.faq.count({ where }),
     ]);
 
-    return { items, total, skip, take };
+    const result = { items, total, skip, take };
+    // await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
+
+    return result;
   }
 
   async getById(id: string) {
+    const cacheKey = `faq:detail:${id}`;
+    /*const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);*/
+
     const faq = await this.prisma.faq.findUnique({ where: { id } });
     if (!faq) throw new NotFoundException('FAQ not found');
+
+    // await this.redis.set(cacheKey, JSON.stringify(faq), 'EX', 300);
     return faq;
   }
 
   async update(id: string, dto: UpdateFaqDto, actorId?: string) {
     const existing = await this.getById(id);
+
+    // Check duplicate if question changes
+    if (dto.question && dto.question !== existing.question) {
+      const duplicate = await this.prisma.faq.findFirst({
+        where: {
+          question: { equals: dto.question, mode: 'insensitive' },
+          id: { not: id }, // Exclude self
+        },
+      });
+
+      if (duplicate) {
+        throw new ConflictException('This FAQ question already exists.');
+      }
+    }
+
     const faq = await this.prisma.faq.update({ where: { id }, data: dto });
+
+    await this.invalidateCache();
 
     // Log activity
     await this.activityService.log({
@@ -106,6 +159,8 @@ export class FaqService {
   async remove(id: string, actorId?: string) {
     const existing = await this.getById(id);
     await this.prisma.faq.delete({ where: { id } });
+
+    await this.invalidateCache();
 
     // Log activity
     await this.activityService.log({
@@ -144,11 +199,17 @@ export class FaqService {
       ),
     );
 
+    await this.invalidateCache();
+
     return { ok: true };
   }
 
   async incrementViews(id: string) {
-    await this.getById(id);
+    // We update the DB but DO NOT invalidate cache.
+    // View counts can be stale by a few minutes.
+    const exists = await this.prisma.faq.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('FAQ not found');
+
     return this.prisma.faq.update({
       where: { id },
       data: { views: { increment: 1 } },

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,13 +6,19 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+    // Check for duplicates (case-insensitive)
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        email: { equals: dto.email, mode: 'insensitive' },
+      },
     });
-    if (existing) throw new BadRequestException('Email already exists');
+
+    if (existing) {
+      throw new ConflictException('Email already exists');
+    }
 
     // Password is now optional - hash only if provided
     const passwordHash = dto.password ? await bcrypt.hash(dto.password, 12) : null;
@@ -52,7 +58,7 @@ export class UsersService {
     // Get current user to check if they have all required fields
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('User not found');
-    
+
     // For phone verification, we mark user as permanent regardless of other fields
     // Google OAuth users will be permanent after phone verification
     return this.prisma.user.update({

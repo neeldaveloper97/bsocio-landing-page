@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { MailService } from '../lib/mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContactDto } from './dto/create-contact.dto';
@@ -12,6 +12,21 @@ export class ContactService {
   ) { }
 
   async create(dto: CreateContactDto) {
+    // 1-Day Debounce Rule: Check if same email + message sent in last 24h
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const existing = await this.prisma.contactInquiry.findFirst({
+      where: {
+        email: { equals: dto.email, mode: 'insensitive' },
+        message: { equals: dto.message, mode: 'insensitive' },
+        createdAt: { gte: oneDayAgo },
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        'You have already submitted this message recently. Please wait 24 hours before sending the same message again.',
+      );
+    }
     const inquiry = await this.prisma.contactInquiry.create({
       data: {
         reason: dto.reason,
