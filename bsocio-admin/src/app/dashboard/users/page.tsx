@@ -607,11 +607,11 @@ export default function UsersSystemPage() {
                                         </SelectContent>
                                     </Select>
                                     <button 
-                                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 whitespace-nowrap"
+                                        className="flex items-center gap-2 px-4 py-3 max-sm:px-3 max-sm:py-2 rounded-lg border border-[#D1D5DB] bg-blue-600 hover:bg-blue-700 text-white text-sm max-sm:text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
                                         onClick={handleExportLogs}
                                         disabled={exportLogsMutation.isPending}
                                     >
-                                        <Download className="w-4 h-4" />
+                                        <Download className="w-4 h-4 max-sm:w-3.5 max-sm:h-3.5" />
                                         <span className="hidden sm:inline">{exportLogsMutation.isPending ? 'Exporting...' : 'Export'}</span>
                                     </button>
                                 </>
