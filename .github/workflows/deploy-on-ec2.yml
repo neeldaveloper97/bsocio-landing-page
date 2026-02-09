@@ -1,0 +1,33 @@
+name: Bsocio Web Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: bsocio-runner
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Create .env File
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION=mysql
+          DB_HOST=restaurant-db
+          DB_PORT=3306
+          DB_DATABASE=adminbem_treatly_db
+          DB_USERNAME=user
+          DB_PASSWORD=pass
+          EOF
+
+       - name: Build Docker Image
+         run: docker compose build
+
+       - name: Stop Existing Containers
+         run: docker compose down
+
+       - name: Start Containers
+         run: docker compose up -d
