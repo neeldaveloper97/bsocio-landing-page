@@ -13,20 +13,53 @@ jobs:
 
       - name: Create .env File
         run: |
-          cat <<EOF > .env
-          DB_CONNECTION=mysql
-          DB_HOST=restaurant-db
-          DB_PORT=3306
-          DB_DATABASE=adminbem_treatly_db
-          DB_USERNAME=user
-          DB_PASSWORD=pass
+          cat <<EOF > bsocio-api/.env
+          NODE_ENV=development
+          PORT=7000
+
+          #DATABASE_URL="postgresql://postgres:root@localhost:5432/bsocio?schema=public"
+          #DATABASE_URL="postgresql://postgres:postgres123@bsocio-landing-page.cihasc0k4syu.us-east-1.rds.amazonaws.com:5432/postgres?schema=public&sslmode=require&sslaccept=accept_invalid_certs"
+          DATABASE_URL="postgresql://postgres:postgres123@bsocio-landing-page.cihasc0k4syu.us-east-1.rds.amazonaws.com:5432/postgres?sslmode=verify-full&sslrootcert=./global-bundle.pem"
+
+          JWT_ACCESS_SECRET="change-me"
+          JWT_ACCESS_EXPIRES_IN="15m"
+          CORS_ORIGIN="http://localhost:3001"
+          SWAGGER_PATH="docs"
+
+          ## S3 Bucket for tenant avatars
+          AWS_ACCESS_KEY_ID=AKIA4MTWNU6XA45LJ3KH
+          AWS_SECRET_ACCESS_KEY=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
+          AWS_BUCKET=bsocio-bucket
+          AWS_REGION=us-east-1
+          RESEND_API_KEY=re_CSaFi3kd_6YssQio5R8Mky5f9EmraQt7e
+          FRONTEND_URL=https://specsto.online
+          SMTP_HOST=smtp.gmail.com
+          SMTP_PORT=587
+          # SMTP_USER=harikesh.developer80@gmail.com
+          # SMTP_PASS=kznc pydg pkrt fynn
+          SMTP_USER=neeldeveloper97@gmail.com
+          SMTP_PASS=povu rzpe fcxp zvjo
+          MAIL_FROM=neeldeveloper97@gmail.com
+          MAIL_FROM_NAME=BSocio Support
+          MAIL_DOMAIN=specsto.online
+          BACKEND_URL=https://api.specsto.online
+          BACKEND_URL_PROD=https://api.specsto.online
+          BACKEND_URL_DEV=https://790g6vn1-7000.inc1.devtunnels.ms
+            
+          # Redis Configuration  
+          REDIS_HOST=localhost  
+          REDIS_PORT=6379 
+
           EOF
 
       - name: Build Docker Image
+        working-directory: ./bsocio-api
         run: docker compose build
 
       - name: Stop Existing Containers
+        working-directory: ./bsocio-api
         run: docker compose down
 
       - name: Start Containers
+        working-directory: ./bsocio-api
         run: docker compose up -d
