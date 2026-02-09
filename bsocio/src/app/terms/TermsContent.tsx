@@ -85,35 +85,66 @@ function LegalSkeleton({ title }: { title: string }) {
 /* ==============================================
    ERROR STATE COMPONENT
    ============================================== */
-function LegalError({ title, message }: { title: string; message: string }) {
+function LegalError({ title, onRetry }: { title: string; onRetry: () => void }) {
   return (
     <div
       className={cn(
-        "flex flex-col items-start gap-12 max-w-8xl mx-auto",
-        "bg-(--section-bg-alt) py-32 pb-20 pl-80",
-        "max-2xl:w-full max-2xl:pl-40",
-        "max-xl:py-24 max-xl:pb-15 max-xl:pl-20",
-        "max-lg:py-20 max-lg:px-10 max-lg:pb-15",
-        "max-md:py-16 max-md:px-6 max-md:pb-10"
+        "flex flex-col items-center justify-center min-h-[70vh] max-w-2xl mx-auto px-6",
+        "py-20"
       )}
     >
-      <div
-        className={cn(
-          "flex flex-col items-start pb-0.5 gap-6 w-4xl border-b-2 border-(--divider)",
-          "max-lg:w-full max-lg:max-w-4xl"
-        )}
-      >
-        <h1
+      <div className="text-center bg-white rounded-2xl p-10 shadow-lg border border-(--divider)">
+        {/* Warning Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center">
+            <svg
+              className="w-10 h-10 text-amber-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <h1 className="font-arimo font-bold text-2xl text-(--heading-primary) mb-3">
+          Failed to load {title}
+        </h1>
+        
+        <p className="font-arimo text-base text-(--text-secondary) mb-6 leading-relaxed">
+          There was an error loading the document. This could mean the document doesn&apos;t exist yet or there&apos;s a connection issue.
+        </p>
+
+        <button
+          onClick={onRetry}
           className={cn(
-            "font-arimo font-bold text-4xl leading-10 text-(--heading-primary) m-0",
-            "max-md:text-[28px] max-md:leading-9"
+            "inline-flex items-center gap-2 px-6 py-3 rounded-lg",
+            "bg-primary text-white font-semibold text-base",
+            "transition-all duration-200 hover:opacity-90",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           )}
         >
-          {title}
-        </h1>
-        <p className="font-arimo font-normal text-base leading-6 text-red-500 m-0">
-          {message}
-        </p>
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Retry Loading
+        </button>
       </div>
     </div>
   );
@@ -123,7 +154,7 @@ function LegalError({ title, message }: { title: string; message: string }) {
    MAIN TERMS CONTENT COMPONENT
    ============================================== */
 export default function TermsContent() {
-  const { legalContent, isLoading, isError } = useLegal("TERMS_OF_USE");
+  const { legalContent, isLoading, isError, refetch } = useLegal("TERMS_OF_USE");
 
   if (isLoading) {
     return <LegalSkeleton title="Terms of Use" />;
@@ -133,7 +164,7 @@ export default function TermsContent() {
     return (
       <LegalError
         title="Terms of Use"
-        message="Unable to load terms of use. Please try again later."
+        onRetry={() => refetch()}
       />
     );
   }

@@ -23,9 +23,14 @@ export interface EnvConfig {
 export function getEnvConfig(): EnvConfig {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const isProduction = process.env.NODE_ENV === 'production';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  if (!apiBaseUrl && isProduction) {
+    throw new Error('[Config] NEXT_PUBLIC_API_BASE_URL must be set in production');
+  }
 
   return {
-    apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7000',
+    apiBaseUrl: apiBaseUrl || 'http://localhost:7000',
     isDevelopment,
     isProduction,
     appName: 'BSocio Admin',

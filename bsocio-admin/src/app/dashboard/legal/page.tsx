@@ -168,43 +168,8 @@ export default function LegalPage() {
         return <LoadingSkeleton />;
     }
 
-    // Show error state with retry button
-    if (hasError && !currentDoc) {
-        return (
-            <div className="page-content w-full">
-                {/* Tabs */}
-                <div className="flex gap-0 border-b border-[#E5E7EB] bg-transparent w-full">
-                    <button
-                        className={cn(
-                            "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB]",
-                            activeTab === 'PRIVACY_POLICY' && "text-[#2563EB] border-b-[#2563EB] font-semibold"
-                        )}
-                        onClick={() => setActiveTab('PRIVACY_POLICY')}
-                    >
-                        Privacy Policy
-                    </button>
-                    <button
-                        className={cn(
-                            "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB]",
-                            activeTab === 'TERMS_OF_USE' && "text-[#2563EB] border-b-[#2563EB] font-semibold"
-                        )}
-                        onClick={() => setActiveTab('TERMS_OF_USE')}
-                    >
-                        Terms of Use
-                    </button>
-                </div>
-
-                <div className="error-state-container">
-                    <span className="error-state-icon">⚠️</span>
-                    <h3 className="error-state-title">Failed to load {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'}</h3>
-                    <p className="error-state-message">There was an error loading the document. Please check your connection and try again.</p>
-                    <button className="btn-primary-responsive" onClick={handleRetry}>
-                        Retry
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    // Don't show error state - always show the form so admins can create/edit documents
+    // Even if there's an error or no document, the form should be accessible
 
     return (
         <div className="page-content">
@@ -240,6 +205,20 @@ export default function LegalPage() {
 
             {/* Edit Content Section */}
             <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
+                {/* Empty state banner when no document exists yet */}
+                {!currentDoc && !isLoading && (
+                    <div className="mb-6 p-4 bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg flex items-start gap-3">
+                        <span className="text-xl shrink-0">📝</span>
+                        <div>
+                            <h3 className="font-sans text-sm font-semibold text-[#1E40AF] m-0 mb-1">
+                                No {activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} found
+                            </h3>
+                            <p className="font-sans text-sm text-[#3B82F6] m-0">
+                                Get started by filling in the title and content below, then click <strong>Save</strong> to create a draft or <strong>Publish</strong> to make it live.
+                            </p>
+                        </div>
+                    </div>
+                )}
                 <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                     <h2 className="font-sans text-xl font-bold text-[#101828] m-0">Edit Content</h2>
                     <div className="flex gap-3 flex-wrap">

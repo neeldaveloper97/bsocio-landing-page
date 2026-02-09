@@ -1,24 +1,10 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { Facebook, Twitter, Linkedin, Instagram, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ============================================
 // CONSTANTS
 // ============================================
-
-interface SocialLink {
-  icon: LucideIcon;
-  href: string;
-  label: string;
-}
-
-const SOCIAL_LINKS: SocialLink[] = [
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Instagram, href: "#", label: "Instagram" },
-];
 
 interface FooterSection {
   title: string;
@@ -57,24 +43,6 @@ const FOOTER_SECTIONS: FooterSection[] = [
 // ============================================
 // SUB-COMPONENTS
 // ============================================
-
-function SocialLink({ icon: Icon, href, label }: SocialLink) {
-  return (
-    <a
-      href={href}
-      aria-label={label}
-      className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-lg",
-        "bg-slate-700 text-gray-100",
-        "transition-all duration-200",
-        "hover:bg-primary hover:scale-105",
-        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
-      )}
-    >
-      <Icon className="h-4 w-4" aria-hidden="true" />
-    </a>
-  );
-}
 
 function FooterColumn({
   title,
@@ -154,11 +122,6 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="col-span-2 space-y-6 md:col-span-1">
             <Logo variant="footer" />
-            {/* <nav className="flex flex-wrap gap-3 mt-2" aria-label="Social media links">
-              {SOCIAL_LINKS.map((social) => (
-                <SocialLink key={social.label} {...social} />
-              ))}
-            </nav> */}
           </div>
 
           {/* Navigation Sections */}

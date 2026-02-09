@@ -76,7 +76,12 @@ export class NewsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get news article by id' })
-  get(@Param('id') id: string) {
+  @ApiQuery({ name: 'trackView', required: false, description: 'Increment view count (public only)' })
+  async get(@Param('id') id: string, @Query('trackView') trackView?: string) {
+    // Only track views if explicitly requested (public site)
+    if (trackView === 'true') {
+      this.service.incrementViews(id);
+    }
     return this.service.getById(id);
   }
 

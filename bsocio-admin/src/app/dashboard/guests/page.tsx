@@ -59,6 +59,7 @@ export default function GuestsPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
     const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [currentPage, setCurrentPage] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,12 +111,24 @@ export default function GuestsPage() {
     }), [statusFilter, currentPage]);
 
     // API Hooks - server-side pagination
-    const { guests: displayGuests, total: totalGuests, isLoading, refetch } = useSpecialGuests(filters);
+    const { guests: rawGuests, total: rawTotal, isLoading: guestsLoading, refetch } = useSpecialGuests(filters);
     
     // Fetch stats separately (for counts)
-    const { guests: allGuests } = useSpecialGuests({ take: 1000 });
+    const { guests: allGuests, refetch: refetchStats } = useSpecialGuests({ take: 1000 });
     const activeCount = allGuests?.filter((g: SpecialGuest) => g.status === 'ACTIVE').length || 0;
     const inactiveCount = allGuests?.filter((g: SpecialGuest) => g.status === 'INACTIVE').length || 0;
+
+    // Skip unnecessary loading when stats already confirm 0 results for this filter
+    const filterHasNoResults = useMemo(() => {
+        if (!allGuests || allGuests.length === 0) return false;
+        if (statusFilter === 'ACTIVE' && activeCount === 0) return true;
+        if (statusFilter === 'INACTIVE' && inactiveCount === 0) return true;
+        return false;
+    }, [statusFilter, activeCount, inactiveCount, allGuests]);
+
+    const displayGuests = filterHasNoResults ? [] : rawGuests;
+    const totalGuests = filterHasNoResults ? 0 : rawTotal;
+    const isLoading = filterHasNoResults ? false : guestsLoading;
 
     const { mutateAsync: createGuest, isPending: isCreating } = useCreateSpecialGuest();
     const { mutateAsync: updateGuest, isPending: isUpdating } = useUpdateSpecialGuest();
@@ -124,6 +137,18 @@ export default function GuestsPage() {
 
     // Server-side pagination
     const totalPages = Math.ceil(totalGuests / PAGE_SIZE);
+
+    // Interaction guards
+    const hasGuests = totalGuests > 0;
+    const canInteract = hasGuests;
+    const shouldPaginate = canInteract && totalPages > 1;
+
+    // Pagination bounds check
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
 
     // Reset page when filter changes
     useEffect(() => {
@@ -216,22 +241,18 @@ export default function GuestsPage() {
         setImagePreview(null);
         setUploadedImageUrl(null);
         setOriginalImageUrl(null);
+        setFieldErrors({});
     };
 
     const handleSubmit = async (status: SpecialGuestStatus) => {
         // Validation
-        if (!formData.name.trim()) {
-            toast.error('Validation error', { description: 'Please enter a name' });
-            return;
-        }
-        if (formData.name.trim().length > 100) {
-            toast.error('Validation error', { description: 'Name must be 100 characters or less' });
-            return;
-        }
-        if (!formData.title.trim()) {
-            toast.error('Validation error', { description: 'Please enter a title' });
-            return;
-        }
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim()) errors.name = 'Please enter a name';
+        else if (formData.name.trim().length > 100) errors.name = 'Name must be 100 characters or less';
+        if (!formData.title.trim()) errors.title = 'Please enter a title';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         const payload: CreateSpecialGuestRequest = {
             name: formData.name.trim(),
@@ -252,6 +273,7 @@ export default function GuestsPage() {
             setUploadedImageUrl(null);
             closeModal();
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to save guest:', error);
             showErrorToast(error, 'Save failed');
@@ -283,6 +305,7 @@ export default function GuestsPage() {
             await deleteGuest(confirmModal.guestId);
             showSuccessToast('Guest deleted', `${confirmModal.guestName} has been removed`);
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to delete:', error);
             showErrorToast(error, 'Delete failed');
@@ -333,10 +356,10 @@ export default function GuestsPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full">
+            <div className="stats-grid-3">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">⭐</div>
-                    <div className="stat-value-responsive">{totalGuests}</div>
+                    <div className="stat-value-responsive">{allGuests?.length || 0}</div>
                     <div className="stat-label-responsive">Total Guests</div>
                 </div>
                 <div className="stat-card-responsive">
@@ -365,7 +388,7 @@ export default function GuestsPage() {
                                     <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-[#F3F4F6]">
                                         <Image
                                             src={guest.imageUrl}
-                                            alt=""
+                                            alt={guest.name}
                                             fill
                                             sizes="40px"
                                             className="object-cover"
@@ -463,10 +486,10 @@ export default function GuestsPage() {
                 emptyTitle={statusFilter !== 'all' ? `No ${statusFilter === 'ACTIVE' ? 'published' : 'draft'} guests` : 'No guests found'}
                 emptyDescription={statusFilter !== 'all' ? 'Try selecting a different status filter' : 'Add your first special guest to get started'}
                 sortConfig={{ key: sortBy, order: sortOrder }}
-                onSort={handleSortColumn}
+                onSort={canInteract ? handleSortColumn : undefined}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Create/Edit Guest Modal */}
@@ -500,8 +523,9 @@ export default function GuestsPage() {
                                     className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter guest name"
                                     value={formData.name}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => { handleInputChange(e); setFieldErrors(prev => ({ ...prev, name: '' })); }}
                                 />
+                                {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
                             </div>
 
                             {/* Title */}
@@ -514,8 +538,9 @@ export default function GuestsPage() {
                                     className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="e.g., Keynote Speaker, Guest of Honor, CEO"
                                     value={formData.title}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => { handleInputChange(e); setFieldErrors(prev => ({ ...prev, title: '' })); }}
                                 />
+                                {fieldErrors.title && <p className="text-xs text-red-500 mt-1">{fieldErrors.title}</p>}
                             </div>
 
                             {/* Guest Photo */}
@@ -530,13 +555,13 @@ export default function GuestsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-24 h-24">
+                                        <div className="relative w-24 h-24 overflow-hidden rounded-full">
                                             <Image
                                                 src={imagePreview}
-                                                alt="Preview"
+                                                alt="Guest photo preview"
                                                 fill
                                                 sizes="96px"
-                                                className="rounded-full object-cover"
+                                                className="object-cover"
                                             />
                                             <button
                                                 type="button"

@@ -8,6 +8,7 @@
 import { apiClient } from '../client';
 import { parseApiError } from '../error-handler';
 import { API_ENDPOINTS } from '@/config';
+import { env } from '@/config/env';
 import type {
   AdminUserRequest,
   AdminUserResponse,
@@ -168,7 +169,7 @@ class AdminUsersService {
       const limit = params?.limit ?? 100; // Export more by default
 
       // Build the full URL with query params
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7000';
+      const baseUrl = env.apiBaseUrl;
       const url = new URL(API_ENDPOINTS.ADMIN.USERS.EXPORT, baseUrl);
       url.searchParams.append('page', String(page));
       url.searchParams.append('limit', String(limit));

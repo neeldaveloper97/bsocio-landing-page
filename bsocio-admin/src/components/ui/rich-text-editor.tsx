@@ -336,23 +336,23 @@ export function RichTextEditor({
       </div>
 
       {/* Editor */}
-      <div className="relative w-full flex-1 overflow-y-auto">
+      <div className="w-full flex-1 overflow-y-auto">
         <EditorContent
           editor={editor}
           className="[&_.ProseMirror]:p-4 [&_.ProseMirror]:outline-none [&_.ProseMirror]:cursor-text"
           style={{ minHeight }}
         />
-
-        {/* Character Count */}
-        {limit && (
-          <div className="absolute bottom-2 right-2 text-[10px] sm:text-xs text-gray-500 bg-white/90 backdrop-blur-sm px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border shadow-sm">
-            {characterCount}/{limit}
-            {isOverLimit && (
-              <span className="text-red-500 ml-1">Limit!</span>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Character Count - sticky footer */}
+      {limit && (
+        <div className="flex justify-end px-3 py-1.5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          <span className={cn("text-[10px] sm:text-xs", isOverLimit ? "text-red-500 font-medium" : "text-gray-500")}>
+            {characterCount}/{limit}
+            {isOverLimit && <span className="ml-1">Limit!</span>}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

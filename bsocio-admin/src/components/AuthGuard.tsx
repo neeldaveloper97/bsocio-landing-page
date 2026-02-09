@@ -18,21 +18,21 @@ interface AuthGuardProps {
 // Skeleton layout to show while checking auth - provides visual structure for LCP
 function AuthLoadingSkeleton() {
   return (
-    <div className="admin-dashboard" style={{ minHeight: '100vh' }}>
+    <div className="admin-dashboard min-h-screen">
       {/* Sidebar skeleton */}
-      <aside className="admin-sidebar" style={{ background: '#101828', width: '280px', minHeight: '100vh' }}>
-        <div className="sidebar-header" style={{ padding: '24px', background: '#101828' }}>
-          <div style={{ width: '100px', height: '28px', background: '#1F2937', borderRadius: '4px' }} />
-          <div style={{ width: '140px', height: '16px', background: '#1F2937', borderRadius: '4px', marginTop: '8px' }} />
+      <aside className="admin-sidebar bg-[#101828] w-[280px] min-h-screen">
+        <div className="p-6 bg-[#101828]">
+          <div className="w-[100px] h-7 bg-[#1F2937] rounded" />
+          <div className="w-[140px] h-4 bg-[#1F2937] rounded mt-2" />
         </div>
       </aside>
       {/* Main content skeleton */}
-      <main className="admin-main" style={{ flex: 1, background: '#F3F4F6', padding: '24px' }}>
-        <header className="admin-header" style={{ background: '#fff', padding: '24px', borderRadius: '8px', marginBottom: '24px' }}>
-          <div style={{ width: '200px', height: '28px', background: '#E5E7EB', borderRadius: '4px' }} />
-          <div style={{ width: '300px', height: '16px', background: '#E5E7EB', borderRadius: '4px', marginTop: '8px' }} />
+      <main className="admin-main flex-1 bg-[#F3F4F6] p-6">
+        <header className="admin-header bg-white p-6 rounded-lg mb-6">
+          <div className="w-[200px] h-7 bg-[#E5E7EB] rounded" />
+          <div className="w-[300px] h-4 bg-[#E5E7EB] rounded mt-2" />
         </header>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+        <div className="flex justify-center items-center h-[200px]">
           <div className="loading-spinner" />
         </div>
       </main>

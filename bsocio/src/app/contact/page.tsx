@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -164,7 +163,7 @@ export default function ContactPage() {
         );
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast.success(
         "Thank you for contacting us! We will respond within 24-48 business hours."

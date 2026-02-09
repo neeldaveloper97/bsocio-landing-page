@@ -17,6 +17,10 @@ function getEnvConfig(): EnvConfig {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const env = (process.env.NEXT_PUBLIC_ENV || 'development') as EnvConfig['env'];
 
+  if (!apiBaseUrl && env === 'production') {
+    throw new Error('[Config] NEXT_PUBLIC_API_BASE_URL must be set in production');
+  }
+
   if (!apiBaseUrl) {
     console.warn('[Config] NEXT_PUBLIC_API_BASE_URL is not set, using default');
   }

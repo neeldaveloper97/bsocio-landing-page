@@ -103,6 +103,7 @@ export default function CampaignsPage() {
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [currentPage, setCurrentPage] = useState(0);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -142,9 +143,22 @@ export default function CampaignsPage() {
         return filteredCampaigns.slice(start, start + PAGE_SIZE);
     }, [filteredCampaigns, currentPage]);
 
+    // Interaction guards
+    const hasCampaigns = totalCampaigns > 0;
+    const canInteract = hasCampaigns;
+    const shouldPaginate = canInteract && totalPages > 1;
+
+    // Pagination bounds check
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const openCreateModal = () => {
@@ -155,6 +169,7 @@ export default function CampaignsPage() {
     const closeModal = () => {
         setShowModal(false);
         setFormData(initialFormData);
+        setFieldErrors({});
     };
 
     const openViewModal = (campaign: EmailCampaign) => {
@@ -168,26 +183,15 @@ export default function CampaignsPage() {
     };
 
     const handleSaveDraft = async () => {
-        if (!formData.name.trim()) {
-            toast.error('Validation error', { description: 'Please enter a campaign name' });
-            return;
-        }
-        if (formData.name.trim().length < 5) {
-            toast.error('Validation error', { description: 'Campaign name must be at least 5 characters' });
-            return;
-        }
-        if (!formData.subject.trim()) {
-            toast.error('Validation error', { description: 'Please enter an email subject' });
-            return;
-        }
-        if (formData.subject.trim().length < 5) {
-            toast.error('Validation error', { description: 'Email subject must be at least 5 characters' });
-            return;
-        }
-        if (!formData.content.trim()) {
-            toast.error('Validation error', { description: 'Please enter email content' });
-            return;
-        }
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim()) errors.name = 'Please enter a campaign name';
+        else if (formData.name.trim().length < 5) errors.name = 'Campaign name must be at least 5 characters';
+        if (!formData.subject.trim()) errors.subject = 'Please enter an email subject';
+        else if (formData.subject.trim().length < 5) errors.subject = 'Email subject must be at least 5 characters';
+        if (!formData.content.trim()) errors.content = 'Please enter email content';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         try {
             const requestData: CreateEmailCampaignRequest = {
@@ -224,30 +228,16 @@ export default function CampaignsPage() {
     };
 
     const handleSendCampaign = async () => {
-        if (!formData.name.trim()) {
-            toast.error('Validation error', { description: 'Please enter a campaign name' });
-            return;
-        }
-        if (formData.name.trim().length < 5) {
-            toast.error('Validation error', { description: 'Campaign name must be at least 5 characters' });
-            return;
-        }
-        if (!formData.subject.trim()) {
-            toast.error('Validation error', { description: 'Please enter an email subject' });
-            return;
-        }
-        if (formData.subject.trim().length < 5) {
-            toast.error('Validation error', { description: 'Email subject must be at least 5 characters' });
-            return;
-        }
-        if (!formData.content.trim()) {
-            toast.error('Validation error', { description: 'Please enter email content' });
-            return;
-        }
-        if (formData.sendType === 'SCHEDULED' && !formData.scheduledAt) {
-            toast.error('Validation error', { description: 'Please select a scheduled date and time' });
-            return;
-        }
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim()) errors.name = 'Please enter a campaign name';
+        else if (formData.name.trim().length < 5) errors.name = 'Campaign name must be at least 5 characters';
+        if (!formData.subject.trim()) errors.subject = 'Please enter an email subject';
+        else if (formData.subject.trim().length < 5) errors.subject = 'Email subject must be at least 5 characters';
+        if (!formData.content.trim()) errors.content = 'Please enter email content';
+        if (!formData.scheduledAt) errors.scheduledAt = 'Please select a scheduled date and time';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         try {
             const requestData: CreateEmailCampaignRequest = {
@@ -487,7 +477,7 @@ export default function CampaignsPage() {
                 emptyDescription="Create your first email campaign to reach your users"
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Create Campaign Modal */}
@@ -510,6 +500,7 @@ export default function CampaignsPage() {
                                     value={formData.name}
                                     onChange={handleInputChange}
                                 />
+                                {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
                             </div>
 
                             <div className="flex flex-col gap-2">
@@ -523,6 +514,7 @@ export default function CampaignsPage() {
                                     value={formData.subject}
                                     onChange={handleInputChange}
                                 />
+                                {fieldErrors.subject && <p className="text-xs text-red-500 mt-1">{fieldErrors.subject}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-4">
@@ -616,6 +608,7 @@ export default function CampaignsPage() {
                                         onChange={handleInputChange}
                                         min={new Date().toISOString().slice(0, 16)}
                                     />
+                                    {fieldErrors.scheduledAt && <p className="text-xs text-red-500 mt-1">{fieldErrors.scheduledAt}</p>}
                                 </div>
                             )}
 
@@ -623,13 +616,14 @@ export default function CampaignsPage() {
                                 <label htmlFor="content" className="font-sans text-sm font-semibold text-[#374151]">Email Content *</label>
                                 <RichTextEditor
                                     value={formData.content}
-                                    onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                                    onChange={(value) => { setFormData(prev => ({ ...prev, content: value })); setFieldErrors(prev => ({ ...prev, content: '' })); }}
                                     placeholder="Compose your email content here. Use the toolbar for formatting."
                                     minHeight="300px"
                                 />
                                 <small className="text-xs text-[#6B7280]">
                                     Rich text editor with formatting options. Content will be sent as HTML email.
                                 </small>
+                                {fieldErrors.content && <p className="text-xs text-red-500 mt-1">{fieldErrors.content}</p>}
                             </div>
 
                             <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-2">

@@ -134,6 +134,18 @@ export default function CommunicationsPage() {
 
     const totalPages = Math.ceil(total / pageSize);
 
+    // Interaction guards
+    const hasInquiries = total > 0;
+    const canInteract = hasInquiries;
+    const shouldPaginate = canInteract && totalPages > 1;
+
+    // Pagination bounds check
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
+
     return (
         <div className="page-content">
             {/* Section Header */}
@@ -257,6 +269,7 @@ export default function CommunicationsPage() {
                                 setStatusFilter(value === 'all' ? '' : value as ContactStatus);
                                 setCurrentPage(0);
                             }}
+                            disabled={!canInteract}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="All Statuses" />
@@ -274,6 +287,7 @@ export default function CommunicationsPage() {
                                 setReasonFilter(value === 'all' ? '' : value as ContactReason);
                                 setCurrentPage(0);
                             }}
+                            disabled={!canInteract}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="All Reasons" />
@@ -293,7 +307,7 @@ export default function CommunicationsPage() {
                 emptyDescription="No contact inquiries match your filters"
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Detail Modal */}

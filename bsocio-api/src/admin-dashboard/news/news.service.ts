@@ -163,6 +163,14 @@ export class NewsService {
     return article;
   }
 
+  async incrementViews(id: string) {
+    // Fire-and-forget view increment - don't block the response
+    this.prisma.newsArticle.update({
+      where: { id },
+      data: { views: { increment: 1 } },
+    }).catch(() => { /* ignore if article doesn't exist */ });
+  }
+
   async update(id: string, dto: CreateNewsDto, actorId?: string) {
     const existing = await this.getById(id);
     const article = await this.prisma.newsArticle.update({

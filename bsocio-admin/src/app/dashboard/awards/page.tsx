@@ -46,20 +46,6 @@ function CategoryIcon({ icon, color }: { icon?: string; color?: string }) {
     );
 }
 
-function StatCard({ label, value, color = 'text-foreground', href }: { label: string; value: number | string; color?: string; href?: string }) {
-    const content = (
-        <div className={`bg-white rounded-xl border border-border p-5 ${href ? 'cursor-pointer hover:border-primary hover:shadow-md transition-all' : ''}`}>
-            <p className="text-sm text-muted-foreground mb-1">{label}</p>
-            <p className={`text-3xl font-bold ${color}`}>{value}</p>
-        </div>
-    );
-    
-    if (href) {
-        return <Link href={href}>{content}</Link>;
-    }
-    return content;
-}
-
 function QuickActionCard({ icon, title, description, onClick }: { icon: React.ReactNode; title: string; description: string; onClick: () => void }) {
     return (
         <div 
@@ -190,23 +176,41 @@ export default function AwardsPage() {
     const colorOptions = ['#1F6AE1', '#22C55E', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#6366F1'];
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="page-content">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-foreground mb-1">Awards & Recognition Management</h1>
-                <p className="text-muted-foreground">Manage award categories and recognition programs</p>
+            <div className="page-header-row">
+                <div className="flex flex-col gap-1">
+                    <h1 className="page-main-title">Awards & Recognition Management</h1>
+                    <p className="font-sans text-base text-[#6B7280] m-0">Manage award categories and recognition programs</p>
+                </div>
             </div>
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <StatCard label="Total Categories" value={totalCategories} color="text-primary" />
-                <StatCard label="Total Nominees" value={totalNominees} href="/dashboard/nominees" />
-                <StatCard label="Active Awards" value={activeAwards} color="text-primary" />
-                <StatCard label="Upcoming Ceremonies" value={upcomingCeremonies} color="text-primary" href="/dashboard/events" />
+            <div className="stats-grid-4">
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">🏆</div>
+                    <div className="stat-value-responsive">{totalCategories}</div>
+                    <div className="stat-label-responsive">Total Categories</div>
+                </div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#101828]">👤</div>
+                    <div className="stat-value-responsive">{totalNominees}</div>
+                    <div className="stat-label-responsive">Total Nominees</div>
+                </div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">⭐</div>
+                    <div className="stat-value-responsive">{activeAwards}</div>
+                    <div className="stat-label-responsive">Active Awards</div>
+                </div>
+                <div className="stat-card-responsive">
+                    <div className="stat-icon-responsive text-[#2563EB]">🎭</div>
+                    <div className="stat-value-responsive">{upcomingCeremonies}</div>
+                    <div className="stat-label-responsive">Upcoming Ceremonies</div>
+                </div>
             </div>
 
             {/* Award Categories Section */}
-            <div className="bg-white rounded-xl border border-border p-4 sm:p-6 mb-8 w-full overflow-hidden">
+            <div className="bg-white rounded-xl border border-border p-4 sm:p-6 w-full overflow-hidden">
                 <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">Award Categories</h2>
                 
                 {isLoading ? (
@@ -274,7 +278,7 @@ export default function AwardsPage() {
                 <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">Quick Actions</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <QuickActionCard
-                        icon={<span>○</span>}
+                        icon={<span>➕</span>}
                         title="Add New Category"
                         description="Create a new award category"
                         onClick={openCreateModal}

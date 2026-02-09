@@ -18,15 +18,6 @@
   --special-green: #009966;
   --teal-gradient: #009689;
 
-  /* ========== Spacing ========== */
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
-
   /* ========== Radius ========== */
   --radius: 0.625rem;
 
@@ -178,8 +169,6 @@
     overflow-x: clip;
     line-height: 1.6;
     font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
   }
@@ -194,34 +183,6 @@
 /* ============================================
    ACCESSIBILITY
    ============================================ */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Skip link for keyboard navigation */
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  z-index: 9999;
-  padding: 1em;
-  background: var(--primary);
-  color: white;
-  text-decoration: none;
-}
-
-.skip-link:focus {
-  left: 50%;
-  transform: translateX(-50%);
-  top: 0;
-}
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
@@ -231,130 +192,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-/* ============================================
-   PERFORMANCE OPTIMIZATIONS
-   ============================================ */
-/* Content-visibility for below-fold sections */
-.below-fold {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
-}
-
-/* Skeleton loading states for CLS prevention */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ============================================
-   RESPONSIVE TYPOGRAPHY & SPACING UTILITIES
-   ============================================ */
-
-/* Container padding adjustments */
-.responsive-container {
-  padding-left: var(--spacing-lg);
-  padding-right: var(--spacing-lg);
-}
-
-@media (max-width: 768px) {
-  .responsive-container {
-    padding-left: var(--spacing-md);
-    padding-right: var(--spacing-md);
-  }
-}
-
-@media (max-width: 640px) {
-  .responsive-container {
-    padding-left: var(--spacing-sm);
-    padding-right: var(--spacing-sm);
-  }
-}
-
-/* Section spacing adjustments */
-.section-spacing {
-  padding-top: var(--spacing-3xl);
-  padding-bottom: var(--spacing-3xl);
-}
-
-@media (max-width: 768px) {
-  .section-spacing {
-    padding-top: var(--spacing-2xl);
-    padding-bottom: var(--spacing-2xl);
-  }
-}
-
-@media (max-width: 640px) {
-  .section-spacing {
-    padding-top: var(--spacing-xl);
-    padding-bottom: var(--spacing-xl);
-  }
-}
-
-/* Gap utilities for responsive grids */
-.gap-responsive {
-  gap: var(--spacing-lg);
-}
-
-@media (max-width: 768px) {
-  .gap-responsive {
-    gap: var(--spacing-md);
-  }
-}
-
-@media (max-width: 640px) {
-  .gap-responsive {
-    gap: var(--spacing-sm);
-  }
-}
-
-/* Card padding responsive */
-.card-padding {
-  padding: var(--spacing-lg);
-}
-
-@media (max-width: 768px) {
-  .card-padding {
-    padding: var(--spacing-md);
-  }
-}
-
-@media (max-width: 640px) {
-  .card-padding {
-    padding: var(--spacing-sm);
-  }
-}
-
-/* ============================================
-   SKELETON SHIMMER ANIMATION
-   ============================================ */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
   }
 }
 

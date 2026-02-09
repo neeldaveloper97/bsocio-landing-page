@@ -4,12 +4,21 @@ import { useState, ReactNode, useCallback, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { Power } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { prefetchDashboardData, prefetchAdminActivity } from '@/hooks';
 import { AuthGuard } from './AuthGuard';
 import { cn } from '@/lib/utils';
 import type { UserRole } from '@/types';
+
+// Inline SVG to avoid loading lucide-react in the dashboard layout
+function Power() {
+    return (
+        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+            <line x1="12" x2="12" y1="2" y2="12" />
+        </svg>
+    );
+}
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -228,7 +237,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             onClick={handleLogout} 
                             className="sidebar-logout-btn flex items-center justify-center gap-2"
                         >
-                            <Power className="w-4 h-4 text-red-500" />
+                            <Power />
                             Logout
                         </button>
                     </div>

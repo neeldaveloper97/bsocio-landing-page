@@ -189,10 +189,7 @@ export default function AboutPage() {
     <>
       {/* Hero Section */}
       <section
-        className="flex min-h-75 flex-col items-center justify-center px-4 py-16 sm:min-h-100 sm:py-20 md:px-8 lg:px-40"
-        style={{
-          background: "linear-gradient(100.69deg, #EFF6FF 18.35%, #FFFBF6 51.52%, #FBFFF5 84.7%)",
-        }}
+        className="flex min-h-75 flex-col items-center justify-center bg-[linear-gradient(100.69deg,#EFF6FF_18.35%,#FFFBF6_51.52%,#FBFFF5_84.7%)] px-4 py-16 sm:min-h-100 sm:py-20 md:px-8 lg:px-40"
         aria-labelledby="about-hero-title"
       >
         <h1
@@ -425,10 +422,7 @@ export default function AboutPage() {
 
       {/* Model Section with Green/Blue Background */}
       <div
-        className="flex w-full flex-col items-center gap-10 px-4 py-10 sm:gap-16 sm:py-16 md:px-8 md:py-20 lg:px-40"
-        style={{
-          background: "linear-gradient(283.75deg, #F0FDF4 4.44%, #EFF6FF 96.01%)",
-        }}
+        className="flex w-full flex-col items-center gap-10 bg-[linear-gradient(283.75deg,#F0FDF4_4.44%,#EFF6FF_96.01%)] px-4 py-10 sm:gap-16 sm:py-16 md:px-8 md:py-20 lg:px-40"
       >
         {/* Our Model */}
         <section className="flex w-full max-w-7xl flex-col items-start gap-4 sm:gap-6">

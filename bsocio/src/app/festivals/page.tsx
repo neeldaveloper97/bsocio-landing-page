@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import CtaImpactSection from "@/components/layout/CtaImpactSection";
 import { useEvents } from "@/hooks";
@@ -102,14 +102,14 @@ interface NomineeCardProps {
 function NomineeCard({ nominee, showCategory, onViewProfile }: NomineeCardProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-[4/3] w-full bg-muted">
+      <div className="relative aspect-3/4 w-full overflow-hidden bg-muted">
         {nominee.imageUrl ? (
           <Image
             src={nominee.imageUrl}
             alt={nominee.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover object-top"
+            className="object-contain"
             loading="lazy"
             quality={75}
           />
@@ -214,14 +214,14 @@ interface GuestCardProps {
 function GuestCard({ guest, onViewProfile }: GuestCardProps) {
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-[3/4] w-full shrink-0 bg-muted">
+      <div className="relative aspect-3/4 w-full shrink-0 overflow-hidden bg-muted">
         {guest.imageUrl ? (
           <Image
             src={guest.imageUrl}
             alt={guest.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover object-top"
+            className="object-contain"
             loading="lazy"
             quality={75}
           />
@@ -282,7 +282,7 @@ function CategoryCardSkeleton() {
 function NomineeCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card animate-pulse">
-      <div className="aspect-[4/3] w-full bg-muted" />
+      <div className="aspect-3/4 w-full bg-muted" />
       <div className="p-6">
         <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
         <div className="mb-2 h-5 w-1/2 rounded bg-muted" />
@@ -319,7 +319,7 @@ function EventCardSkeleton() {
 function GuestCardSkeleton() {
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card animate-pulse">
-      <div className="aspect-[3/4] w-full shrink-0 bg-muted" />
+      <div className="aspect-3/4 w-full shrink-0 bg-muted" />
       <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
         <div>
           <div className="mb-2 h-7 w-3/4 rounded bg-muted" />
@@ -350,17 +350,27 @@ export default function FestivalsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("awards");
   const [modalData, setModalData] = useState<ModalData>(null);
 
-  // Events API data
-  const { events: apiEvents, isLoading: eventsLoading, isError: eventsError } = useEvents({
-    status: 'PUBLISHED',
-    sortBy: 'eventDate',
-    sortOrder: 'asc',
-  });
+  // Track which tabs have been visited to lazy-load data
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabType>>(new Set(['awards']));
 
-  // Awards API data - Load all nominees at once
+  useEffect(() => {
+    setVisitedTabs(prev => {
+      if (prev.has(activeTab)) return prev;
+      return new Set(prev).add(activeTab);
+    });
+  }, [activeTab]);
+
+  // Awards API data - always loaded (default tab)
   const { categories, isLoading: categoriesLoading, isError: categoriesError } = useAwardCategories('ACTIVE');
   const { nominees, isLoading: nomineesLoading, isError: nomineesError } = useApprovedNominees();
-  const { guests, isLoading: guestsLoading, isError: guestsError } = useActiveGuests();
+
+  // Events API data - lazy loaded only when Events tab is visited
+  const { events: apiEvents, isLoading: eventsLoading, isError: eventsError } = useEvents(
+    visitedTabs.has('events') ? { status: 'PUBLISHED', sortBy: 'eventDate', sortOrder: 'asc' } : undefined
+  );
+
+  // Guests API data - lazy loaded only when Guests tab is visited
+  const { guests, isLoading: guestsLoading, isError: guestsError } = useActiveGuests(visitedTabs.has('guests'));
 
   const events = useMemo(() => {
     if (!apiEvents || !Array.isArray(apiEvents)) return [];
@@ -697,13 +707,14 @@ export default function FestivalsPage() {
             <>
               <ModalHeader className="space-y-0 pb-0">
                 {modalData.data.imageUrl && (
-                  <div className="-mx-6 -mt-6 mb-6 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                  <div className="-mx-6 -mt-6 mb-6 w-[calc(100%+3rem)] overflow-hidden bg-muted">
                     <Image
                       src={modalData.data.imageUrl}
                       alt={modalData.data.name}
-                      fill
+                      width={672}
+                      height={896}
                       sizes="(max-width: 640px) 100vw, 672px"
-                      className="object-cover object-top"
+                      className="h-auto w-full"
                       priority
                       quality={85}
                     />
@@ -794,13 +805,14 @@ export default function FestivalsPage() {
             <>
               <ModalHeader className="space-y-0 pb-0">
                 {modalData.data.imageUrl && (
-                  <div className="-mx-6 -mt-6 mb-6 relative aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden bg-muted">
+                  <div className="-mx-6 -mt-6 mb-6 w-[calc(100%+3rem)] overflow-hidden bg-muted">
                     <Image
                       src={modalData.data.imageUrl}
                       alt={modalData.data.name}
-                      fill
+                      width={672}
+                      height={896}
                       sizes="(max-width: 640px) 100vw, 672px"
-                      className="object-cover object-top"
+                      className="h-auto w-full"
                       priority
                       quality={85}
                     />

@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useGoogleLogin, GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { GoogleOAuthProvider, useGoogleLogin, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,18 +21,20 @@ interface GoogleSignInButtonProps {
 }
 
 /**
- * Google Sign In Button Component
- * 
- * @example
- * ```tsx
- * // Custom styled button
- * <GoogleSignInButton onSuccess={() => router.push('/dashboard')} />
- * 
- * // Google's official branded button
- * <GoogleSignInButton variant="google-branded" />
- * ```
+ * Self-contained Google Sign In Button
+ * Wraps itself with GoogleOAuthProvider so the Google SDK only loads
+ * when this component is rendered (signup page only).
  */
-export function GoogleSignInButton({ 
+export function GoogleSignInButton(props: GoogleSignInButtonProps) {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      <GoogleSignInButtonInner {...props} />
+    </GoogleOAuthProvider>
+  );
+}
+
+function GoogleSignInButtonInner({ 
   onSuccess,
   onError,
   className,
@@ -238,71 +240,4 @@ function GoogleIcon({ className }: { className?: string }) {
       />
     </svg>
   );
-}
-
-/**
- * Hook for using Google auth programmatically
- */
-export function useGoogleAuth() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const router = useRouter();
-
-  const signInWithGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
-        });
-        
-        const userInfo = await userInfoResponse.json();
-        
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}auth/google/callback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            googleId: userInfo.sub,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to authenticate');
-        }
-
-        const data = await response.json();
-        
-        if (data.accessToken) {
-          tokenStorage.setAccessToken(data.accessToken);
-        }
-        if (data.refreshToken) {
-          tokenStorage.setRefreshToken(data.refreshToken);
-        }
-        
-        router.push('/');
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onError: () => {
-      setError(new Error('Google sign-in failed'));
-    },
-  });
-
-  return {
-    signInWithGoogle,
-    isLoading,
-    error,
-  };
 }

@@ -317,14 +317,16 @@ interface UseSpecialGuestsReturn {
 
 /**
  * Hook for fetching special guests
+ * Pass enabled=false to skip fetching (lazy-loading support)
  */
-export function useSpecialGuests(status?: string): UseSpecialGuestsReturn {
+export function useSpecialGuests(status?: string, enabled: boolean = true): UseSpecialGuestsReturn {
   const [guests, setGuests] = useState<SpecialGuest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!enabled) return;
     setIsLoading(true);
     setIsError(false);
     setError(null);
@@ -338,7 +340,7 @@ export function useSpecialGuests(status?: string): UseSpecialGuestsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [status]);
+  }, [status, enabled]);
 
   useEffect(() => {
     fetchData();
@@ -355,9 +357,10 @@ export function useSpecialGuests(status?: string): UseSpecialGuestsReturn {
 
 /**
  * Hook for fetching active special guests only
+ * Pass enabled=false to skip fetching (lazy-loading support)
  */
-export function useActiveGuests(): UseSpecialGuestsReturn {
-  return useSpecialGuests('ACTIVE');
+export function useActiveGuests(enabled: boolean = true): UseSpecialGuestsReturn {
+  return useSpecialGuests('ACTIVE', enabled);
 }
 
 /**

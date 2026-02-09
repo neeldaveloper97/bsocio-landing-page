@@ -28,14 +28,16 @@ interface UseEventsReturn {
 
 /**
  * Hook for fetching events list with optional filters
+ * Pass undefined to skip fetching (lazy-loading support)
  */
 export function useEvents(params?: UseEventsParams): UseEventsReturn {
   const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!!params);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!params) return;
     setIsLoading(true);
     setIsError(false);
     setError(null);
@@ -52,8 +54,8 @@ export function useEvents(params?: UseEventsParams): UseEventsReturn {
   }, [params?.filter, params?.status, params?.sortBy, params?.sortOrder]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (params) fetchData();
+  }, [fetchData, !!params]);
 
   return {
     events,

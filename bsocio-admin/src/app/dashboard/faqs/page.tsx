@@ -46,7 +46,14 @@ export default function FAQsPage() {
     }), [sortBy, sortOrder, currentPage]);
 
     const { faqs, data, isLoading, isError, error, refetch, createFAQ, updateFAQ, deleteFAQ, isMutating } = useFAQs({ filters });
-    const totalFAQs = data?.total ?? faqs.length;
+    const totalFAQs = data?.total ?? 0;
+    const hasFaqs = totalFAQs > 0;
+
+    // Fetch all FAQs for stable stats (avoid changing with pagination)
+    const { faqs: statsFaqs, refetch: refetchStats } = useFAQs({
+        enabled: hasFaqs,
+        filters: { page: 1, limit: 1000 },
+    });
     
     // Confirmation modal state
     const [confirmModal, setConfirmModal] = useState<{
@@ -69,6 +76,8 @@ export default function FAQsPage() {
 
     // Server-side pagination
     const totalPages = Math.ceil(totalFAQs / PAGE_SIZE);
+    const canInteract = hasFaqs;
+    const shouldPaginate = canInteract && totalPages > 1;
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -138,6 +147,7 @@ export default function FAQsPage() {
             result = await updateFAQ(editingFAQ.id, { question, answer, category, status, state, visibility });
             if (result) {
                 showSuccessToast('FAQ updated', 'FAQ has been updated successfully');
+                refetchStats();
                 closeModal();
             } else {
                 showErrorToast(error || new Error('Failed to update FAQ'), 'Update failed');
@@ -157,6 +167,7 @@ export default function FAQsPage() {
             result = await createFAQ(data);
             if (result) {
                 showSuccessToast('FAQ created', 'FAQ has been created successfully');
+                refetchStats();
                 closeModal();
             } else {
                 showErrorToast(error || new Error('Failed to create FAQ'), 'Create failed');
@@ -185,6 +196,7 @@ export default function FAQsPage() {
         const success = await deleteFAQ(confirmModal.faqId);
         if (success) {
             showSuccessToast('FAQ deleted', 'FAQ has been removed successfully');
+            refetchStats();
         } else {
             showErrorToast(error || new Error('Failed to delete FAQ'), 'Delete failed');
         }
@@ -202,7 +214,13 @@ export default function FAQsPage() {
         }
     };
 
-    const activeFaqs = faqs.filter(f => f.status === 'ACTIVE');
+    const activeFaqs = statsFaqs.filter(f => f.status === 'ACTIVE');
+
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
 
     return (
         <div className="page-content">
@@ -219,10 +237,10 @@ export default function FAQsPage() {
             </div>
 
             {/* Stats */}
-            <div className="stats-grid-4">
+            <div className="stats-grid-3">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">❓</div>
-                    <div className="stat-value-responsive">{faqs.length}</div>
+                    <div className="stat-value-responsive">{totalFAQs}</div>
                     <div className="stat-label-responsive">Total FAQs</div>
                 </div>
                 <div className="stat-card-responsive">
@@ -232,13 +250,13 @@ export default function FAQsPage() {
                 </div>
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#6B7280]">📝</div>
-                    <div className="stat-value-responsive">{faqs.length - activeFaqs.length}</div>
+                    <div className="stat-value-responsive">{totalFAQs - activeFaqs.length}</div>
                     <div className="stat-label-responsive">Inactive</div>
                 </div>
             </div>
 
             {/* FAQs Table */}
-            <DataTable<FAQ>
+                <DataTable<FAQ>
                 data={faqs}
                 columns={[
                     { 
@@ -294,15 +312,15 @@ export default function FAQsPage() {
                 keyExtractor={(faq) => faq.id}
                 isLoading={isLoading}
                 title="All FAQs"
-                totalCount={faqs.length}
+                totalCount={totalFAQs}
                 emptyIcon="❓"
                 emptyTitle="No FAQs found"
                 emptyDescription="Create your first FAQ to get started"
                 sortConfig={{ key: sortBy, order: sortOrder }}
-                onSort={handleSortColumn}
+                onSort={canInteract ? handleSortColumn : undefined}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Add/Edit FAQ Modal */}

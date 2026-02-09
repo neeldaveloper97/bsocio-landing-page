@@ -9,6 +9,9 @@ import { apiClient } from '../client';
 import { API_ENDPOINTS } from '@/config';
 import type { NewsArticle } from '@/types';
 
+// Track viewed articles in current page session (resets on page refresh)
+const viewedInCurrentSession = new Set<string>();
+
 interface NewsListResponse {
   items: NewsArticle[];
   total: number;
@@ -51,7 +54,16 @@ export const newsService = {
    * Get news article by ID
    */
   async getById(id: string): Promise<NewsArticle> {
-    const response = await apiClient.get<NewsArticle>(API_ENDPOINTS.NEWS.BY_ID(id));
+    // Only track if not already tracked in this page load (prevents StrictMode double-call)
+    const shouldTrack = !viewedInCurrentSession.has(id);
+    
+    if (shouldTrack) {
+      viewedInCurrentSession.add(id);
+    }
+    
+    const queryParams = shouldTrack ? { trackView: 'true' } : {};
+    const response = await apiClient.get<NewsArticle>(API_ENDPOINTS.NEWS.BY_ID(id), queryParams);
+    
     // Handle both direct response and wrapped response
     return (response.data as any)?.data || response.data;
   },

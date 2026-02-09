@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
@@ -60,6 +59,7 @@ export default function EventsPage() {
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'past'>('all');
@@ -71,9 +71,24 @@ export default function EventsPage() {
         take: PAGE_SIZE,
     }), [filterStatus, currentPage]);
 
+    // Statistics hook (must be declared before filterHasNoResults which depends on it)
+    const { data: statistics, isLoading: statsLoading, refetch: refetchStats } = useEventStatistics();
+
+    // Determine if the current filter is known to have 0 results from statistics
+    // This prevents showing stale data while the filtered query loads
+    const filterHasNoResults = useMemo(() => {
+        if (!statistics) return false; // Stats not loaded yet, don't interfere
+        if (filterStatus === 'upcoming' && statistics.upcomingEvents === 0) return true;
+        if (filterStatus === 'past' && statistics.pastEvents === 0) return true;
+        return false;
+    }, [filterStatus, statistics]);
+
     // API Hooks - server-side pagination
-    const { events, total: totalEvents, isLoading, isError, refetch } = useEvents(filters);
-    const { data: statistics, isLoading: statsLoading } = useEventStatistics();
+    const { events, total: totalEvents, isLoading: eventsLoading, isError, refetch } = useEvents(filters);
+    // When stats confirm 0 results for this filter, show empty immediately instead of loading
+    const isLoading = filterHasNoResults ? false : eventsLoading;
+    const effectiveEvents = filterHasNoResults ? [] : events;
+    const effectiveTotal = filterHasNoResults ? 0 : totalEvents;
     const { mutateAsync: createEvent, isPending: isCreating } = useCreateEvent();
     const { mutateAsync: updateEvent, isPending: isUpdating } = useUpdateEvent();
     const { mutateAsync: deleteEvent, isPending: isDeleting } = useDeleteEvent();
@@ -108,9 +123,22 @@ export default function EventsPage() {
     }, [filterStatus]);
 
     // Server-side pagination
-    const totalPages = Math.ceil(totalEvents / PAGE_SIZE);
+    const totalPages = Math.ceil(effectiveTotal / PAGE_SIZE);
 
-    // Stats calculations
+    // Interaction guards
+    const hasEvents = effectiveTotal > 0;
+    const canInteract = hasEvents;
+    const shouldPaginate = canInteract && totalPages > 1;
+
+    // Pagination bounds check
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
+
+    // Stats calculations - use statistics API for universal counts (not affected by filters)
+    const totalEventsCount = (statistics?.upcomingEvents || 0) + (statistics?.pastEvents || 0);
     const upcomingCount = statistics?.upcomingEvents || 0;
     const totalAttendees = statistics?.totalAttendees || 0;
 
@@ -143,6 +171,7 @@ export default function EventsPage() {
             visibility: 'PUBLIC',
         });
         setEditingEvent(null);
+        setFieldErrors({});
     };
 
     const openCreateModal = () => {
@@ -171,27 +200,25 @@ export default function EventsPage() {
     };
 
     const handleSubmit = async () => {
-        // Validation matching API rules
-        if (!formData.title.trim()) {
-            toast.error('Validation error', { description: 'Please enter an event title' });
-            return;
+        // Validation
+        const errors: Record<string, string> = {};
+        if (!formData.title.trim()) errors.title = 'Please enter an event title';
+        else if (formData.title.trim().length > 200) errors.title = 'Title must be 200 characters or less';
+        if (!formData.eventDate) errors.eventDate = 'Please select an event date';
+        else {
+            // Validate date is not in the past
+            const selectedDate = new Date(formData.eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                errors.eventDate = 'Event date cannot be in the past';
+            }
         }
-        if (formData.title.trim().length > 200) {
-            toast.error('Validation error', { description: 'Title must be 200 characters or less' });
-            return;
-        }
-        if (!formData.eventDate) {
-            toast.error('Validation error', { description: 'Please select an event date' });
-            return;
-        }
-        if (!formData.venue.trim()) {
-            toast.error('Validation error', { description: 'Please enter a venue' });
-            return;
-        }
-        if (formData.maxAttendees && parseInt(formData.maxAttendees) < 1) {
-            toast.error('Validation error', { description: 'Max attendees must be at least 1' });
-            return;
-        }
+        if (!formData.venue.trim()) errors.venue = 'Please enter a venue';
+        if (formData.maxAttendees && parseInt(formData.maxAttendees) < 1) errors.maxAttendees = 'Max attendees must be at least 1';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         try {
             const payload: CreateEventRequest | UpdateEventRequest = {
@@ -216,6 +243,7 @@ export default function EventsPage() {
             setShowModal(false);
             resetForm();
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to save event:', error);
             showErrorToast(error, 'Save failed');
@@ -230,6 +258,7 @@ export default function EventsPage() {
             setShowDeleteModal(false);
             setDeletingEvent(null);
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to delete event:', error);
             showErrorToast(error, 'Delete failed');
@@ -267,10 +296,10 @@ export default function EventsPage() {
             </div>
 
             {/* Stats */}
-            <div className="stats-grid-4">
+            <div className="stats-grid-3">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">🎉</div>
-                    <div className="stat-value-responsive">{statsLoading ? '...' : totalEvents}</div>
+                    <div className="stat-value-responsive">{statsLoading ? '...' : totalEventsCount}</div>
                     <div className="stat-label-responsive">Total Events</div>
                 </div>
                 <div className="stat-card-responsive">
@@ -318,7 +347,7 @@ export default function EventsPage() {
 
             {/* Events Table */}
             <DataTable<Event>
-                data={events}
+                data={effectiveEvents}
                 columns={[
                     { 
                         key: 'title', 
@@ -390,13 +419,13 @@ export default function EventsPage() {
                 keyExtractor={(event) => event.id}
                 isLoading={isLoading}
                 title="All Events"
-                totalCount={totalEvents}
+                totalCount={effectiveTotal}
                 emptyIcon="🎉"
                 emptyTitle="No events found"
                 emptyDescription="Create your first event to get started"
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Create/Edit Event Modal */}
@@ -416,8 +445,9 @@ export default function EventsPage() {
                                     className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
                                     placeholder="Enter event name"
                                     value={formData.title}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                    onChange={(e) => { setFormData(prev => ({ ...prev, title: e.target.value })); setFieldErrors(prev => ({ ...prev, title: '' })); }}
                                 />
+                                {fieldErrors.title && <p className="text-xs text-red-500 mt-1">{fieldErrors.title}</p>}
                             </div>
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col gap-2">
@@ -428,8 +458,9 @@ export default function EventsPage() {
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
                                         placeholder="Enter venue"
                                         value={formData.venue}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
+                                        onChange={(e) => { setFormData(prev => ({ ...prev, venue: e.target.value })); setFieldErrors(prev => ({ ...prev, venue: '' })); }}
                                     />
+                                    {fieldErrors.venue && <p className="text-xs text-red-500 mt-1">{fieldErrors.venue}</p>}
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="eventDate" className="font-sans text-sm font-semibold text-[#374151]">Date *</label>
@@ -438,8 +469,9 @@ export default function EventsPage() {
                                         id="eventDate" 
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         value={formData.eventDate}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, eventDate: e.target.value }))}
+                                        onChange={(e) => { setFormData(prev => ({ ...prev, eventDate: e.target.value })); setFieldErrors(prev => ({ ...prev, eventDate: '' })); }}
                                     />
+                                    {fieldErrors.eventDate && <p className="text-xs text-red-500 mt-1">{fieldErrors.eventDate}</p>}
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
@@ -461,8 +493,9 @@ export default function EventsPage() {
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
                                         placeholder="Optional"
                                         value={formData.maxAttendees}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, maxAttendees: e.target.value }))}
+                                        onChange={(e) => { setFormData(prev => ({ ...prev, maxAttendees: e.target.value })); setFieldErrors(prev => ({ ...prev, maxAttendees: '' })); }}
                                     />
+                                    {fieldErrors.maxAttendees && <p className="text-xs text-red-500 mt-1">{fieldErrors.maxAttendees}</p>}
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">

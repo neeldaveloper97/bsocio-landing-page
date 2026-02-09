@@ -119,12 +119,13 @@ export default function EventDetailPage({
   return (
     <>
       {/* Hero Section */}
-      <section className="relative h-[300px] w-full sm:h-[400px]">
+      <section className="relative h-[300px] w-full overflow-hidden sm:h-[400px]">
         {event.imageUrl ? (
           <ImageWithSkeleton
             src={event.imageUrl}
             alt={event.title}
             containerClassName="absolute inset-0"
+            sizes="100vw"
             priority
           />
         ) : (

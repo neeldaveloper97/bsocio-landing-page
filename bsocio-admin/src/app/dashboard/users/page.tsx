@@ -181,6 +181,12 @@ export default function UsersSystemPage() {
         search: userSearchQuery || undefined,
     });
 
+    // Fetch all users for accurate stats counts (not limited by pagination)
+    const { data: allUsersData } = useAdminUsers({
+        page: 1,
+        limit: 1000,
+    });
+
     // Stats endpoint not yet implemented on backend
     // const {
     //     data: userStats,
@@ -241,9 +247,35 @@ export default function UsersSystemPage() {
     const userTotal = usersData?.total || 0;
     const userTotalPages = Math.ceil(userTotal / USER_PAGE_SIZE);
 
+    // Stats from all users (not limited by pagination/filters)
+    const allUsers = allUsersData?.items || [];
+
     const logs = logsData?.activities || [];
     const logTotal = logsData?.total || 0;
     const logTotalPages = Math.ceil(logTotal / LOG_PAGE_SIZE);
+
+    // Interaction guards
+    const hasUsers = userTotal > 0;
+    const canInteractUsers = hasUsers;
+    const shouldPaginateUsers = canInteractUsers && userTotalPages > 1;
+
+    const hasLogs = logTotal > 0;
+    const canInteractLogs = hasLogs;
+    const shouldPaginateLogs = canInteractLogs && logTotalPages > 1;
+
+    // Pagination bounds check - users
+    useEffect(() => {
+        if (userCurrentPage > 0 && userTotalPages > 0 && userCurrentPage >= userTotalPages) {
+            setUserCurrentPage(Math.max(userTotalPages - 1, 0));
+        }
+    }, [userCurrentPage, userTotalPages]);
+
+    // Pagination bounds check - logs
+    useEffect(() => {
+        if (logCurrentPage > 0 && logTotalPages > 0 && logCurrentPage >= logTotalPages) {
+            setLogCurrentPage(Math.max(logTotalPages - 1, 0));
+        }
+    }, [logCurrentPage, logTotalPages]);
 
     // ============================================
     // HANDLERS
@@ -481,28 +513,28 @@ export default function UsersSystemPage() {
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#2563EB]">👑</div>
                             <div className="stat-value-responsive">
-                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'SUPER_ADMIN').length}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : allUsers.filter(u => u.roleKey === 'SUPER_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Super Admin</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#10B981]">📝</div>
                             <div className="stat-value-responsive">
-                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'CONTENT_ADMIN').length}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : allUsers.filter(u => u.roleKey === 'CONTENT_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Content Manager</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#F59E0B]">📢</div>
                             <div className="stat-value-responsive">
-                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'COMMUNICATIONS_ADMIN').length}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : allUsers.filter(u => u.roleKey === 'COMMUNICATIONS_ADMIN').length}
                             </div>
                             <div className="stat-label-responsive">Communications Manager</div>
                         </div>
                         <div className="stat-card-responsive">
                             <div className="stat-icon-responsive text-[#6366F1]">📊</div>
                             <div className="stat-value-responsive">
-                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : users.filter(u => u.roleKey === 'ANALYTICS_VIEWER').length}
+                                {usersLoading ? <div className="skeleton-box" style={{ width: '40px', height: '32px' }} /> : allUsers.filter(u => u.roleKey === 'ANALYTICS_VIEWER').length}
                             </div>
                             <div className="stat-label-responsive">Analytics Viewer</div>
                         </div>
@@ -527,7 +559,7 @@ export default function UsersSystemPage() {
                             emptyDescription="Add your first admin user to get started"
                             currentPage={userCurrentPage}
                             totalPages={userTotalPages}
-                            onPageChange={setUserCurrentPage}
+                            onPageChange={shouldPaginateUsers ? setUserCurrentPage : undefined}
                             headerActions={
                                 <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
                                     <SelectTrigger>
@@ -593,7 +625,7 @@ export default function UsersSystemPage() {
                             emptyDescription="System activity will appear here"
                             currentPage={logCurrentPage}
                             totalPages={logTotalPages}
-                            onPageChange={setLogCurrentPage}
+                            onPageChange={shouldPaginateLogs ? setLogCurrentPage : undefined}
                             headerActions={
                                 <>
                                     <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>

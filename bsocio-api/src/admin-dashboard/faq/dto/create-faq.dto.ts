@@ -19,9 +19,9 @@ export enum FaqVisibilityDto {
 
 export enum FaqCategoryDto {
   GENERAL = 'GENERAL',
-  REWARDS = 'REWARDS',
-  GETTING_STARTED = 'GETTING_STARTED',
-  IMPACT = 'IMPACT',
+  BILLING = 'BILLING',
+  TECHNICAL = 'TECHNICAL',
+  OTHER = 'OTHER',
 }
 
 export class CreateFaqDto {

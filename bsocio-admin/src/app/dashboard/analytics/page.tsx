@@ -27,13 +27,20 @@ export default function AnalyticsPage() {
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
     // Generate available years (past years only, no future years)
-    const availableYears = useMemo(() => {
-        const years: number[] = [];
-        for (let year = currentYear; year >= START_YEAR; year--) {
-            years.push(year);
-        }
-        return years;
-    }, [currentYear]);
+   const START_YEAR = 2026;
+
+const availableYears = useMemo(() => {
+  if (currentYear < START_YEAR) return [];
+
+  const years: number[] = [];
+
+  for (let year = currentYear; year >= START_YEAR; year--) {
+    years.push(year);
+  }
+
+  return years;
+}, [currentYear]);
+
 
     const { data, isLoading, isError, refetch } = useAnalytics({
         params: { year: selectedYear, month: selectedMonth }

@@ -66,6 +66,7 @@ export default function NewsPage() {
     const [editingArticle, setEditingArticle] = useState<NewsArticle | null>(null);
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isUploading, setIsUploading] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -131,13 +132,26 @@ export default function NewsPage() {
 
     // Fetch paginated data from server
     const filters = useMemo(() => buildFilters(statusFilter !== 'all' ? statusFilter as NewsStatus : undefined), [buildFilters, statusFilter]);
-    const { news: displayArticles, total: totalArticles, isLoading, refetch } = useNews(filters);
+    const { news: rawArticles, total: rawTotal, isLoading: newsLoading, refetch } = useNews(filters);
 
     // Fetch stats separately (just total counts, no pagination)
-    const { news: allArticles } = useNews({ take: 1000 }); // Get all for counts
+    const { news: allArticles, refetch: refetchStats } = useNews({ take: 1000 }); // Get all for counts
     const publishedCount = allArticles.filter((a: NewsArticle) => a.status === 'PUBLISHED').length;
     const draftCount = allArticles.filter((a: NewsArticle) => a.status === 'DRAFT').length;
     const archivedCount = allArticles.filter((a: NewsArticle) => a.status === 'ARCHIVED').length;
+
+    // Skip unnecessary loading when stats already confirm 0 results for this filter
+    const filterHasNoResults = useMemo(() => {
+        if (allArticles.length === 0 && statusFilter === 'all') return false;
+        if (statusFilter === 'PUBLISHED' && publishedCount === 0) return true;
+        if (statusFilter === 'DRAFT' && draftCount === 0) return true;
+        if (statusFilter === 'ARCHIVED' && archivedCount === 0) return true;
+        return false;
+    }, [statusFilter, publishedCount, draftCount, archivedCount, allArticles.length]);
+
+    const displayArticles = filterHasNoResults ? [] : rawArticles;
+    const totalArticles = filterHasNoResults ? 0 : rawTotal;
+    const isLoading = filterHasNoResults ? false : newsLoading;
 
     // Get count for current filter
     const getFilterCount = useCallback((filter: string): number => {
@@ -158,11 +172,20 @@ export default function NewsPage() {
 
     // Server-side pagination
     const totalPages = Math.ceil(totalArticles / PAGE_SIZE);
+    const hasArticles = totalArticles > 0;
+    const canInteract = hasArticles;
+    const shouldPaginate = canInteract && totalPages > 1;
 
     // Reset page when filter changes
     useEffect(() => {
         setCurrentPage(0);
     }, [statusFilter]);
+
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -199,6 +222,7 @@ export default function NewsPage() {
             // response is ImageUploadResponse: { success, message, status, data: { url, ... } }
             const imageUrl = response.data?.url || '';
             setFormData(prev => ({ ...prev, featuredImage: imageUrl }));
+            setFieldErrors(prev => ({ ...prev, featuredImage: '' }));
             // Track the newly uploaded image URL for cleanup if user cancels
             setUploadedImageUrl(imageUrl);
         } catch (error) {
@@ -269,42 +293,32 @@ export default function NewsPage() {
         setImagePreview(null);
         setUploadedImageUrl(null);
         setOriginalImageUrl(null);
+        setFieldErrors({});
     };
 
     const handleSubmit = async (status: NewsStatus) => {
         // Validation
-        if (!formData.title.trim()) {
-            toast.error('Validation error', { description: 'Please enter an article title' });
-            return;
+        const errors: Record<string, string> = {};
+        if (!formData.title.trim()) errors.title = 'Please enter an article title';
+        else if (formData.title.trim().length < 5) errors.title = 'Title must be at least 5 characters';
+        if (!formData.author.trim()) errors.author = 'Please enter an author name';
+        if (!formData.category) errors.category = 'Please select a category';
+        if (!formData.publicationDate) errors.publicationDate = 'Please select a publication date';
+        else {
+            // Validate date is not in the past
+            const selectedDate = new Date(formData.publicationDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                errors.publicationDate = 'Publication date cannot be in the past';
+            }
         }
-        if (formData.title.trim().length < 5) {
-            toast.error('Validation error', { description: 'Title must be at least 5 characters' });
-            return;
-        }
-        if (!formData.author.trim()) {
-            toast.error('Validation error', { description: 'Please enter an author name' });
-            return;
-        }
-        if (!formData.category) {
-            toast.error('Validation error', { description: 'Please select a category' });
-            return;
-        }
-        if (!formData.publicationDate) {
-            toast.error('Validation error', { description: 'Please select a publication date' });
-            return;
-        }
-        if (!formData.featuredImage) {
-            toast.error('Validation error', { description: 'Please upload a featured image' });
-            return;
-        }
-        if (!formData.excerpt.trim()) {
-            toast.error('Validation error', { description: 'Please enter an excerpt/summary' });
-            return;
-        }
-        if (!formData.content.trim()) {
-            toast.error('Validation error', { description: 'Please enter article content' });
-            return;
-        }
+        if (!formData.featuredImage) errors.featuredImage = 'Please upload a featured image';
+        if (!formData.excerpt.trim()) errors.excerpt = 'Please enter an excerpt/summary';
+        if (!formData.content.trim()) errors.content = 'Please enter article content';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         const payload: CreateNewsRequest = {
             title: formData.title.trim(),
@@ -335,6 +349,7 @@ export default function NewsPage() {
             setImagePreview(null);
             setOriginalImageUrl(null);
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to save article:', error);
             showErrorToast(error, 'Save failed');
@@ -380,6 +395,7 @@ export default function NewsPage() {
                 showSuccessToast('Article deleted', `${confirmModal.articleTitle} has been deleted permanently`);
             }
             refetch();
+            refetchStats();
         } catch (error) {
             console.error(`Failed to ${confirmModal.type}:`, error);
             showErrorToast(error, `${confirmModal.type === 'archive' ? 'Archive' : 'Delete'} failed`);
@@ -439,7 +455,7 @@ export default function NewsPage() {
             <div className="stats-grid-4">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">📰</div>
-                    <div className="stat-value-responsive">{totalArticles}</div>
+                    <div className="stat-value-responsive">{allArticles.length}</div>
                     <div className="stat-label-responsive">Total Articles</div>
                 </div>
                 <div className="stat-card-responsive">
@@ -473,7 +489,7 @@ export default function NewsPage() {
                                     <div className="relative w-12 h-8 shrink-0 rounded-md overflow-hidden bg-[#F3F4F6]">
                                         <Image
                                             src={article.featuredImage}
-                                            alt=""
+                                            alt={article.title}
                                             fill
                                             sizes="48px"
                                             className="object-cover"
@@ -562,7 +578,14 @@ export default function NewsPage() {
                 title="All Articles"
                 totalCount={displayArticles.length}
                 headerActions={
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(value) => {
+                            if (!canInteract) return;
+                            setStatusFilter(value);
+                        }}
+                        disabled={!canInteract}
+                    >
                         <SelectTrigger>
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
@@ -584,10 +607,10 @@ export default function NewsPage() {
                 emptyTitle={statusFilter !== 'all' ? `No ${statusFilter.toLowerCase()} articles` : 'No articles found'}
                 emptyDescription={statusFilter !== 'all' ? 'Try selecting a different status filter' : 'Create your first article to get started'}
                 sortConfig={{ key: sortBy, order: sortOrder }}
-                onSort={handleSortColumn}
+                onSort={canInteract ? handleSortColumn : undefined}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Create/Edit Article Modal - using Portal to render at body level */}
@@ -621,8 +644,9 @@ export default function NewsPage() {
                                     className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter article title"
                                     value={formData.title}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => { setFormData(prev => ({ ...prev, title: e.target.value })); setFieldErrors(prev => ({ ...prev, title: '' })); }}
                                 />
+                                {fieldErrors.title && <p className="text-xs text-red-500 mt-1">{fieldErrors.title}</p>}
                             </div>
 
                             {/* Author, Category, Publication Date */}
@@ -636,12 +660,13 @@ export default function NewsPage() {
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         placeholder="Author name"
                                         value={formData.author}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => { setFormData(prev => ({ ...prev, author: e.target.value })); setFieldErrors(prev => ({ ...prev, author: '' })); }}
                                     />
+                                    {fieldErrors.author && <p className="text-xs text-red-500 mt-1">{fieldErrors.author}</p>}
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="category" className="font-sans text-sm font-semibold text-[#374151]">Category *</label>
-                                    <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as NewsCategory }))}>
+                                    <Select value={formData.category} onValueChange={(value) => { setFormData(prev => ({ ...prev, category: value as NewsCategory })); setFieldErrors(prev => ({ ...prev, category: '' })); }}>
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
@@ -651,6 +676,7 @@ export default function NewsPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {fieldErrors.category && <p className="text-xs text-red-500 mt-1">{fieldErrors.category}</p>}
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="publicationDate" className="font-sans text-sm font-semibold text-[#374151]">Publication Date *</label>
@@ -660,8 +686,9 @@ export default function NewsPage() {
                                         name="publicationDate"
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10"
                                         value={formData.publicationDate}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => { setFormData(prev => ({ ...prev, publicationDate: e.target.value })); setFieldErrors(prev => ({ ...prev, publicationDate: '' })); }}
                                     />
+                                    {fieldErrors.publicationDate && <p className="text-xs text-red-500 mt-1">{fieldErrors.publicationDate}</p>}
                                 </div>
                             </div>
 
@@ -677,13 +704,13 @@ export default function NewsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-full max-w-xs aspect-[16/9]">
+                                        <div className="relative w-full max-w-xs aspect-video overflow-hidden rounded">
                                             <Image
                                                 src={imagePreview}
-                                                alt="Preview"
+                                                alt="Article featured image preview"
                                                 fill
                                                 sizes="320px"
-                                                className="rounded object-cover"
+                                                className="object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -716,6 +743,7 @@ export default function NewsPage() {
                                         className="hidden"
                                     />
                                 </div>
+                                {fieldErrors.featuredImage && <p className="text-xs text-red-500 mt-1">{fieldErrors.featuredImage}</p>}
                             </div>
 
                             {/* Excerpt / Summary */}
@@ -729,8 +757,9 @@ export default function NewsPage() {
                                     rows={3}
                                     maxLength={200}
                                     value={formData.excerpt}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => { setFormData(prev => ({ ...prev, excerpt: e.target.value })); setFieldErrors(prev => ({ ...prev, excerpt: '' })); }}
                                 />
+                                {fieldErrors.excerpt && <p className="text-xs text-red-500 mt-1">{fieldErrors.excerpt}</p>}
                                 <div className="text-right text-xs text-[#9CA3AF] mt-1">
                                     {formData.excerpt.length}/200
                                 </div>
@@ -741,9 +770,10 @@ export default function NewsPage() {
                                 <label htmlFor="content" className="font-sans text-sm font-semibold text-[#374151]">Article Content *</label>
                                 <RichTextEditor
                                     value={formData.content}
-                                    onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                                    onChange={(value) => { setFormData(prev => ({ ...prev, content: value })); setFieldErrors(prev => ({ ...prev, content: '' })); }}
                                     placeholder="Write your article content here..."
                                 />
+                                {fieldErrors.content && <p className="text-xs text-red-500 mt-1">{fieldErrors.content}</p>}
                                 <div className="flex justify-end text-xs text-[#9CA3AF] mt-1">
                                     <span>{wordCount} words</span>
                                 </div>

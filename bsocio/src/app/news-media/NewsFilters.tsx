@@ -100,12 +100,23 @@ const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
           {article.excerpt || article.content?.substring(0, 150)}
         </p>
         <div className="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4">
-          <time
-            className="text-xs text-muted-foreground sm:text-sm"
-            dateTime={article.publicationDate || article.createdAt}
-          >
-            {formatDate(article.publicationDate || article.createdAt)}
-          </time>
+          <div className="flex items-center gap-3">
+            <time
+              className="text-xs text-muted-foreground sm:text-sm"
+              dateTime={article.publicationDate || article.createdAt}
+            >
+              {formatDate(article.publicationDate || article.createdAt)}
+            </time>
+            {(article.views != null && article.views > 0) && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+                {article.views}
+              </span>
+            )}
+          </div>
           <Link
             href={`/news-media/${article.id}`}
             className="inline-flex items-center font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"

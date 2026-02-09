@@ -123,7 +123,7 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
       {/* Backdrop - positioned below header */}
       <div
         className={cn(
-          "fixed inset-0 top-16 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 top-16 bg-black/50 transition-opacity duration-300 lg:hidden",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
@@ -194,8 +194,9 @@ export default function Header() {
         "top-0 z-50 w-full",
         isMenuOpen ? "fixed" : "sticky",
         "border-b border-border",
-        "bg-background/95 backdrop-blur-md",
-        "supports-[backdrop-filter]:bg-background/80",
+        "bg-background/[0.97]",
+        "md:bg-background/95 md:backdrop-blur-md",
+        "md:supports-[backdrop-filter]:bg-background/80",
         "shadow-sm dark:shadow-none dark:border-border/50"
       )}
       role="banner"

@@ -61,6 +61,7 @@ export default function NomineesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingNominee, setEditingNominee] = useState<Nominee | null>(null);
     const [formData, setFormData] = useState<FormData>(initialFormData);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -118,13 +119,26 @@ export default function NomineesPage() {
 
     // API Hooks - server-side pagination
     const { categories } = useAwardCategories();
-    const { nominees: displayNominees, total: totalNominees, isLoading, refetch } = useNominees(filters);
+    const { nominees: rawNominees, total: rawTotal, isLoading: nomineesLoading, refetch } = useNominees(filters);
     
     // Fetch stats separately (for counts)
-    const { nominees: allNominees } = useNominees({ take: 1000 });
+    const { nominees: allNominees, refetch: refetchStats } = useNominees({ take: 1000 });
     const approvedCount = allNominees?.filter((n: Nominee) => n.status === 'APPROVED').length || 0;
     const pendingCount = allNominees?.filter((n: Nominee) => n.status === 'PENDING').length || 0;
     const rejectedCount = allNominees?.filter((n: Nominee) => n.status === 'REJECTED').length || 0;
+
+    // Skip unnecessary loading when stats already confirm 0 results for this filter
+    const filterHasNoResults = useMemo(() => {
+        if (!allNominees || allNominees.length === 0) return false;
+        if (statusFilter === 'APPROVED' && approvedCount === 0) return true;
+        if (statusFilter === 'PENDING' && pendingCount === 0) return true;
+        if (statusFilter === 'REJECTED' && rejectedCount === 0) return true;
+        return false;
+    }, [statusFilter, approvedCount, pendingCount, rejectedCount, allNominees]);
+
+    const displayNominees = filterHasNoResults ? [] : rawNominees;
+    const totalNominees = filterHasNoResults ? 0 : rawTotal;
+    const isLoading = filterHasNoResults ? false : nomineesLoading;
 
     const { mutateAsync: createNominee, isPending: isCreating } = useCreateNominee();
     const { mutateAsync: updateNominee, isPending: isUpdating } = useUpdateNominee();
@@ -133,6 +147,18 @@ export default function NomineesPage() {
 
     // Server-side pagination
     const totalPages = Math.ceil(totalNominees / PAGE_SIZE);
+
+    // Interaction guards
+    const hasNominees = totalNominees > 0;
+    const canInteract = hasNominees;
+    const shouldPaginate = canInteract && totalPages > 1;
+
+    // Pagination bounds check
+    useEffect(() => {
+        if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+            setCurrentPage(Math.max(totalPages - 1, 0));
+        }
+    }, [currentPage, totalPages]);
 
     // Reset page when filter changes
     useEffect(() => {
@@ -225,6 +251,7 @@ export default function NomineesPage() {
         setShowModal(false);
         setEditingNominee(null);
         setFormData(initialFormData);
+        setFieldErrors({});
         setImagePreview(null);
         setUploadedImageUrl(null);
         setOriginalImageUrl(null);
@@ -232,18 +259,13 @@ export default function NomineesPage() {
 
     const handleSubmit = async (status: NomineeStatus) => {
         // Validation
-        if (!formData.name.trim()) {
-            toast.error('Validation error', { description: 'Please enter a name' });
-            return;
-        }
-        if (formData.name.trim().length > 100) {
-            toast.error('Validation error', { description: 'Name must be 100 characters or less' });
-            return;
-        }
-        if (!formData.categoryId) {
-            toast.error('Validation error', { description: 'Please select a category' });
-            return;
-        }
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim()) errors.name = 'Please enter a name';
+        else if (formData.name.trim().length > 100) errors.name = 'Name must be 100 characters or less';
+        if (!formData.categoryId) errors.categoryId = 'Please select a category';
+        
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         const payload: CreateNomineeRequest = {
             name: formData.name.trim(),
@@ -267,6 +289,7 @@ export default function NomineesPage() {
             setUploadedImageUrl(null);
             closeModal();
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to save nominee:', error);
             showErrorToast(error, 'Save failed');
@@ -298,6 +321,7 @@ export default function NomineesPage() {
             await deleteNominee(confirmModal.nomineeId);
             showSuccessToast('Nominee deleted', `${confirmModal.nomineeName} has been removed`);
             refetch();
+            refetchStats();
         } catch (error) {
             console.error('Failed to delete:', error);
             showErrorToast(error, 'Delete failed');
@@ -346,11 +370,10 @@ export default function NomineesPage() {
             </div>
 
             {/* Stats */}
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full">
+            <div className="stats-grid-4">
                 <div className="stat-card-responsive">
                     <div className="stat-icon-responsive text-[#2563EB]">👤</div>
-                    <div className="stat-value-responsive">{totalNominees}</div>
+                    <div className="stat-value-responsive">{allNominees?.length || 0}</div>
                     <div className="stat-label-responsive">Total Nominees</div>
                 </div>
                 <div className="stat-card-responsive">
@@ -384,7 +407,7 @@ export default function NomineesPage() {
                                     <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-[#F3F4F6]">
                                         <Image
                                             src={nominee.imageUrl}
-                                            alt=""
+                                            alt={nominee.name}
                                             fill
                                             sizes="40px"
                                             className="object-cover"
@@ -477,10 +500,10 @@ export default function NomineesPage() {
                 emptyTitle={statusFilter !== 'all' ? `No ${statusFilter.toLowerCase()} nominees` : 'No nominees found'}
                 emptyDescription={statusFilter !== 'all' ? 'Try selecting a different status filter' : 'Create your first nominee to get started'}
                 sortConfig={{ key: sortBy, order: sortOrder }}
-                onSort={handleSortColumn}
+                onSort={canInteract ? handleSortColumn : undefined}
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={shouldPaginate ? setCurrentPage : undefined}
             />
 
             {/* Create/Edit Nominee Modal */}
@@ -514,15 +537,16 @@ export default function NomineesPage() {
                                     className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-[3px] focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter nominee name"
                                     value={formData.name}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => { handleInputChange(e); setFieldErrors(prev => ({ ...prev, name: '' })); }}
                                 />
+                                {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
                             </div>
 
                             {/* Category and Title */}
                             <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 mb-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="categoryId" className="font-sans text-sm font-semibold text-[#374151]">Award Category *</label>
-                                    <Select value={formData.categoryId} onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}>
+                                    <Select value={formData.categoryId} onValueChange={(value) => { setFormData(prev => ({ ...prev, categoryId: value })); setFieldErrors(prev => ({ ...prev, categoryId: '' })); }}>
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
@@ -532,6 +556,7 @@ export default function NomineesPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {fieldErrors.categoryId && <p className="text-xs text-red-500 mt-1">{fieldErrors.categoryId}</p>}
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="title" className="font-sans text-sm font-semibold text-[#374151]">Title</label>
@@ -573,14 +598,13 @@ export default function NomineesPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-24 h-24">
+                                        <div className="relative w-24 h-24 overflow-hidden rounded-full">
                                             <Image
                                                 src={imagePreview}
-                                                alt="Preview"
+                                                alt="Nominee photo preview"
                                                 fill
                                                 sizes="96px"
-                                                className="rounded-full object-cover"
-                                                priority
+                                                className="object-cover"
                                                 quality={85}
                                             />
                                             <button

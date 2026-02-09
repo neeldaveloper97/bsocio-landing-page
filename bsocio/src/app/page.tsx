@@ -89,26 +89,15 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       {/* Hero Section - Optimized for LCP */}
       <section
-        className="relative flex min-h-[80vh] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-orange-50/30 to-green-50 px-4 py-20 dark:from-primary/10 dark:via-background dark:to-secondary/10 lg:min-h-screen lg:py-28"
+        className="relative flex min-h-[80vh] w-full items-center justify-center overflow-hidden bg-[linear-gradient(100.69deg,#EFF6FF_18.35%,#FFFBF6_51.52%,#FBFFF5_84.7%)] px-4 py-20 dark:from-primary/10 dark:via-background dark:to-secondary/10 lg:min-h-screen lg:py-28"
         aria-labelledby="hero-title"
-        style={{
-          // Inline critical styles for faster first paint
-          background: 'linear-gradient(100.69deg, #EFF6FF 18.35%, #FFFBF6 51.52%, #FBFFF5 84.7%)',
-        }}
       >
 
         {/* Hero Content - LCP Element */}
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 text-center sm:gap-8">
           <h1
             id="hero-title"
-            className="max-w-3xl text-3xl font-bold leading-tight text-primary sm:text-4xl md:text-5xl lg:text-6xl"
-            style={{
-              // Inline critical styles for LCP optimization
-              color: '#1F6AE1',
-              fontSize: 'clamp(1.875rem, 5vw, 3.75rem)',
-              fontWeight: 700,
-              lineHeight: 1.2,
-            }}
+            className="max-w-3xl text-[clamp(1.875rem,5vw,3.75rem)] font-bold leading-[1.2] text-primary sm:text-4xl md:text-5xl lg:text-6xl"
           >
             Bsocio Like Bill Gates Movement Is Here!
           </h1>

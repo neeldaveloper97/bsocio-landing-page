@@ -284,9 +284,9 @@ enum FaqVisibility {
 
 enum FaqCategory {
   GENERAL
-  REWARDS
-  GETTING_STARTED
-  IMPACT
+  BILLING
+  TECHNICAL
+  OTHER
 }
 
 enum LegalDocumentType {

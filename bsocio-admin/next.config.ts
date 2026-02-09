@@ -41,21 +41,13 @@ const nextConfig: NextConfig = {
     // Package tree-shaking for smaller bundles
     optimizePackageImports: [
       "lucide-react",
-      "@radix-ui/react-icons",
       "@radix-ui/react-slot",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-select",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-tooltip",
       "@tanstack/react-query",
       "@tanstack/react-query-devtools",
-      "recharts",
       "clsx",
       "tailwind-merge",
       "class-variance-authority",
-      "date-fns",
-      "@tiptap/core",
       "@tiptap/react",
       "@tiptap/starter-kit",
     ],
@@ -74,10 +66,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '**.amazonaws.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'localhost',
       },
     ],
     loader: 'default',

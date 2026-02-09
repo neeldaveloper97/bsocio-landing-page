@@ -317,6 +317,15 @@ export default function NewsDetailPage() {
             {formatDate(article.publicationDate)}
           </div>
           <div className="text-muted-foreground/70">{calculateReadTime(article.content)}</div>
+          {(article.views != null && article.views > 0) && (
+            <div className="flex items-center gap-1.5 text-muted-foreground/70">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+              {article.views} {article.views === 1 ? 'view' : 'views'}
+            </div>
+          )}
         </div>
 
         {article.featuredImage ? (
@@ -432,7 +441,7 @@ export default function NewsDetailPage() {
         )}
       </article>
 
-      {/* Newsletter CTA */}
+      {/* Newsletter CTA
       <section className="bg-linear-to-r from-primary to-teal-600 px-5 py-12 text-center text-white sm:py-16 md:py-20">
         <div className="mx-auto max-w-2xl">
           <h2 className="mb-4 text-2xl font-bold sm:text-3xl md:text-4xl">Stay Updated with Bsocio News</h2>
@@ -463,7 +472,7 @@ export default function NewsDetailPage() {
             </button>
           </form>
         </div>
-      </section>
+      </section> */}
 
       <CtaImpactSection />
     </>

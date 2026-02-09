@@ -6,7 +6,28 @@ import {
   IsEnum,
   IsDateString,
   MaxLength,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Validate,
 } from 'class-validator';
+
+@ValidatorConstraint({ name: 'IsNotPastDate', async: false })
+export class IsNotPastDateConstraint implements ValidatorConstraintInterface {
+  validate(dateString: string, args: ValidationArguments) {
+    if (!dateString) return true;
+    
+    const inputDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return inputDate >= today;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Ceremony date cannot be in the past';
+  }
+}
 
 export enum CeremonyStatus {
   UPCOMING = 'UPCOMING',
@@ -25,6 +46,7 @@ export class CreateCeremonyDto {
   @ApiProperty({ example: '2025-06-15' })
   @IsDateString()
   @IsNotEmpty()
+  @Validate(IsNotPastDateConstraint)
   date: string;
 
   @ApiProperty({ example: 'New York, United States' })

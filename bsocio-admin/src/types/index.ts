@@ -282,7 +282,7 @@ export interface AnalyticsOverviewResponse {
 // FAQ Types
 // ============================================
 
-export type FAQCategory = 'GENERAL' | 'REWARDS' | 'GETTING_STARTED' | 'IMPACT';
+export type FAQCategory = 'GENERAL' | 'BILLING' | 'TECHNICAL' | 'OTHER';
 export type FAQState = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type FAQStatus = 'ACTIVE' | 'INACTIVE';
 export type FAQVisibility = 'PUBLIC' | 'PRIVATE';

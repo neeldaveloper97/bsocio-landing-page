@@ -35,20 +35,14 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [
       "lucide-react",
-      "@radix-ui/react-icons",
       "@radix-ui/react-accordion",
       "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-popover",
       "@radix-ui/react-select",
       "@radix-ui/react-tabs",
-      "@radix-ui/react-tooltip",
       "sonner",
       "@tanstack/react-query",
       "react-hook-form",
       "zod",
-      "clsx",
-      "tailwind-merge",
     ],
     // Optimize CSS
     optimizeCss: true,

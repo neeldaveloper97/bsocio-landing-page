@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { WebVitals } from "@/components/WebVitals";
 import {
   generateMetadata as createMetadata,
   generateOrganizationSchema,
@@ -77,22 +76,12 @@ export default function RootLayout({
       <head>
         {/* Structured Data */}
         <JsonLd data={[generateOrganizationSchema(), generateWebsiteSchema()]} />
-        {/* Critical resource hints for LCP optimization */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Performance: preconnect to image CDN */}
         <link rel="preconnect" href="https://bsocio-bucket.s3.us-east-1.amazonaws.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://bsocio-bucket.s3.us-east-1.amazonaws.com" />
         {process.env.NEXT_PUBLIC_API_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
         )}
-        {/* Inline critical CSS for faster LCP */}
-        <style dangerouslySetInnerHTML={{__html: `
-          .hero-section{display:flex;min-height:80vh;width:100%;align-items:center;justify-content:center;background:linear-gradient(100.69deg,#EFF6FF 18.35%,#FFFBF6 51.52%,#FBFFF5 84.7%);position:relative;overflow:hidden;padding:5rem 1rem}
-          .hero-content{position:relative;z-index:10;max-width:56rem;display:flex;flex-direction:column;align-items:center;gap:1.5rem;text-align:center}
-          .hero-title{color:#1F6AE1;font-size:clamp(1.875rem,5vw,3.75rem);font-weight:700;line-height:1.2;max-width:48rem}
-          .btn-primary{display:inline-flex;align-items:center;justify-content:center;background-color:#1F6AE1;color:#FFF;font-weight:600;padding:.75rem 1.5rem;border-radius:.75rem}
-        `}} />
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
         {/* Apple Touch Icon - uses favicon for now */}
@@ -108,7 +97,6 @@ export default function RootLayout({
         </a>
 
         <ClientProviders>
-          {/* <WebVitals /> */}
           <Header />
 
           <main id="main-content" className="flex-1" role="main">

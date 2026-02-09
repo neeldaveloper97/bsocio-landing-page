@@ -6,7 +6,28 @@ import {
   IsOptional,
   IsString,
   MinLength,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Validate,
 } from 'class-validator';
+
+@ValidatorConstraint({ name: 'IsNotPastDate', async: false })
+export class IsNotPastDateConstraint implements ValidatorConstraintInterface {
+  validate(dateString: string, args: ValidationArguments) {
+    if (!dateString) return true;
+    
+    const inputDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return inputDate >= today;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Publication date cannot be in the past';
+  }
+}
 
 export enum NewsCategoryDto {
   PRESS_RELEASE = 'PRESS_RELEASE',
@@ -38,6 +59,7 @@ export class CreateNewsDto {
 
   @ApiProperty({ example: '2026-01-20' })
   @IsDateString()
+  @Validate(IsNotPastDateConstraint)
   publicationDate!: string;
 
   @ApiProperty()
