@@ -8,7 +8,6 @@ jobs:
     runs-on: bsocio-runner
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -23,11 +22,11 @@ jobs:
           DB_PASSWORD=pass
           EOF
 
-       - name: Build Docker Image
-         run: docker compose build
+      - name: Build Docker Image
+        run: docker compose build
 
-       - name: Stop Existing Containers
-         run: docker compose down
+      - name: Stop Existing Containers
+        run: docker compose down
 
-       - name: Start Containers
-         run: docker compose up -d
+      - name: Start Containers
+        run: docker compose up -d
