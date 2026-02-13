@@ -2,7 +2,9 @@
  * ============================================
  * BSOCIO - Google Sign In Button
  * ============================================
- * Google OAuth sign-in button with backend integration
+ * Google OAuth sign-in button with backend integration.
+ * Uses the standard /users signup endpoint so duplicate-email
+ * detection works identically to manual registration.
  */
 
 'use client';
@@ -10,14 +12,48 @@
 import { GoogleOAuthProvider, useGoogleLogin, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { tokenStorage } from '@/lib/api/storage';
 
 interface GoogleSignInButtonProps {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
   className?: string;
   variant?: 'button' | 'google-branded';
+}
+
+/** Decode a JWT payload without a library (works in all modern browsers). */
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(base64));
+}
+
+/** Register via the same POST /users endpoint that manual signup uses. */
+async function registerViaUsersEndpoint(email: string): Promise<void> {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      role: 'USER',
+      isTermsAccepted: true,
+      authProvider: 'GOOGLE',
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    // message can be a string or an array of strings from the API
+    const msg = Array.isArray(errorData.message)
+      ? errorData.message.join(', ')
+      : typeof errorData.message === 'string'
+        ? errorData.message
+        : '';
+    const msgLower = msg.toLowerCase();
+
+    if (response.status === 409 || msgLower.includes('already') || msgLower.includes('exist')) {
+      throw new Error('This email is already registered');
+    }
+    throw new Error(msg || 'Registration failed. Please try again.');
+  }
 }
 
 /**
@@ -41,10 +77,9 @@ function GoogleSignInButtonInner({
   variant = 'button'
 }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   /**
-   * Handle successful Google credential response
+   * Handle successful Google credential response (One Tap / branded button)
    */
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) {
@@ -54,49 +89,18 @@ function GoogleSignInButtonInner({
 
     try {
       setIsLoading(true);
-      
-      // Send ID token to backend for verification
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          idToken: credentialResponse.credential,
-        }),
-      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        // Handle specific error cases
-        if (response.status === 409 || error.message?.toLowerCase().includes('already')) {
-          throw new Error('An account with this email already exists. Please sign in instead.');
-        }
-        if (response.status === 400 && error.message?.toLowerCase().includes('exist')) {
-          throw new Error('This email is already registered. Please use the login page.');
-        }
-        throw new Error(error.message || 'Failed to authenticate with backend');
+      // Extract email from the Google ID token
+      const payload = decodeJwtPayload(credentialResponse.credential);
+      const email = payload.email as string | undefined;
+      if (!email) {
+        throw new Error('Could not retrieve email from Google account.');
       }
 
-      const data = await response.json();
-      
-      // Store tokens using existing storage utility
-      if (data.accessToken) {
-        tokenStorage.setAccessToken(data.accessToken);
-      }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
-      }
-      
-      // Check if user needs to complete profile (phone verification)
-      // If isPermanentUser is false, redirect to verification page
-      if (data.user && !data.user.isPermanentUser) {
-        onSuccess?.();
-        router.push(`/signup/verify?email=${encodeURIComponent(data.user.email)}`);
-      } else {
-        onSuccess?.();
-        router.push('/');
-      }
+      // Register through the standard /users endpoint (same as manual signup)
+      await registerViaUsersEndpoint(email);
+
+      onSuccess?.();
     } catch (error) {
       console.error('Google sign-in error:', error);
       onError?.(error as Error);
@@ -125,53 +129,11 @@ function GoogleSignInButtonInner({
         }
 
         const userInfo = await userInfoResponse.json();
-        
-        // Send user data to backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}auth/google/callback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            googleId: userInfo.sub,
-          }),
-        });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          if (response.status === 404) {
-            throw new Error('Google authentication is not yet available. Please try again later or use email signup.');
-          }
-          if (response.status === 409 || errorData.message?.toLowerCase().includes('already')) {
-            throw new Error('An account with this email already exists. Please sign in instead.');
-          }
-          if (response.status === 400 && errorData.message?.toLowerCase().includes('exist')) {
-            throw new Error('This email is already registered. Please use the login page.');
-          }
-          throw new Error(errorData.message || 'Failed to authenticate with backend');
-        }
+        // Register through the standard /users endpoint (same as manual signup)
+        await registerViaUsersEndpoint(userInfo.email);
 
-        const data = await response.json();
-        
-        // Store tokens
-        if (data.accessToken) {
-          tokenStorage.setAccessToken(data.accessToken);
-        }
-        if (data.refreshToken) {
-          tokenStorage.setRefreshToken(data.refreshToken);
-        }
-        
-        // Check if user needs to complete profile (phone verification)
-        if (data.user && !data.user.isPermanentUser) {
-          onSuccess?.();
-          router.push(`/signup/verify?email=${encodeURIComponent(userInfo.email)}`);
-        } else {
-          onSuccess?.();
-          router.push('/');
-        }
+        onSuccess?.();
       } catch (error) {
         console.error('Google sign-in error:', error);
         onError?.(error as Error);
@@ -221,7 +183,7 @@ function GoogleSignInButtonInner({
  */
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24">
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

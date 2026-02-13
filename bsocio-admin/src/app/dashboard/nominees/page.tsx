@@ -6,17 +6,18 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { 
+import {
     useAwardCategories,
-    useNominees, 
-    useCreateNominee, 
-    useUpdateNominee, 
+    useNominees,
+    useCreateNominee,
+    useUpdateNominee,
     useDeleteNominee,
     useUploadImage,
 } from '@/hooks';
 import type { Nominee, CreateNomineeRequest, NomineeStatus, NomineeFilters } from '@/types';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { X } from 'lucide-react';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
     Select,
@@ -120,7 +121,7 @@ export default function NomineesPage() {
     // API Hooks - server-side pagination
     const { categories } = useAwardCategories();
     const { nominees: rawNominees, total: rawTotal, isLoading: nomineesLoading, refetch } = useNominees(filters);
-    
+
     // Fetch stats separately (for counts)
     const { nominees: allNominees, refetch: refetchStats } = useNominees({ take: 1000 });
     const approvedCount = allNominees?.filter((n: Nominee) => n.status === 'APPROVED').length || 0;
@@ -263,7 +264,7 @@ export default function NomineesPage() {
         if (!formData.name.trim()) errors.name = 'Please enter a name';
         else if (formData.name.trim().length > 100) errors.name = 'Name must be 100 characters or less';
         if (!formData.categoryId) errors.categoryId = 'Please select a category';
-        
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -397,8 +398,8 @@ export default function NomineesPage() {
             <DataTable<Nominee>
                 data={displayNominees}
                 columns={[
-                    { 
-                        key: 'name', 
+                    {
+                        key: 'name',
                         header: 'Nominee',
                         sortable: true,
                         render: (nominee) => (
@@ -427,19 +428,19 @@ export default function NomineesPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'category', 
+                    {
+                        key: 'category',
                         header: 'Category',
                         sortable: true,
                         render: (nominee) => getCategoryName(nominee.categoryId)
                     },
-                    { 
-                        key: 'organization', 
+                    {
+                        key: 'organization',
                         header: 'Organization',
                         render: (nominee) => <span title={nominee.organization}>{truncateText(nominee.organization || '-', 20)}</span>
                     },
-                    { 
-                        key: 'status', 
+                    {
+                        key: 'status',
                         header: 'Status',
                         sortable: true,
                         align: 'center',
@@ -517,13 +518,13 @@ export default function NomineesPage() {
                                     Add nominees to celebrate heroes making an impact
                                 </p>
                             </div>
-                            <button 
-                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" 
+                            <button
+                                className="absolute right-4 max-sm:right-3 top-6 max-sm:top-4 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                                 type="button"
                             >
-                                ×
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 max-sm:p-4">
@@ -598,15 +599,17 @@ export default function NomineesPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-24 h-24 overflow-hidden rounded-full">
-                                            <Image
-                                                src={imagePreview}
-                                                alt="Nominee photo preview"
-                                                fill
-                                                sizes="96px"
-                                                className="object-cover"
-                                                quality={85}
-                                            />
+                                        <div className="relative group shrink-0">
+                                            <div className="relative w-24 h-24 overflow-hidden rounded-full border border-gray-200">
+                                                <Image
+                                                    src={imagePreview}
+                                                    alt="Nominee photo preview"
+                                                    fill
+                                                    sizes="96px"
+                                                    className="object-cover"
+                                                    quality={85}
+                                                />
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -614,9 +617,9 @@ export default function NomineesPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, imageUrl: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
+                                                className="absolute -top-1 -right-1 bg-white hover:bg-red-50 text-red-500 border border-gray-200 shadow-sm rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-50 transition-colors"
                                             >
-                                                ×
+                                                <X className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
                                     ) : (

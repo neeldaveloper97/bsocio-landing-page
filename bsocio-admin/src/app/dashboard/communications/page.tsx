@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useContacts } from '@/hooks';
 import { ViewIcon } from '@/components/ui/admin-icons';
+import { X } from 'lucide-react';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
     Select,
@@ -70,7 +71,7 @@ export default function CommunicationsPage() {
     const newCount = allContacts.filter((c: ContactInquiry) => c.status === 'NEW').length;
     const inProgressCount = allContacts.filter((c: ContactInquiry) => c.status === 'IN_PROGRESS').length;
     const resolvedCount = allContacts.filter((c: ContactInquiry) => c.status === 'RESOLVED').length;
-    
+
     // Reason counts
     const mediaPressCount = allContacts.filter((c: ContactInquiry) => c.reason === 'MEDIA_PRESS').length;
     const partnershipsCount = allContacts.filter((c: ContactInquiry) => c.reason === 'PARTNERSHIPS').length;
@@ -97,11 +98,11 @@ export default function CommunicationsPage() {
             'REPORT_SCAM': '#ef4444',
             'GENERAL_INQUIRY': '#6b7280',
         };
-        
+
         return (
-            <span 
+            <span
                 className="reason-badge"
-                style={{ 
+                style={{
                     backgroundColor: `${colors[reason]}15`,
                     color: colors[reason],
                     border: `1px solid ${colors[reason]}30`,
@@ -197,7 +198,7 @@ export default function CommunicationsPage() {
                         key: 'fullName',
                         header: 'Name',
                         render: (inquiry) => (
-                            <span 
+                            <span
                                 style={{ fontWeight: inquiry.status === 'NEW' ? 600 : 400 }}
                                 title={inquiry.fullName}
                             >
@@ -247,8 +248,8 @@ export default function CommunicationsPage() {
                         align: 'center',
                         render: (inquiry) => (
                             <div className="flex items-center justify-center">
-                                <button 
-                                    className="action-btn" 
+                                <button
+                                    className="action-btn"
                                     title="View Details"
                                     onClick={() => handleViewDetails(inquiry)}
                                 >
@@ -263,8 +264,8 @@ export default function CommunicationsPage() {
                 totalCount={total}
                 headerActions={
                     <>
-                        <Select 
-                            value={statusFilter || 'all'} 
+                        <Select
+                            value={statusFilter || 'all'}
                             onValueChange={(value) => {
                                 setStatusFilter(value === 'all' ? '' : value as ContactStatus);
                                 setCurrentPage(0);
@@ -281,8 +282,8 @@ export default function CommunicationsPage() {
                                 <SelectItem value="RESOLVED" disabled={resolvedCount === 0}>Resolved ({resolvedCount})</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select 
-                            value={reasonFilter || 'all'} 
+                        <Select
+                            value={reasonFilter || 'all'}
                             onValueChange={(value) => {
                                 setReasonFilter(value === 'all' ? '' : value as ContactReason);
                                 setCurrentPage(0);
@@ -312,11 +313,13 @@ export default function CommunicationsPage() {
 
             {/* Detail Modal */}
             {showDetailModal && selectedInquiry && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="inquiry-modal-title" onClick={(e) => e.target === e.currentTarget && closeDetailModal()}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[640px] max-sm:max-w-[95vw] max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative flex-shrink-0">
-                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0 truncate max-w-[80%]">Inquiry Details</h2>
-                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeDetailModal}>×</button>
+                            <h2 id="inquiry-modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0 truncate max-w-[80%]">Inquiry Details</h2>
+                            <button type="button" aria-label="Close modal" className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeDetailModal}>
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="p-6 max-sm:p-4 overflow-y-auto flex-1 min-w-0">
                             <div className="space-y-4 w-full overflow-hidden">
@@ -364,7 +367,7 @@ export default function CommunicationsPage() {
                             <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={closeDetailModal}>
                                 Close
                             </button>
-                            <a 
+                            <a
                                 href={`mailto:${selectedInquiry.email}?subject=Re: ${REASON_LABELS[selectedInquiry.reason]}`}
                                 className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] no-underline inline-flex items-center justify-center"
                             >

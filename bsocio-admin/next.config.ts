@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  
+
   // React Compiler for automatic memoization (reduces TBT)
   reactCompiler: true,
 
@@ -83,65 +83,12 @@ const nextConfig: NextConfig = {
   },
 
   // Webpack optimizations for production
+  // Webpack optimizations for production
   webpack: (config, { isServer, dev }) => {
+    // Only apply if needed, but generally Next.js defaults are better
     if (!dev && !isServer) {
-      // Aggressive code splitting for mobile
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          minSize: 10000, // 10KB min for mobile
-          maxSize: 100000, // 100KB max chunks for faster parsing
-          cacheGroups: {
-            // React core - load first
-            react: {
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              name: 'react',
-              priority: 50,
-              reuseExistingChunk: true,
-            },
-            // React Query - lazy loadable
-            query: {
-              test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
-              name: 'query',
-              priority: 40,
-              reuseExistingChunk: true,
-            },
-            // TipTap editor - lazy load only when needed
-            editor: {
-              test: /[\\/]node_modules[\\/](@tiptap|prosemirror|y-prosemirror)[\\/]/,
-              name: 'editor',
-              priority: 35,
-              reuseExistingChunk: true,
-            },
-            // UI components
-            ui: {
-              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|class-variance-authority)[\\/]/,
-              name: 'ui',
-              priority: 30,
-              reuseExistingChunk: true,
-            },
-            // Charts - lazy load
-            charts: {
-              test: /[\\/]node_modules[\\/](recharts|d3-|victory)[\\/]/,
-              name: 'charts',
-              priority: 25,
-              reuseExistingChunk: true,
-            },
-            // Other vendors
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendor',
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-        // Minimize JavaScript
-        minimize: true,
-      };
-
-      // Tree shake moment/date-fns locales
+      // We are letting Next.js handle chunking automatically
+      // as manual configuration can often conflict with new App Router behavior
       config.resolve.alias = {
         ...config.resolve.alias,
         'moment/locale': false,

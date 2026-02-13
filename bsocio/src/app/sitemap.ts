@@ -18,7 +18,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/our-structure',
     '/leadership',
     '/contact',
-    '/signup',
     '/privacy',
     '/terms',
   ];

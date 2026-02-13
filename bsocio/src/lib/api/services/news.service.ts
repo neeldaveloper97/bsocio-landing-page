@@ -34,10 +34,18 @@ export const newsService = {
   async getPublished(params?: { limit?: number; page?: number; category?: string }): Promise<PaginatedNewsResponse> {
     const queryParams: Record<string, any> = {};
 
-    if (params?.limit) queryParams.limit = params.limit;
-    if (params?.page) queryParams.page = params.page;
+    if (params?.limit) {
+      queryParams.take = params.limit;
+    }
+
+    if (params?.page && params?.limit) {
+      queryParams.skip = (params.page - 1) * params.limit;
+    }
+
     if (params?.category) queryParams.category = params.category;
 
+    // Enforce published status
+    queryParams.status = 'PUBLISHED';
 
     const response = await apiClient.get<NewsListResponse>(API_ENDPOINTS.NEWS.LIST, queryParams);
 
@@ -56,14 +64,14 @@ export const newsService = {
   async getById(id: string): Promise<NewsArticle> {
     // Only track if not already tracked in this page load (prevents StrictMode double-call)
     const shouldTrack = !viewedInCurrentSession.has(id);
-    
+
     if (shouldTrack) {
       viewedInCurrentSession.add(id);
     }
-    
+
     const queryParams = shouldTrack ? { trackView: 'true' } : {};
     const response = await apiClient.get<NewsArticle>(API_ENDPOINTS.NEWS.BY_ID(id), queryParams);
-    
+
     // Handle both direct response and wrapped response
     return (response.data as any)?.data || response.data;
   },
@@ -78,8 +86,9 @@ export const newsService = {
     });
 
     // Handle the response consistently
+    // Handle the response consistently
     const articles = Array.isArray(response.data) ? response.data : (response.data?.items || response.data.items || []);
-    
+
     // Filter out the current article if excludeId is provided
     if (excludeId) {
       return articles.filter(article => article.id !== excludeId).slice(0, limit);

@@ -102,6 +102,8 @@ function LegalError({ title, onRetry }: { title: string; onRetry: () => void }) 
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
             >
               <path
                 strokeLinecap="round"
@@ -135,6 +137,8 @@ function LegalError({ title, onRetry }: { title: string; onRetry: () => void }) 
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
           >
             <path
               strokeLinecap="round"

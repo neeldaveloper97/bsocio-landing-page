@@ -22,7 +22,7 @@ export const metadata: Metadata = generateSeoMetadata({
 
 function MissionIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <circle cx="12" cy="12" r="10" stroke="#1F6AE1" strokeWidth="2"/>
       <circle cx="12" cy="12" r="6" stroke="#1F6AE1" strokeWidth="2"/>
       <circle cx="12" cy="12" r="2" fill="#1F6AE1"/>
@@ -32,7 +32,7 @@ function MissionIcon() {
 
 function VisionIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#7CBB00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <circle cx="12" cy="12" r="3" stroke="#7CBB00" strokeWidth="2"/>
     </svg>
@@ -41,7 +41,7 @@ function VisionIcon() {
 
 function BeliefIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69365 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69365 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99871 7.05 2.99871C5.59096 2.99871 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54871 7.04097 1.54871 8.5C1.54871 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22249 22.4518 8.5C22.4518 7.77751 22.3095 7.0621 22.0329 6.39464C21.7563 5.72718 21.351 5.12075 20.84 4.61Z" stroke="#F65314" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
@@ -49,7 +49,7 @@ function BeliefIcon() {
 
 function DollarIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M16 2.66699V29.3337" stroke="#1F6AE1" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M22.6667 6.66699H12.6667C11.429 6.66699 10.242 7.15866 9.36684 8.03383C8.49167 8.909 8 10.096 8 11.3337C8 12.5713 8.49167 13.7583 9.36684 14.6335C10.242 15.5087 11.429 16.0003 12.6667 16.0003H19.3333C20.571 16.0003 21.758 16.492 22.6332 17.3672C23.5083 18.2423 24 19.4293 24 20.667C24 21.9047 23.5083 23.0917 22.6332 23.9668C21.758 24.842 20.571 25.3337 19.3333 25.3337H8" stroke="#1F6AE1" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -58,7 +58,7 @@ function DollarIcon() {
 
 function CheckCircleIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M16 29.3337C23.3638 29.3337 29.3333 23.3641 29.3333 16.0003C29.3333 8.63653 23.3638 2.66699 16 2.66699C8.63616 2.66699 2.66663 8.63653 2.66663 16.0003C2.66663 23.3641 8.63616 29.3337 16 29.3337Z" stroke="#7CBB00" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M10.6666 16.0003L14.6666 20.0003L21.3333 12.0003" stroke="#7CBB00" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -67,7 +67,7 @@ function CheckCircleIcon() {
 
 function SunIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M16 20.0003C18.2091 20.0003 20 18.2095 20 16.0003C20 13.7912 18.2091 12.0003 16 12.0003C13.7909 12.0003 12 13.7912 12 16.0003C12 18.2095 13.7909 20.0003 16 20.0003Z" stroke="#F65314" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M16 2.66699V5.33366" stroke="#F65314" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M16 26.667V29.3337" stroke="#F65314" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
@@ -83,7 +83,7 @@ function SunIcon() {
 
 function GlobeIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <path d="M16 29.3337C23.3638 29.3337 29.3333 23.3641 29.3333 16.0003C29.3333 8.63653 23.3638 2.66699 16 2.66699C8.63616 2.66699 2.66663 8.63653 2.66663 16.0003C2.66663 23.3641 8.63616 29.3337 16 29.3337Z" stroke="#9B51E0" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M2.66663 16.0003H29.3333" stroke="#9B51E0" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M16 2.66699C19.2 6.26699 20.9867 11.0003 20.9867 16.0003C20.9867 21.0003 19.2 25.7337 16 29.3337C12.8 25.7337 11.0133 21.0003 11.0133 16.0003C11.0133 11.0003 12.8 6.26699 16 2.66699Z" stroke="#9B51E0" strokeWidth="2.66667" strokeLinecap="round" strokeLinejoin="round" />

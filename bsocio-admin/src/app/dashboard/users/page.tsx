@@ -12,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Download, Users, AlertCircle, Power, Edit2 } from 'lucide-react';
+import { Download, Users, AlertCircle, Power, Edit2, X } from 'lucide-react';
 import { useAdminUsers, useUpdateAdminUserRole, useExportAdminUsers, useToggleAdminUserStatus } from '@/hooks';
 import { useAdminActivityOptimized, useAdminActivityStatsOptimized, useExportAdminActivity } from '@/hooks';
 import type { AdminUser, AdminRoleKey, AdminActivity } from '@/types';
@@ -148,17 +148,17 @@ const ErrorState = ({ message, onRetry }: { message: string; onRetry?: () => voi
 export default function UsersSystemPage() {
     // Tab state
     const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
-    
+
     // Admin Users state
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userRoleFilter, setUserRoleFilter] = useState<string>('all');
     const [userCurrentPage, setUserCurrentPage] = useState(0);
-    
+
     // System Logs state
     const [logSearchQuery, setLogSearchQuery] = useState('');
     const [logTypeFilter, setLogTypeFilter] = useState<string>('all');
     const [logCurrentPage, setLogCurrentPage] = useState(0);
-    
+
     // Modal state
     const [showAssignRolesModal, setShowAssignRolesModal] = useState(false);
     const [showStatusModal, setShowStatusModal] = useState(false);
@@ -168,7 +168,7 @@ export default function UsersSystemPage() {
     // ============================================
     // API HOOKS - ADMIN USERS
     // ============================================
-    
+
     const {
         data: usersData,
         isLoading: usersLoading,
@@ -283,7 +283,7 @@ export default function UsersSystemPage() {
 
     const handleAssignRole = async () => {
         if (!selectedUser || !selectedRole) return;
-        
+
         try {
             await updateRoleMutation.mutateAsync({
                 id: selectedUser.id,
@@ -323,7 +323,7 @@ export default function UsersSystemPage() {
 
     const confirmToggleStatus = async () => {
         if (!selectedUser) return;
-        
+
         const newStatus = selectedUser.status === 'active' ? false : true;
         try {
             await toggleStatusMutation.mutateAsync({
@@ -415,7 +415,7 @@ export default function UsersSystemPage() {
                         className={cn(
                             "action-btn",
                             user.roleKey === 'SUPER_ADMIN'
-                                ? "text-gray-300 cursor-not-allowed"
+                                ? "text-gray-400 cursor-not-allowed"
                                 : user.status === 'active'
                                     ? "text-red-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                                     : "text-green-500 hover:bg-green-50 hover:text-green-700 hover:border-green-200"
@@ -473,8 +473,11 @@ export default function UsersSystemPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-6">
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-6" role="tablist">
                 <button
+                    id="tab-users"
+                    role="tab"
+                    aria-selected={activeTab === 'users'}
                     onClick={() => setActiveTab('users')}
                     className={cn(
                         "flex items-center gap-2 pb-3 px-1 text-sm font-medium border-b-2 transition-colors",
@@ -487,6 +490,9 @@ export default function UsersSystemPage() {
                     Admin Users
                 </button>
                 <button
+                    id="tab-logs"
+                    role="tab"
+                    aria-selected={activeTab === 'logs'}
                     onClick={() => setActiveTab('logs')}
                     className={cn(
                         "flex items-center gap-2 pb-3 px-1 text-sm font-medium border-b-2 transition-colors",
@@ -495,7 +501,7 @@ export default function UsersSystemPage() {
                             : "border-transparent text-gray-500 hover:text-gray-700"
                     )}
                 >
-                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
                         <rect x="2" y="2" width="12" height="12" rx="2" />
                         <path d="M5 5h6M5 8h6M5 11h4" />
                     </svg>
@@ -507,7 +513,7 @@ export default function UsersSystemPage() {
             {/* ADMIN USERS TAB */}
             {/* ============================================ */}
             {activeTab === 'users' && (
-                <>
+                <div role="tabpanel" aria-labelledby="tab-users">
                     {/* Stats Cards - Using data from users list */}
                     <div className="stats-grid-4">
                         <div className="stat-card-responsive">
@@ -542,9 +548,9 @@ export default function UsersSystemPage() {
 
                     {/* Users Table with isLoading for skeleton */}
                     {usersError ? (
-                        <ErrorState 
-                            message={usersError.message || 'Failed to load admin users'} 
-                            onRetry={() => refetchUsers()} 
+                        <ErrorState
+                            message={usersError.message || 'Failed to load admin users'}
+                            onRetry={() => refetchUsers()}
                         />
                     ) : (
                         <DataTable<AdminUser>
@@ -561,27 +567,37 @@ export default function UsersSystemPage() {
                             totalPages={userTotalPages}
                             onPageChange={shouldPaginateUsers ? setUserCurrentPage : undefined}
                             headerActions={
-                                <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="All Roles" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {ROLE_OPTIONS.map(opt => (
-                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <>
+                                    <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Roles" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ROLE_OPTIONS.map(opt => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <button
+                                        className="flex items-center gap-2 px-4 py-3 max-sm:px-3 max-sm:py-2 rounded-lg border border-[#D1D5DB] bg-blue-600 hover:bg-blue-700 text-white text-sm max-sm:text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+                                        onClick={handleExportUsers}
+                                        disabled={exportUsersMutation.isPending}
+                                    >
+                                        <Download className="w-4 h-4 max-sm:w-3.5 max-sm:h-3.5" />
+                                        <span className="hidden sm:inline">{exportUsersMutation.isPending ? 'Exporting...' : 'Export'}</span>
+                                    </button>
+                                </>
                             }
                         />
                     )}
-                </>
+                </div>
             )}
 
             {/* ============================================ */}
             {/* SYSTEM LOGS TAB */}
             {/* ============================================ */}
             {activeTab === 'logs' && (
-                <>
+                <div role="tabpanel" aria-labelledby="tab-logs">
                     {/* Stats Cards */}
                     <div className="stats-grid-4">
                         <div className="stat-card-responsive">
@@ -608,9 +624,9 @@ export default function UsersSystemPage() {
 
                     {/* Logs Table with isLoading for skeleton */}
                     {logsError ? (
-                        <ErrorState 
-                            message={logsError.message || 'Failed to load system logs'} 
-                            onRetry={() => refetchLogs()} 
+                        <ErrorState
+                            message={logsError.message || 'Failed to load system logs'}
+                            onRetry={() => refetchLogs()}
                         />
                     ) : (
                         <DataTable<AdminActivity>
@@ -638,7 +654,7 @@ export default function UsersSystemPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <button 
+                                    <button
                                         className="flex items-center gap-2 px-4 py-3 max-sm:px-3 max-sm:py-2 rounded-lg border border-[#D1D5DB] bg-blue-600 hover:bg-blue-700 text-white text-sm max-sm:text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
                                         onClick={handleExportLogs}
                                         disabled={exportLogsMutation.isPending}
@@ -650,24 +666,28 @@ export default function UsersSystemPage() {
                             }
                         />
                     )}
-                </>
+                </div>
             )}
 
             {/* ============================================ */}
             {/* ASSIGN ROLES MODAL */}
             {/* ============================================ */}
             {showAssignRolesModal && selectedUser && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && setShowAssignRolesModal(false)}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="assign-roles-title" onClick={(e) => e.target === e.currentTarget && setShowAssignRolesModal(false)}>
                     <div className="bg-white rounded-2xl w-full max-w-[640px] shadow-xl flex flex-col max-sm:rounded-xl" style={{ maxHeight: '90vh' }}>
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] flex-shrink-0 relative pr-14 max-sm:pr-12">
                             <div className="flex-1 min-w-0">
-                                <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Assign Roles</h2>
+                                <h2 id="assign-roles-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Assign Roles</h2>
                                 <p className="font-sans text-sm max-sm:text-xs text-[#6B7280] mt-1 truncate">{selectedUser.name}</p>
                             </div>
-                            <button 
-                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" 
+                            <button
+                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors"
                                 onClick={() => setShowAssignRolesModal(false)}
-                            >×</button>
+                                aria-label="Close modal"
+                                type="button"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="p-6 max-sm:p-4 overflow-y-auto flex-1">
                             {/* User Info */}
@@ -681,8 +701,8 @@ export default function UsersSystemPage() {
                             {/* Role Selection */}
                             <div className="flex flex-col gap-2 mb-4">
                                 <label htmlFor="assignRole" className="font-sans text-sm max-sm:text-xs font-semibold text-[#374151]">Select Role *</label>
-                                <Select 
-                                    value={selectedRole} 
+                                <Select
+                                    value={selectedRole}
                                     onValueChange={(value) => setSelectedRole(value as AdminRoleKey)}
                                 >
                                     <SelectTrigger>
@@ -704,7 +724,7 @@ export default function UsersSystemPage() {
                                     {selectedUser.permissions.length > 0 ? (
                                         <div className="flex flex-wrap gap-2">
                                             {selectedUser.permissions.map((permission, index) => (
-                                                <span 
+                                                <span
                                                     key={index}
                                                     className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#2563EB]/10 text-[#2563EB] text-xs font-medium"
                                                 >
@@ -720,8 +740,8 @@ export default function UsersSystemPage() {
                         </div>
                         <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] flex-shrink-0">
                             <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={() => setShowAssignRolesModal(false)}>Cancel</button>
-                            <button 
-                                className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed" 
+                            <button
+                                className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed"
                                 onClick={handleAssignRole}
                                 disabled={updateRoleMutation.isPending || !selectedRole}
                             >
@@ -737,7 +757,7 @@ export default function UsersSystemPage() {
             {/* TOGGLE STATUS CONFIRMATION MODAL */}
             {/* ============================================ */}
             {showStatusModal && selectedUser && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" onClick={(e) => e.target === e.currentTarget && setShowStatusModal(false)}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title" onClick={(e) => e.target === e.currentTarget && setShowStatusModal(false)}>
                     <div className="bg-white rounded-2xl w-full max-w-[480px] shadow-xl max-sm:rounded-xl">
                         <div className="p-6 max-sm:p-5">
                             <div className={cn(
@@ -749,7 +769,7 @@ export default function UsersSystemPage() {
                                     selectedUser.status === 'active' ? "text-red-600" : "text-green-600"
                                 )} />
                             </div>
-                            <h2 className="text-xl max-sm:text-lg font-bold text-center text-gray-900 mb-2">
+                            <h2 id="status-modal-title" className="text-xl max-sm:text-lg font-bold text-center text-gray-900 mb-2">
                                 {selectedUser.status === 'active' ? 'Deactivate' : 'Activate'} Admin
                             </h2>
                             <p className="text-gray-600 max-sm:text-sm text-center mb-6 max-sm:mb-4">
@@ -762,27 +782,29 @@ export default function UsersSystemPage() {
                                 )}
                             </p>
                             <div className="flex gap-3 max-sm:gap-2">
-                                <button 
+                                <button
                                     className="flex-1 py-2.5 px-4 max-sm:py-2 max-sm:px-3 max-sm:text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     onClick={() => {
                                         setShowStatusModal(false);
                                         setSelectedUser(null);
                                     }}
+                                    aria-label="Close modal"
+                                    type="button"
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     className={cn(
                                         "flex-1 py-2.5 px-4 max-sm:py-2 max-sm:px-3 max-sm:text-sm font-semibold text-white rounded-lg transition-colors disabled:opacity-60",
-                                        selectedUser.status === 'active' 
-                                            ? "bg-red-600 hover:bg-red-700" 
+                                        selectedUser.status === 'active'
+                                            ? "bg-red-600 hover:bg-red-700"
                                             : "bg-green-600 hover:bg-green-700"
                                     )}
                                     onClick={confirmToggleStatus}
                                     disabled={toggleStatusMutation.isPending}
                                 >
-                                    {toggleStatusMutation.isPending 
-                                        ? 'Processing...' 
+                                    {toggleStatusMutation.isPending
+                                        ? 'Processing...'
                                         : selectedUser.status === 'active' ? 'Deactivate' : 'Activate'
                                     }
                                 </button>

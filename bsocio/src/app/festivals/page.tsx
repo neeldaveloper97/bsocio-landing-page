@@ -102,14 +102,15 @@ interface NomineeCardProps {
 function NomineeCard({ nominee, showCategory, onViewProfile }: NomineeCardProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-3/4 w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
         {nominee.imageUrl ? (
           <Image
             src={nominee.imageUrl}
             alt={nominee.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-contain"
+            className="object-cover"
+            style={{ objectFit: 'cover' }}
             loading="lazy"
             quality={75}
           />
@@ -214,14 +215,15 @@ interface GuestCardProps {
 function GuestCard({ guest, onViewProfile }: GuestCardProps) {
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-3/4 w-full shrink-0 overflow-hidden bg-muted">
+      <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-muted">
         {guest.imageUrl ? (
           <Image
             src={guest.imageUrl}
             alt={guest.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-contain"
+            className="object-cover"
+            style={{ objectFit: 'cover' }}
             loading="lazy"
             quality={75}
           />
@@ -340,7 +342,7 @@ function GuestCardSkeleton() {
 // ============================================
 
 // Type for modal data
-type ModalData = 
+type ModalData =
   | { type: 'event'; data: { id: string; title: string; date: string; location: string; venue: string; description: string; mainEvent: boolean } }
   | { type: 'nominee'; data: Nominee }
   | { type: 'guest'; data: SpecialGuest }
@@ -688,7 +690,7 @@ export default function FestivalsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Description */}
                 {modalData.data.description && (
                   <div className="pt-2">

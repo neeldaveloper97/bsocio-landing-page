@@ -61,6 +61,8 @@ export default function NotFound() {
               viewBox="0 0 24 24"
               fill="none"
               className="shrink-0"
+              aria-hidden="true"
+              focusable="false"
             >
               <path
                 d="M3 12L12 4l9 8"

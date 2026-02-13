@@ -2,8 +2,24 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// Inline Icons to avoid lucide-react dependency
+const Check = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+const ChevronDown = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+)
+const ChevronUp = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m18 15-6-6-6 6" />
+  </svg>
+)
 
 /**
  * Select - Simple wrapper around Radix Select
@@ -80,7 +96,7 @@ const SelectContent = React.forwardRef<
     // Store original styles
     const originalHtmlStyle = document.documentElement.style.cssText
     const originalBodyStyle = document.body.style.cssText
-    
+
     // Create a MutationObserver to catch and immediately revert scroll lock changes
     const observer = new MutationObserver(() => {
       // Remove any padding-right/margin-right that Radix adds for scrollbar compensation
@@ -106,13 +122,13 @@ const SelectContent = React.forwardRef<
     })
 
     // Observe both html and body for style and attribute changes
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['style', 'data-scroll-locked'] 
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style', 'data-scroll-locked']
     })
-    observer.observe(document.body, { 
-      attributes: true, 
-      attributeFilter: ['style', 'data-scroll-locked'] 
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style', 'data-scroll-locked']
     })
 
     return () => {
@@ -134,7 +150,7 @@ const SelectContent = React.forwardRef<
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
         )}
         position={position}

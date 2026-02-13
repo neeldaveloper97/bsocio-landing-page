@@ -432,7 +432,7 @@ const availableYears = useMemo(() => {
                 {/* Birthday Total Card */}
                 <div className="flex items-center gap-4 max-sm:gap-3 p-6 max-sm:p-4 bg-white border border-[#E5E7EB] rounded-xl">
                     <div className="shrink-0">
-                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="max-sm:w-8 max-sm:h-8">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="max-sm:w-8 max-sm:h-8" aria-hidden="true" focusable="false">
                             <rect width="40" height="40" rx="8" fill="#FFF7ED"/>
                             <path d="M28 14H12C11.4477 14 11 14.4477 11 15V29C11 29.5523 11.4477 30 12 30H28C28.5523 30 29 29.5523 29 29V15C29 14.4477 28.5523 14 28 14Z" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             <path d="M24 12V16" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

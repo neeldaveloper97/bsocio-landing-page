@@ -28,29 +28,66 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const confirmButtonRef = useRef<HTMLButtonElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
-    // Focus the confirm button when modal opens
+    // Save previously focused element and focus the safe action (cancel for danger)
     useEffect(() => {
-        if (isOpen && confirmButtonRef.current) {
-            confirmButtonRef.current.focus();
+        if (isOpen) {
+            previouslyFocusedRef.current = document.activeElement as HTMLElement;
+            requestAnimationFrame(() => {
+                // For danger/warning, focus cancel button (safe action); otherwise confirm
+                if (variant === 'danger' || variant === 'warning') {
+                    cancelButtonRef.current?.focus();
+                } else {
+                    confirmButtonRef.current?.focus();
+                }
+            });
+        } else if (previouslyFocusedRef.current) {
+            previouslyFocusedRef.current.focus();
+            previouslyFocusedRef.current = null;
         }
-    }, [isOpen]);
+    }, [isOpen, variant]);
 
-    // Close on escape key
+    // Focus trap and escape key
     useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && !isLoading) {
                 onClose();
+                return;
+            }
+
+            if (e.key !== 'Tab' || !modalRef.current) return;
+
+            const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+
+            if (focusableElements.length === 0) return;
+
+            const firstEl = focusableElements[0];
+            const lastEl = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey) {
+                if (document.activeElement === firstEl) {
+                    e.preventDefault();
+                    lastEl.focus();
+                }
+            } else {
+                if (document.activeElement === lastEl) {
+                    e.preventDefault();
+                    firstEl.focus();
+                }
             }
         };
 
         if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
+            document.addEventListener('keydown', handleKeyDown);
             document.body.classList.add('modal-open');
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('keydown', handleKeyDown);
             document.body.classList.remove('modal-open');
         };
     }, [isOpen, onClose, isLoading]);
@@ -158,6 +195,7 @@ export function ConfirmModal({
                             marginBottom: '16px',
                             fontSize: '24px',
                         }}
+                        aria-hidden="true"
                     >
                         {styles.icon}
                     </div>
@@ -196,6 +234,7 @@ export function ConfirmModal({
                     }}
                 >
                     <button
+                        ref={cancelButtonRef}
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}

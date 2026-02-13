@@ -13,14 +13,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { legalService, type ApiException } from '@/lib/api';
 import { queryKeys } from '@/lib/query-client';
-import type { LegalType, LegalContent } from '@/types';
+import type { LegalDocumentType, LegalDocument } from '@/types';
 
 /**
  * Hook return interface
  */
 interface UseLegalReturn {
   /** The legal content data */
-  legalContent: LegalContent | null;
+  legalContent: LegalDocument | null;
   /** Whether the fetch is in progress */
   isLoading: boolean;
   /** Whether the fetch failed */
@@ -52,12 +52,12 @@ interface UseLegalReturn {
  * return <LegalContent content={legalContent.content} />;
  * ```
  */
-export function useLegal(type: LegalType): UseLegalReturn {
-  const { data, isLoading, error, refetch } = useQuery<LegalContent, ApiException>({
-    queryKey: type === 'PRIVACY_POLICY' 
-      ? queryKeys.legal.privacy() 
+export function useLegal(type: LegalDocumentType): UseLegalReturn {
+  const { data, isLoading, error, refetch } = useQuery<LegalDocument, ApiException>({
+    queryKey: type === 'PRIVACY_POLICY'
+      ? queryKeys.legal.privacy()
       : queryKeys.legal.terms(),
-    queryFn: () => legalService.getLegalContent(type),
+    queryFn: () => legalService.getLegalDocument(type),
     enabled: !!type, // Only fetch when type is provided
   });
 

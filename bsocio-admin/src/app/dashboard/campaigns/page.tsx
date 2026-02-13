@@ -11,7 +11,12 @@ import {
 } from '@/hooks';
 import { PlusIcon, ViewIcon } from '@/components/ui/admin-icons';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(() => import('@/components/ui/rich-text-editor').then(mod => mod.RichTextEditor), {
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-gray-50 animate-pulse rounded-lg border border-gray-200" />
+});
 import {
     Select,
     SelectContent,
@@ -21,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import type { EmailCampaign, EmailAudience, EmailSendType, CreateEmailCampaignRequest } from '@/types';
 import './campaigns.css';
+import { X } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -189,7 +195,7 @@ export default function CampaignsPage() {
         if (!formData.subject.trim()) errors.subject = 'Please enter an email subject';
         else if (formData.subject.trim().length < 5) errors.subject = 'Email subject must be at least 5 characters';
         if (!formData.content.trim()) errors.content = 'Please enter email content';
-        
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -201,7 +207,7 @@ export default function CampaignsPage() {
                 audience: formData.audience,
                 sendType: formData.sendType,
             };
-            
+
             if (formData.sendType === 'SCHEDULED' && formData.scheduledAt) {
                 requestData.scheduledAt = new Date(formData.scheduledAt).toISOString();
             }
@@ -234,8 +240,8 @@ export default function CampaignsPage() {
         if (!formData.subject.trim()) errors.subject = 'Please enter an email subject';
         else if (formData.subject.trim().length < 5) errors.subject = 'Email subject must be at least 5 characters';
         if (!formData.content.trim()) errors.content = 'Please enter email content';
-        if (!formData.scheduledAt) errors.scheduledAt = 'Please select a scheduled date and time';
-        
+        if (formData.sendType === 'SCHEDULED' && !formData.scheduledAt) errors.scheduledAt = 'Please select a scheduled date and time';
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -247,7 +253,7 @@ export default function CampaignsPage() {
                 audience: formData.audience,
                 sendType: formData.sendType,
             };
-            
+
             if (formData.sendType === 'SCHEDULED' && formData.scheduledAt) {
                 requestData.scheduledAt = new Date(formData.scheduledAt).toISOString();
             }
@@ -441,10 +447,10 @@ export default function CampaignsPage() {
                         align: 'center',
                         render: (campaign) => (
                             <div className="flex items-center justify-center">
-                                <button 
+                                <button
                                     type="button"
-                                    className="action-btn" 
-                                    title="View Campaign" 
+                                    className="action-btn"
+                                    title="View Campaign"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -482,11 +488,13 @@ export default function CampaignsPage() {
 
             {/* Create Campaign Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" role="dialog" aria-modal="true" aria-labelledby="campaign-modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] overflow-auto shadow-xl">
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
-                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Create Email Campaign</h2>
-                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeModal}>×</button>
+                            <h2 id="campaign-modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Create Email Campaign</h2>
+                            <button type="button" aria-label="Close modal" className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeModal}>
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="p-6 max-sm:p-4 flex flex-col gap-5">
                             <div className="flex flex-col gap-2">
@@ -627,29 +635,29 @@ export default function CampaignsPage() {
                             </div>
 
                             <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-2">
-                                <button 
-                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" 
+                                <button
+                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]"
                                     onClick={closeModal}
                                     disabled={sendCampaign.isPending || saveDraft.isPending}
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#2563EB] bg-white border border-[#2563EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#EFF6FF] disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={handleSaveDraft}
                                     disabled={sendCampaign.isPending || saveDraft.isPending}
                                 >
                                     {saveDraft.isPending ? 'Saving...' : 'Save as Draft'}
                                 </button>
-                                <button 
+                                <button
                                     className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed"
                                     onClick={handleSendCampaign}
                                     disabled={sendCampaign.isPending || saveDraft.isPending}
                                 >
-                                    {sendCampaign.isPending 
-                                        ? 'Sending...' 
-                                        : formData.sendType === 'NOW' 
-                                            ? 'Send Now' 
+                                    {sendCampaign.isPending
+                                        ? 'Sending...'
+                                        : formData.sendType === 'NOW'
+                                            ? 'Send Now'
                                             : 'Schedule Campaign'
                                     }
                                 </button>
@@ -662,15 +670,17 @@ export default function CampaignsPage() {
 
             {/* View Campaign Modal */}
             {showViewModal && viewingCampaign && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" role="dialog" aria-modal="true" aria-labelledby="view-campaign-title" onClick={(e) => e.target === e.currentTarget && closeViewModal()}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] max-sm:max-h-[85vh] overflow-hidden flex flex-col">
                         {/* Modal Header */}
                         <div className="flex items-center justify-between p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
                             <div>
-                                <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Campaign Details</h2>
+                                <h2 id="view-campaign-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">Campaign Details</h2>
                                 <p className="font-sans text-sm text-muted-foreground m-0 mt-1">{viewingCampaign.name}</p>
                             </div>
-                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeViewModal}>×</button>
+                            <button type="button" aria-label="Close modal" className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeViewModal}>
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
 
                         {/* Modal Body */}
@@ -678,11 +688,10 @@ export default function CampaignsPage() {
                             <div className="space-y-6">
                                 {/* Status and Audience */}
                                 <div className="flex flex-wrap gap-3">
-                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                                        viewingCampaign.status === 'SENT' ? 'bg-green-100 text-green-800' :
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${viewingCampaign.status === 'SENT' ? 'bg-green-100 text-green-800' :
                                         viewingCampaign.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-800' :
-                                        'bg-gray-100 text-gray-800'
-                                    }`}>
+                                            'bg-gray-100 text-gray-800'
+                                        }`}>
                                         {viewingCampaign.status}
                                     </span>
                                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
@@ -701,7 +710,7 @@ export default function CampaignsPage() {
                                 {/* Content */}
                                 <div>
                                     <label className="block font-sans text-sm font-medium text-[#374151] mb-2">Email Content</label>
-                                    <div 
+                                    <div
                                         className="p-4 bg-gray-50 rounded-lg border border-gray-200 font-sans text-sm text-[#101828] prose prose-sm max-w-none max-h-[300px] overflow-y-auto"
                                         dangerouslySetInnerHTML={{ __html: viewingCampaign.content }}
                                     />
@@ -756,7 +765,7 @@ export default function CampaignsPage() {
 
                         {/* Modal Footer */}
                         <div className="flex justify-end gap-3 p-6 max-sm:p-4 border-t border-[#E5E7EB]">
-                            <button 
+                            <button
                                 className="py-2.5 px-5 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-background"
                                 onClick={closeViewModal}
                             >

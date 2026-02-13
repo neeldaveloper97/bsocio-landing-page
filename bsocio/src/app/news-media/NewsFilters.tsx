@@ -109,7 +109,7 @@ const NewsCard = memo(function NewsCard({ article }: { article: NewsArticle }) {
             </time>
             {(article.views != null && article.views > 0) && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true" focusable="false">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
                 </svg>

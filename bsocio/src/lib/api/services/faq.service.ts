@@ -16,7 +16,7 @@ import type { FAQ, FAQResponse } from '@/types';
 class FAQService {
   private static instance: FAQService;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance
@@ -35,9 +35,14 @@ class FAQService {
   async getAllFAQs(): Promise<FAQResponse> {
     try {
       const response = await apiClient.get<FAQResponse>(
-        API_ENDPOINTS.FAQS.BASE
+        API_ENDPOINTS.FAQS.BASE,
+        {
+          state: 'PUBLISHED',
+          status: 'ACTIVE',
+          visibility: 'PUBLIC'
+        }
       );
-      
+
       return response.data;
     } catch (error) {
       throw parseApiError(error);

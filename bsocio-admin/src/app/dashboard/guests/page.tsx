@@ -6,16 +6,17 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { 
-    useSpecialGuests, 
-    useCreateSpecialGuest, 
-    useUpdateSpecialGuest, 
+import {
+    useSpecialGuests,
+    useCreateSpecialGuest,
+    useUpdateSpecialGuest,
     useDeleteSpecialGuest,
     useUploadImage,
 } from '@/hooks';
 import type { SpecialGuest, CreateSpecialGuestRequest, SpecialGuestStatus, SpecialGuestFilters } from '@/types';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { X } from 'lucide-react';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
     Select,
@@ -112,7 +113,7 @@ export default function GuestsPage() {
 
     // API Hooks - server-side pagination
     const { guests: rawGuests, total: rawTotal, isLoading: guestsLoading, refetch } = useSpecialGuests(filters);
-    
+
     // Fetch stats separately (for counts)
     const { guests: allGuests, refetch: refetchStats } = useSpecialGuests({ take: 1000 });
     const activeCount = allGuests?.filter((g: SpecialGuest) => g.status === 'ACTIVE').length || 0;
@@ -250,7 +251,7 @@ export default function GuestsPage() {
         if (!formData.name.trim()) errors.name = 'Please enter a name';
         else if (formData.name.trim().length > 100) errors.name = 'Name must be 100 characters or less';
         if (!formData.title.trim()) errors.title = 'Please enter a title';
-        
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -378,8 +379,8 @@ export default function GuestsPage() {
             <DataTable<SpecialGuest>
                 data={displayGuests}
                 columns={[
-                    { 
-                        key: 'name', 
+                    {
+                        key: 'name',
                         header: 'Guest',
                         sortable: true,
                         render: (guest) => (
@@ -407,13 +408,13 @@ export default function GuestsPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'title', 
+                    {
+                        key: 'title',
                         header: 'Title',
                         render: (guest) => <span title={guest.title}>{truncateText(guest.title || '-', 25)}</span>
                     },
-                    { 
-                        key: 'bio', 
+                    {
+                        key: 'bio',
                         header: 'Bio',
                         render: (guest) => (
                             <span className="text-[#6B7280]" title={guest.bio?.replace(/<[^>]*>/g, '')}>
@@ -421,15 +422,15 @@ export default function GuestsPage() {
                             </span>
                         )
                     },
-                    { 
-                        key: 'status', 
+                    {
+                        key: 'status',
                         header: 'Status',
                         sortable: true,
                         align: 'center',
                         render: (guest) => getStatusBadge(guest.status)
                     },
-                    { 
-                        key: 'createdAt', 
+                    {
+                        key: 'createdAt',
                         header: 'Created',
                         sortable: true,
                         render: (guest) => formatDate(guest.createdAt)
@@ -503,13 +504,13 @@ export default function GuestsPage() {
                                     Add distinguished guests for ceremonies and events
                                 </p>
                             </div>
-                            <button 
-                                className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" 
+                            <button
+                                className="absolute right-4 max-sm:right-3 top-6 max-sm:top-4 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors"
                                 onClick={closeModal}
                                 aria-label="Close modal"
                                 type="button"
                             >
-                                ×
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 max-sm:p-4">
@@ -555,14 +556,16 @@ export default function GuestsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-24 h-24 overflow-hidden rounded-full">
-                                            <Image
-                                                src={imagePreview}
-                                                alt="Guest photo preview"
-                                                fill
-                                                sizes="96px"
-                                                className="object-cover"
-                                            />
+                                        <div className="relative group shrink-0">
+                                            <div className="relative w-24 h-24 overflow-hidden rounded-full border border-gray-200">
+                                                <Image
+                                                    src={imagePreview}
+                                                    alt="Guest photo preview"
+                                                    fill
+                                                    sizes="96px"
+                                                    className="object-cover"
+                                                />
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -570,9 +573,9 @@ export default function GuestsPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, imageUrl: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
+                                                className="absolute -top-1 -right-1 bg-white hover:bg-red-50 text-red-500 border border-gray-200 shadow-sm rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-50 transition-colors"
                                             >
-                                                ×
+                                                <X className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
                                     ) : (

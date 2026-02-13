@@ -41,7 +41,14 @@ export interface PaginatedResponse<T> {
 // User & Auth Types
 // ============================================
 
-export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
+export type UserRole =
+  | 'USER'
+  | 'ADMIN'
+  | 'MODERATOR'
+  | 'SUPER_ADMIN'
+  | 'CONTENT_ADMIN'
+  | 'COMMUNICATIONS_ADMIN'
+  | 'ANALYTICS_VIEWER';
 
 export interface User {
   id: string;
@@ -167,11 +174,11 @@ export interface FAQResponse {
 // Legal Types
 // ============================================
 
-export type LegalType = 'PRIVACY_POLICY' | 'TERMS_OF_USE';
+export type LegalDocumentType = 'PRIVACY_POLICY' | 'TERMS_OF_USE';
 
-export interface LegalContent {
+export interface LegalDocument {
   id: string;
-  type: LegalType;
+  type: LegalDocumentType;
   title: string;
   content: string;
   versionNotes: string;
@@ -185,7 +192,7 @@ export interface LegalContent {
 // News Types
 // ============================================
 
-export type NewsCategory = 
+export type NewsCategory =
   | 'PRESS_RELEASE'
   | 'MEDIA_COVERAGE'
   | 'ANNOUNCEMENT'

@@ -59,6 +59,7 @@ function ToolbarButton({ onAction, isActive, disabled, title, children, classNam
       onMouseDown={handleMouseDown}
       disabled={disabled}
       title={title}
+      aria-label={title}
       data-active={isActive ? "true" : "false"}
       className={cn(
         "h-8 w-8 p-0 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border-0 select-none",
@@ -336,7 +337,7 @@ export function RichTextEditor({
       </div>
 
       {/* Editor */}
-      <div className="w-full flex-1 overflow-y-auto">
+      <div className="w-full flex-1 overflow-y-auto" role="textbox" aria-label="Rich text editor" aria-multiline="true">
         <EditorContent
           editor={editor}
           className="[&_.ProseMirror]:p-4 [&_.ProseMirror]:outline-none [&_.ProseMirror]:cursor-text"
@@ -347,7 +348,7 @@ export function RichTextEditor({
       {/* Character Count - sticky footer */}
       {limit && (
         <div className="flex justify-end px-3 py-1.5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-          <span className={cn("text-[10px] sm:text-xs", isOverLimit ? "text-red-500 font-medium" : "text-gray-500")}>
+          <span aria-live="polite" className={cn("text-[10px] sm:text-xs", isOverLimit ? "text-red-500 font-medium" : "text-gray-500")}>
             {characterCount}/{limit}
             {isOverLimit && <span className="ml-1">Limit!</span>}
           </span>

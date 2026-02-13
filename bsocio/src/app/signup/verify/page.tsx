@@ -49,7 +49,7 @@ const inputStyles = [
 
 export default function VerifyPage() {
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState<VerificationFormData>(INITIAL_FORM_STATE);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +72,7 @@ export default function VerifyPage() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
-    
+
     // For phone number, only allow digits after the country code
     if (name === "phoneNumber") {
       // Remove any non-digit characters except the leading +1
@@ -83,7 +83,7 @@ export default function VerifyPage() {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear validation error when user starts typing
     if (validationErrors[name]) {
       setValidationErrors((prev) => {
@@ -97,28 +97,28 @@ export default function VerifyPage() {
   // Validate form data
   const validateForm = useCallback((): boolean => {
     const errors: Record<string, string> = {};
-    
+
     // Email validation
     if (!formData.email) {
       errors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Please enter a valid email address";
     }
-    
+
     // Phone number validation (US format - 10 digits)
     if (!formData.phoneNumber) {
       errors.phoneNumber = "Phone number is required";
     } else if (formData.phoneNumber.length !== 10) {
       errors.phoneNumber = "Please enter a valid 10-digit US phone number";
     }
-    
+
     // Invitation link validation
     if (!formData.invitationLink) {
       errors.invitationLink = "Invitation link is required";
     } else if (!formData.invitationLink.includes("bsocio") && !formData.invitationLink.startsWith("http")) {
       errors.invitationLink = "Please enter a valid invitation link";
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData]);
@@ -126,13 +126,13 @@ export default function VerifyPage() {
   // Form submission handler
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch("https://api.specsto.online/auth/verify-signup", {
         method: "POST",
@@ -152,12 +152,12 @@ export default function VerifyPage() {
       }
 
       toast.success("Verification successful! Redirecting...", { duration: 3000 });
-      
-      // Redirect to the main site after successful verification
+
+      // Redirect to the welcome page after successful verification
       setTimeout(() => {
-        router.push("/");
+        router.push("/welcome");
       }, 2000);
-      
+
     } catch (error) {
       console.error("Verification error:", error);
       toast.error(
@@ -190,7 +190,7 @@ export default function VerifyPage() {
               Complete your account verification by entering your details below
             </p>
           </CardHeader>
-          
+
           <CardContent>
             <p className="text-sm text-text-muted mb-6 text-center">
               Please enter your email, phone number, and the invitation link you received to complete your registration.
@@ -264,10 +264,10 @@ export default function VerifyPage() {
               </div>
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
-                variant="primary" 
-                size="lg" 
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
                 className="mt-4 w-full"
                 disabled={isSubmitting}
               >

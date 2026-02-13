@@ -63,7 +63,7 @@ export default function RootLayout({
           >
             Skip to main content
           </a>
-          <main id="main-content" role="main">
+          <main id="main-content">
             {children}
           </main>
         </ClientProviders>

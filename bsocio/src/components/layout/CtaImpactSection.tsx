@@ -141,7 +141,7 @@ export default function CtaImpactSection() {
           {/* CTA Button */}
           <div className="mb-8 flex justify-center">
             <Button asChild size="xl" className="w-full max-w-md">
-              <Link href="/signup">Accept Your Free $250 Gift</Link>
+              <Link href="/signup/verify">Accept the Invitation</Link>
             </Button>
           </div>
 

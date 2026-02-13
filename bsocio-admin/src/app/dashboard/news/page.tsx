@@ -16,6 +16,7 @@ import {
     useUploadImage,
     useDeleteImage,
 } from '@/hooks';
+import { X } from 'lucide-react';
 import { PlusIcon, EditIcon, DeleteIcon, ArchiveIcon } from '@/components/ui/admin-icons';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -316,7 +317,7 @@ export default function NewsPage() {
         if (!formData.featuredImage) errors.featuredImage = 'Please upload a featured image';
         if (!formData.excerpt.trim()) errors.excerpt = 'Please enter an excerpt/summary';
         if (!formData.content.trim()) errors.content = 'Please enter article content';
-        
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -630,7 +631,7 @@ export default function NewsPage() {
                                 aria-label="Close modal"
                                 type="button"
                             >
-                                ×
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 max-sm:p-4 overflow-y-auto flex-1">
@@ -704,14 +705,16 @@ export default function NewsPage() {
                                     {isUploading ? (
                                         <div className="text-[#6B7280]">Uploading...</div>
                                     ) : imagePreview ? (
-                                        <div className="relative w-full max-w-xs aspect-video overflow-hidden rounded">
-                                            <Image
-                                                src={imagePreview}
-                                                alt="Article featured image preview"
-                                                fill
-                                                sizes="320px"
-                                                className="object-cover"
-                                            />
+                                        <div className="relative group shrink-0 w-full max-w-xs aspect-video">
+                                            <div className="relative w-full h-full overflow-hidden rounded border border-gray-200">
+                                                <Image
+                                                    src={imagePreview}
+                                                    alt="Article featured image preview"
+                                                    fill
+                                                    sizes="320px"
+                                                    className="object-cover"
+                                                />
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -719,9 +722,9 @@ export default function NewsPage() {
                                                     setImagePreview(null);
                                                     setFormData(prev => ({ ...prev, featuredImage: '' }));
                                                 }}
-                                                className="absolute -top-2 -right-2 bg-[#EF4444] text-white border-none rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-10"
+                                                className="absolute -top-1 -right-1 bg-white hover:bg-red-50 text-red-500 border border-gray-200 shadow-sm rounded-full w-6 h-6 cursor-pointer flex items-center justify-center z-50 transition-colors"
                                             >
-                                                ×
+                                                <X className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
                                     ) : (

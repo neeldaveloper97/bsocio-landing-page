@@ -14,7 +14,8 @@ import React, { memo } from 'react';
  */
 export const PageLoadingSkeleton = memo(function PageLoadingSkeleton() {
   return (
-    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" role="status" aria-label="Loading page">
+      <span className="sr-only">Loading...</span>
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-48 h-7 bg-gray-100 rounded" />
@@ -44,7 +45,8 @@ export const PageLoadingSkeleton = memo(function PageLoadingSkeleton() {
  */
 export const TableLoadingSkeleton = memo(function TableLoadingSkeleton() {
   return (
-    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" role="status" aria-label="Loading table">
+      <span className="sr-only">Loading...</span>
       {/* Header with actions */}
       <div className="flex justify-between items-center flex-wrap gap-4 w-full">
         <div className="flex flex-col gap-2">
@@ -83,7 +85,8 @@ export const TableLoadingSkeleton = memo(function TableLoadingSkeleton() {
  */
 export const AnalyticsLoadingSkeleton = memo(function AnalyticsLoadingSkeleton() {
   return (
-    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading analytics...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" role="status" aria-label="Loading analytics">
+      <span className="sr-only">Loading...</span>
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-40 h-7 bg-gray-100 rounded" />
@@ -114,7 +117,8 @@ export const AnalyticsLoadingSkeleton = memo(function AnalyticsLoadingSkeleton()
  */
 export const FormLoadingSkeleton = memo(function FormLoadingSkeleton() {
   return (
-    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" aria-label="Loading...">
+    <div className="flex-1 w-full min-h-screen p-4 sm:p-6 lg:p-8" role="status" aria-label="Loading form">
+      <span className="sr-only">Loading...</span>
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="w-40 h-7 bg-gray-100 rounded" />

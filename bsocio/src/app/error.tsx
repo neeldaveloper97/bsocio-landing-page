@@ -33,6 +33,8 @@ export default function Error({
               viewBox="0 0 24 24"
               fill="none"
               className="text-red-500"
+              aria-hidden="true"
+              focusable="false"
             >
               <path
                 d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -68,6 +70,8 @@ export default function Error({
               viewBox="0 0 24 24"
               fill="none"
               className="shrink-0"
+              aria-hidden="true"
+              focusable="false"
             >
               <path
                 d="M1 4v6h6M23 20v-6h-6"

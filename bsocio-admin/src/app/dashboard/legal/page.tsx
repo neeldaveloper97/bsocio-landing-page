@@ -182,10 +182,13 @@ export default function LegalPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 border-b border-[#E5E7EB] bg-transparent">
+            <div role="tablist" className="flex gap-1 border-b border-[#E5E7EB] bg-transparent">
                 <button
+                    id="tab-privacy"
+                    role="tab"
+                    aria-selected={activeTab === 'PRIVACY_POLICY'}
                     className={cn(
-                        "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
+                        "py-3 px-4 sm:px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
                         activeTab === 'PRIVACY_POLICY' && "text-[#2563EB] border-b-[#2563EB] font-semibold bg-[#EFF6FF]"
                     )}
                     onClick={() => setActiveTab('PRIVACY_POLICY')}
@@ -193,8 +196,11 @@ export default function LegalPage() {
                     Privacy Policy
                 </button>
                 <button
+                    id="tab-terms"
+                    role="tab"
+                    aria-selected={activeTab === 'TERMS_OF_USE'}
                     className={cn(
-                        "py-3 px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
+                        "py-3 px-4 sm:px-6 font-sans text-base font-medium text-[#6B7280] bg-transparent border-none border-b-2 border-b-transparent cursor-pointer transition-all duration-200 -mb-px hover:text-[#2563EB] hover:bg-[#F3F4F6] rounded-t-lg",
                         activeTab === 'TERMS_OF_USE' && "text-[#2563EB] border-b-[#2563EB] font-semibold bg-[#EFF6FF]"
                     )}
                     onClick={() => setActiveTab('TERMS_OF_USE')}
@@ -204,7 +210,7 @@ export default function LegalPage() {
             </div>
 
             {/* Edit Content Section */}
-            <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
+            <div role="tabpanel" aria-labelledby={activeTab === 'PRIVACY_POLICY' ? 'tab-privacy' : 'tab-terms'} className="bg-white border border-[#E5E7EB] rounded-xl p-6">
                 {/* Empty state banner when no document exists yet */}
                 {!currentDoc && !isLoading && (
                     <div className="mb-6 p-4 bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg flex items-start gap-3">
@@ -226,7 +232,7 @@ export default function LegalPage() {
                             className="inline-flex items-center gap-2 py-2.5 px-5 font-sans text-sm font-semibold rounded-lg border border-[#2563EB] cursor-pointer transition-all duration-200 bg-white text-[#2563EB] hover:bg-[#EFF6FF]"
                             onClick={() => setShowPreview(!showPreview)}
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
                             </svg>
@@ -240,7 +246,7 @@ export default function LegalPage() {
                             onClick={() => handleSave('DRAFT')}
                             disabled={isSaving}
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                                 <polyline points="7 3 7 8 15 8"></polyline>
@@ -255,7 +261,7 @@ export default function LegalPage() {
                             onClick={() => handleSave('PUBLISHED')}
                             disabled={isSaving}
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -267,9 +273,9 @@ export default function LegalPage() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     {/* Policy Title */}
-                    <div className="flex flex-col gap-2 flex-1 min-w-[280px] max-w-[400px]">
+                    <div className="flex flex-col gap-2 w-full">
                         <label htmlFor="policyTitle" className="font-sans text-sm font-semibold text-[#374151]">Policy Title</label>
                         <input
                             type="text"
@@ -282,7 +288,7 @@ export default function LegalPage() {
                     </div>
 
                     {/* Effective Date */}
-                    <div className="flex flex-col gap-2 flex-1 min-w-[280px] max-w-[400px]">
+                    <div className="flex flex-col gap-2 w-full">
                         <label htmlFor="effectiveDate" className="font-sans text-sm font-semibold text-[#374151]">Effective Date</label>
                         <input
                             type="date"
@@ -294,7 +300,7 @@ export default function LegalPage() {
                     </div>
 
                     {/* Content Editor */}
-                    <div className="flex flex-col gap-2 w-full">
+                    <div className="flex flex-col gap-2 w-full col-span-full">
                         <label className="font-sans text-sm font-semibold text-[#374151]">{activeTab === 'PRIVACY_POLICY' ? 'Privacy Policy' : 'Terms of Use'} Content</label>
                         {showPreview ? (
                             <div className="min-h-80 p-6 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg overflow-auto">
@@ -338,11 +344,11 @@ export default function LegalPage() {
                     <table className="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Version</th>
-                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Last Updated</th>
-                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Effective Date</th>
-                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Status</th>
-                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB]">Changes</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB] whitespace-nowrap">Version</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB] whitespace-nowrap">Last Updated</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB] whitespace-nowrap">Effective Date</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB] whitespace-nowrap">Status</th>
+                                <th className="px-4 py-3 font-sans text-xs font-semibold text-[#6B7280] text-left uppercase tracking-wide bg-[#F9FAFB] border-b border-[#E5E7EB] whitespace-nowrap">Changes</th>
                             </tr>
                         </thead>
                         <tbody>

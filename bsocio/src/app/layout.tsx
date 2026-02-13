@@ -1,50 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Arimo } from "next/font/google";
-import dynamic from "next/dynamic";
+import { dmSans, arimo } from "@/lib/fonts";
 
 import "./globals.css";
-import Header from "@/components/layout/Header";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   generateMetadata as createMetadata,
   generateOrganizationSchema,
   generateWebsiteSchema,
 } from "@/lib/seo";
-
-// Lazy load Footer - not needed for initial render
-const Footer = dynamic(() => import("@/components/layout/Footer"), {
-  loading: () => <footer className="w-full bg-slate-900 h-64" aria-hidden="true" />,
-});
-
-// Lazy load ClientProviders - heavy dependencies (Google OAuth, React Query)
-const ClientProviders = dynamic(
-  () => import("@/components/providers/ClientProviders"),
-  { ssr: true }
-);
-
-// ============================================
-// OPTIMIZED FONT LOADING
-// ============================================
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-dm-sans",
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-  fallback: ["system-ui", "arial"],
-});
-
-const arimo = Arimo({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-arimo",
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-  fallback: ["system-ui", "arial"],
-});
+import ClientProviders from "@/components/providers/ClientProviders";
+import LayoutShell from "@/components/layout/LayoutShell";
 
 // ============================================
 // METADATA & VIEWPORT
@@ -97,15 +62,12 @@ export default function RootLayout({
         </a>
 
         <ClientProviders>
-          <Header />
-
-          <main id="main-content" className="flex-1" role="main">
+          <LayoutShell>
             {children}
-          </main>
-
-          <Footer />
+          </LayoutShell>
         </ClientProviders>
       </body>
     </html>
   );
 }
+

@@ -8,7 +8,7 @@
 import { apiClient } from '../client';
 import { parseApiError } from '../error-handler';
 import { API_ENDPOINTS } from '@/config';
-import type { LegalType, LegalContent } from '@/types';
+import type { LegalDocumentType, LegalDocument } from '@/types';
 
 /**
  * Legal Service Class
@@ -16,7 +16,7 @@ import type { LegalType, LegalContent } from '@/types';
 class LegalService {
   private static instance: LegalService;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Get singleton instance
@@ -33,9 +33,9 @@ class LegalService {
    * @param type - Legal content type
    * @returns Promise with legal content
    */
-  async getLegalContent(type: LegalType): Promise<LegalContent> {
+  async getLegalDocument(type: LegalDocumentType): Promise<LegalDocument> {
     try {
-      const response = await apiClient.get<LegalContent>(
+      const response = await apiClient.get<LegalDocument>(
         API_ENDPOINTS.LEGAL.BY_TYPE(type)
       );
 

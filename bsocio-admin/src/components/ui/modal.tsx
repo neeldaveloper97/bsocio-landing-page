@@ -1,118 +1,113 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface ModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    children: React.ReactNode;
-    size?: 'default' | 'lg' | 'xl';
-    title?: string;
-    subtitle?: string;
-}
+const Modal = DialogPrimitive.Root;
+const ModalTrigger = DialogPrimitive.Trigger;
+const ModalClose = DialogPrimitive.Close;
+const ModalPortal = DialogPrimitive.Portal;
 
-export function Modal({ 
-    isOpen, 
-    onClose, 
-    children, 
-    size = 'default',
-    title,
-    subtitle
-}: ModalProps) {
-    const modalRef = useRef<HTMLDivElement>(null);
+const ModalOverlay = React.forwardRef<
+    React.ElementRef<typeof DialogPrimitive.Overlay>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+    <DialogPrimitive.Overlay
+        ref={ref}
+        className={cn(
+            "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            className
+        )}
+        {...props}
+    />
+));
+ModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-    // Close on escape key
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                onClose();
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.classList.add('modal-open');
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.classList.remove('modal-open');
-        };
-    }, [isOpen, onClose]);
-
-    // Close on backdrop click
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
-    };
-
-    if (!isOpen) return null;
-
-    const sizeClass = size === 'lg' ? 'modal-dialog-lg' : size === 'xl' ? 'modal-dialog-xl' : '';
-
-    const modalContent = (
-        <div 
-            className="modal-overlay"
-            onClick={handleBackdropClick}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={title ? "modal-title" : undefined}
+const ModalContent = React.forwardRef<
+    React.ElementRef<typeof DialogPrimitive.Content>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+    <ModalPortal>
+        <ModalOverlay />
+        <DialogPrimitive.Content
+            ref={ref}
+            className={cn(
+                "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+                "w-full max-w-lg max-h-[90vh] overflow-y-auto",
+                "rounded-2xl border border-border bg-card shadow-2xl",
+                "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+                "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+                "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+                className
+            )}
+            {...props}
         >
-            <div 
-                ref={modalRef}
-                className={`modal-dialog ${sizeClass}`}
-            >
-                {(title || subtitle) && (
-                    <div className="modal-header">
-                        <div style={{ flex: 1, paddingRight: '40px' }}>
-                            {title && <h2 id="modal-title">{title}</h2>}
-                            {subtitle && (
-                                <p style={{ color: '#6B7280', fontSize: '14px', marginTop: '4px' }}>
-                                    {subtitle}
-                                </p>
-                            )}
-                        </div>
-                        <button 
-                            className="modal-close" 
-                            onClick={onClose}
-                            aria-label="Close modal"
-                            type="button"
-                            style={{ borderRadius: '50%' }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-                )}
-                {children}
-            </div>
-        </div>
-    );
-
-    // Use portal to render modal at document body level
-    if (typeof window !== 'undefined') {
-        return createPortal(modalContent, document.body);
-    }
-
-    return null;
-}
-
-// For backwards compatibility with existing code
-export function ModalContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-    return (
-        <div className={`modal-body ${className}`}>
+            <DialogPrimitive.Close className="sticky top-3 z-10 ml-auto mr-3 -mb-8 rounded-full w-8 h-8 flex items-center justify-center bg-red-500 text-white transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-lg cursor-pointer">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
             {children}
-        </div>
-    );
-}
+        </DialogPrimitive.Content>
+    </ModalPortal>
+));
+ModalContent.displayName = DialogPrimitive.Content.displayName;
 
-export function ModalFooter({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="modal-footer">
-            {children}
-        </div>
-    );
-}
+const ModalHeader = ({
+    className,
+    ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+    <div
+        className={cn("flex flex-col space-y-2 p-6 pb-4", className)}
+        {...props}
+    />
+);
+
+const ModalTitle = React.forwardRef<
+    React.ElementRef<typeof DialogPrimitive.Title>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+    <DialogPrimitive.Title
+        ref={ref}
+        className={cn("text-xl font-bold leading-tight text-foreground sm:text-2xl", className)}
+        {...props}
+    />
+));
+ModalTitle.displayName = DialogPrimitive.Title.displayName;
+
+const ModalDescription = React.forwardRef<
+    React.ElementRef<typeof DialogPrimitive.Description>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+    <DialogPrimitive.Description
+        ref={ref}
+        className={cn("text-sm text-muted-foreground", className)}
+        {...props}
+    />
+));
+ModalDescription.displayName = DialogPrimitive.Description.displayName;
+
+const ModalBody = ({
+    className,
+    ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={cn("px-6 pb-6", className)} {...props} />
+);
+
+export {
+    Modal,
+    ModalPortal,
+    ModalOverlay,
+    ModalTrigger,
+    ModalClose,
+    ModalContent,
+    ModalHeader,
+    ModalTitle,
+    ModalDescription,
+    ModalBody,
+};

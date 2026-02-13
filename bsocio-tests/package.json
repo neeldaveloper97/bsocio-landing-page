@@ -1,0 +1,32 @@
+{
+  "name": "bsocio-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive Playwright test suite for BSocio landing page and admin panel",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:bsocio": "playwright test --project=bsocio-chromium --project=bsocio-firefox --project=bsocio-webkit",
+    "test:admin": "playwright test --project=admin-chromium --project=admin-firefox --project=admin-webkit",
+    "test:e2e": "playwright test tests/**/e2e/",
+    "test:integration": "playwright test tests/**/integration/",
+    "test:snapshot": "playwright test tests/**/snapshot/",
+    "test:bsocio:e2e": "playwright test tests/bsocio/e2e/",
+    "test:bsocio:integration": "playwright test tests/bsocio/integration/",
+    "test:bsocio:snapshot": "playwright test tests/bsocio/snapshot/",
+    "test:admin:e2e": "playwright test tests/admin/e2e/",
+    "test:admin:integration": "playwright test tests/admin/integration/",
+    "test:admin:snapshot": "playwright test tests/admin/snapshot/",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:update-snapshots": "playwright test --update-snapshots",
+    "install:browsers": "playwright install --with-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.7.0"
+  }
+}

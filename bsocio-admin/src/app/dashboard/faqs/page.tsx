@@ -7,6 +7,7 @@ import { useFAQs } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { X } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -36,7 +37,7 @@ export default function FAQsPage() {
     // Sorting state
     const [sortBy, setSortBy] = useState<string>('sortOrder');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-    
+
     // Build filters with pagination
     const filters: FAQFilters = useMemo(() => ({
         sortBy,
@@ -54,7 +55,7 @@ export default function FAQsPage() {
         enabled: hasFaqs,
         filters: { page: 1, limit: 1000 },
     });
-    
+
     // Confirmation modal state
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -65,7 +66,7 @@ export default function FAQsPage() {
         faqId: null,
         faqQuestion: '',
     });
-    
+
     // Form state
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
@@ -155,14 +156,14 @@ export default function FAQsPage() {
         } else {
             // Calculate sortOrder - use the max sortOrder + 1, or 1 if no FAQs exist
             const maxSortOrder = faqs.length > 0 ? Math.max(...faqs.map(f => f.sortOrder)) : 0;
-            const data: CreateFAQRequest = { 
-                question, 
-                answer, 
-                category, 
-                status, 
-                state, 
-                visibility, 
-                sortOrder: maxSortOrder + 1 
+            const data: CreateFAQRequest = {
+                question,
+                answer,
+                category,
+                status,
+                state,
+                visibility,
+                sortOrder: maxSortOrder + 1
             };
             result = await createFAQ(data);
             if (result) {
@@ -256,27 +257,27 @@ export default function FAQsPage() {
             </div>
 
             {/* FAQs Table */}
-                <DataTable<FAQ>
+            <DataTable<FAQ>
                 data={faqs}
                 columns={[
-                    { 
-                        key: 'question', 
+                    {
+                        key: 'question',
                         header: 'Question',
                         sortable: true,
                         render: (faq) => (
                             <span title={faq.question}>{truncateText(faq.question, 40)}</span>
                         )
                     },
-                    { 
-                        key: 'category', 
+                    {
+                        key: 'category',
                         header: 'Category',
                         sortable: true,
                         render: (faq) => (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EFF6FF] text-[#1D4ED8]">{faq.category}</span>
                         )
                     },
-                    { 
-                        key: 'status', 
+                    {
+                        key: 'status',
                         header: 'Status',
                         sortable: true,
                         align: 'center',
@@ -288,19 +289,19 @@ export default function FAQsPage() {
                         align: 'center',
                         render: (faq) => (
                             <div className="flex items-center gap-2 justify-center">
-                                <button 
+                                <button
                                     type="button"
-                                    className="action-btn" 
-                                    title="Edit" 
+                                    className="action-btn"
+                                    title="Edit"
                                     onClick={() => openModal(faq)}
                                 >
                                     <EditIcon />
                                 </button>
-                                <button 
+                                <button
                                     type="button"
-                                    className="action-btn" 
-                                    title="Delete" 
-                                    onClick={() => openDeleteConfirm(faq)} 
+                                    className="action-btn"
+                                    title="Delete"
+                                    onClick={() => openDeleteConfirm(faq)}
                                     disabled={isMutating}
                                 >
                                     <DeleteIcon />
@@ -325,20 +326,22 @@ export default function FAQsPage() {
 
             {/* Add/Edit FAQ Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && closeModal()}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" role="dialog" aria-modal="true" aria-labelledby="faq-modal-title" onClick={(e) => e.target === e.currentTarget && closeModal()}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] overflow-auto shadow-xl">
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
-                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}</h2>
-                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeModal}>×</button>
+                            <h2 id="faq-modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}</h2>
+                            <button type="button" aria-label="Close modal" className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={closeModal}>
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="p-6 max-sm:p-4">
                             <div className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="question" className="font-sans text-sm font-semibold text-[#374151]">Question</label>
-                                    <input 
-                                        type="text" 
-                                        id="question" 
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                    <input
+                                        type="text"
+                                        id="question"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         placeholder="Enter the question"
                                         value={question}
                                         onChange={(e) => setQuestion(e.target.value)}

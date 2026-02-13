@@ -6,11 +6,12 @@ import { useLogin } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 
 // Inline SVG icons to avoid loading lucide-react on login page
 function EyeIcon({ className }: { className?: string }) {
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
             <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
             <circle cx="12" cy="12" r="3" />
         </svg>
@@ -19,7 +20,7 @@ function EyeIcon({ className }: { className?: string }) {
 
 function EyeOffIcon({ className }: { className?: string }) {
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
             <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
             <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
             <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
@@ -92,30 +93,26 @@ function LoginContent() {
     );
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center p-8 gap-8 bg-[#F3F4F6]">
-            <div className="flex flex-col items-start gap-8 w-full max-w-125">
+        <div className="min-h-screen flex flex-col justify-center items-center p-4 md:p-8 gap-8 bg-[#F3F4F6]">
+            <div className="flex flex-col items-start gap-8 w-full max-w-sm sm:max-w-md md:max-w-lg">
                 {/* Header */}
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex justify-center items-center w-full">
-                        <span className="font-bold text-3xl leading-9">
-                            <span className="text-primary">B</span>
-                            <span className="text-[#1A1A1A]">socio</span>
-                            <span className="inline-block w-2 h-2 bg-accent rounded-full ml-0.5" />
-                        </span>
+                        <Logo className="text-2xl md:text-3xl" />
                     </div>
-                    <p className="font-normal text-base leading-6 text-center text-[#4A5565] w-full">
+                    <p className="font-normal text-sm md:text-base leading-6 text-center text-[#4A5565] w-full">
                         Admin Dashboard
                     </p>
                 </div>
 
                 {/* Login Card */}
-                <div className="flex flex-col items-start p-8 gap-6 w-full bg-white shadow-md rounded-xl">
-                    <h2 className="font-bold text-2xl leading-8 text-[#101828] w-full">
+                <div className="flex flex-col items-start p-6 md:p-8 gap-6 w-full bg-white shadow-md rounded-xl">
+                    <h2 className="font-bold text-xl md:text-2xl leading-8 text-[#101828] w-full">
                         {showTfa ? 'Two-Factor Authentication' : 'Sign In'}
                     </h2>
 
                     {error && (
-                        <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                        <div role="alert" className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                             {error}
                         </div>
                     )}
@@ -152,13 +149,12 @@ function LoginContent() {
                                             onChange={(e) => setPassword(e.target.value)}
                                             placeholder="Enter your password"
                                             required
-                                            className={cn(inputStyles, "pr-11")}
+                                            className={cn(inputStyles, "pr-14")}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
-                                            tabIndex={-1}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:rounded transition-colors"
                                             aria-label={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? (
@@ -185,12 +181,12 @@ function LoginContent() {
                                 </div>
 
                                 {/* Forgot Password */}
-                                <a
-                                    href="#"
-                                    className="font-bold text-sm leading-5 text-right text-primary no-underline w-full block hover:underline"
+                                <button
+                                    type="button"
+                                    className="font-bold text-sm leading-5 text-right text-primary bg-transparent border-none cursor-pointer w-full block hover:underline"
                                 >
                                     Forgot password?
-                                </a>
+                                </button>
                             </>
                         ) : (
                             <>
@@ -246,7 +242,7 @@ function LoginContent() {
 
                 {/* Footer */}
                 <p className="font-normal text-sm leading-5 text-center text-[#6A7282] w-full">
-                    © 2025 Bsocio. All rights reserved.
+                    © 2026 Bsocio. All rights reserved.
                 </p>
             </div>
         </div>
@@ -255,21 +251,17 @@ function LoginContent() {
 
 function LoginFallback() {
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center p-8 gap-8 bg-[#F3F4F6]">
-            <div className="flex flex-col items-start gap-8 w-full max-w-125">
+        <div className="min-h-screen flex flex-col justify-center items-center p-4 md:p-8 gap-8 bg-[#F3F4F6]">
+            <div className="flex flex-col items-start gap-8 w-full max-w-sm sm:max-w-md md:max-w-lg">
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex justify-center items-center w-full">
-                        <span className="font-bold text-3xl leading-9">
-                            <span className="text-primary">B</span>
-                            <span className="text-[#1A1A1A]">socio</span>
-                            <span className="inline-block w-2 h-2 bg-accent rounded-full ml-0.5" />
-                        </span>
+                        <Logo className="text-2xl md:text-3xl" />
                     </div>
-                    <p className="font-normal text-base leading-6 text-center text-[#4A5565] w-full">
+                    <p className="font-normal text-sm md:text-base leading-6 text-center text-[#4A5565] w-full">
                         Admin Dashboard
                     </p>
                 </div>
-                <div className="flex flex-col items-center justify-center p-8 gap-6 w-full bg-white shadow-md rounded-xl min-h-[300px]">
+                <div role="status" className="flex flex-col items-center justify-center p-6 md:p-8 gap-6 w-full bg-white shadow-md rounded-xl min-h-[300px]">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     <p className="text-[#6A7282]">Loading...</p>
                 </div>

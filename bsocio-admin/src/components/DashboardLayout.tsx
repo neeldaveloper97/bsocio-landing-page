@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode, useCallback, useMemo, memo } from 'react';
+import { useState, ReactNode, useCallback, useMemo, memo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,12 +8,13 @@ import { useAuth } from '@/hooks';
 import { prefetchDashboardData, prefetchAdminActivity } from '@/hooks';
 import { AuthGuard } from './AuthGuard';
 import { cn } from '@/lib/utils';
+import { Logo } from './Logo';
 import type { UserRole } from '@/types';
 
 // Inline SVG to avoid loading lucide-react in the dashboard layout
 function Power() {
     return (
-        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
             <line x1="12" x2="12" y1="2" y2="12" />
         </svg>
@@ -49,14 +50,14 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 // Memoized nav item component with prefetching
-const NavItemLink = memo(function NavItemLink({ 
-    item, 
-    isActive, 
+const NavItemLink = memo(function NavItemLink({
+    item,
+    isActive,
     onClick,
     onPrefetch,
-}: { 
-    item: NavItem; 
-    isActive: boolean; 
+}: {
+    item: NavItem;
+    isActive: boolean;
     onClick: () => void;
     onPrefetch?: () => void;
 }) {
@@ -66,16 +67,15 @@ const NavItemLink = memo(function NavItemLink({
             className={cn(
                 "flex items-center gap-2.5 px-3 py-2.5 w-full min-h-11 rounded-xl",
                 "font-sans text-sm leading-5 no-underline transition-all duration-300",
-                isActive 
-                    ? "bg-primary text-white hover:bg-primary" 
-                    : "bg-transparent text-[#D1D5DB] hover:bg-blue-300"
+                isActive
+                    ? "bg-primary text-white hover:bg-primary"
+                    : "bg-transparent text-gray-300 hover:bg-[#1F2937] hover:text-white focus-visible:bg-[#1F2937] focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             )}
             onClick={onClick}
             onMouseEnter={onPrefetch}
             onFocus={onPrefetch}
-            prefetch={true}
         >
-            <span className="w-5 h-5 min-w-5 text-base inline-flex items-center justify-center">
+            <span className="w-5 h-5 min-w-5 text-base inline-flex items-center justify-center" aria-hidden="true">
                 {item.icon}
             </span>
             <span>{item.label}</span>
@@ -97,6 +97,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const closeSidebar = useCallback(() => {
         setSidebarOpen(false);
     }, []);
+
+    // Close sidebar on Escape key - accessibility
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && sidebarOpen) closeSidebar();
+        };
+        document.addEventListener("keydown", handleEscape);
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [sidebarOpen, closeSidebar]);
 
     // Filter nav items based on user role
     const visibleNavItems = useMemo(() => {
@@ -154,21 +163,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <AuthGuard>
             <div className="admin-dashboard">
                 {/* Mobile Navbar */}
-                <nav className="mobile-admin-navbar">
+                <nav className="mobile-admin-navbar" aria-label="Mobile navigation">
                     <div className="flex items-center">
-                        <span className="font-bold text-lg">
-                            <span className="text-primary">B</span>
-                            <span className="text-white">socio</span>
-                            <span className="inline-block w-2 h-2 bg-accent rounded-full ml-0.5" />
-                        </span>
+                        <Logo variant="white" className="text-lg" />
                     </div>
-                    <button 
+                    <button
                         className={cn(
                             "w-8 h-8 flex flex-col justify-center items-center gap-1.5",
                             "bg-transparent border-none cursor-pointer"
                         )}
                         onClick={toggleSidebar}
                         aria-label="Toggle menu"
+                        aria-expanded={sidebarOpen}
+                        aria-controls="admin-sidebar"
                     >
                         <span className={cn(
                             "w-6 h-0.5 bg-white transition-all duration-300",
@@ -186,26 +193,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </nav>
 
                 {/* Sidebar Overlay */}
-                <div 
+                <div
                     className={cn("sidebar-overlay", sidebarOpen && "active")}
                     onClick={closeSidebar}
+                    aria-hidden="true"
                 />
 
                 {/* Sidebar */}
-                <aside className={cn("admin-sidebar", sidebarOpen && "active")}>
+                <aside id="admin-sidebar" className={cn("admin-sidebar", sidebarOpen && "active")} role="navigation" aria-label="Dashboard sidebar">
                     {/* Close button - mobile only */}
-                    <button 
+                    <button
                         className="absolute top-4 right-4 w-8 h-8 text-white text-2xl bg-transparent border-none cursor-pointer lg:hidden"
                         onClick={closeSidebar}
+                        aria-label="Close sidebar"
                     >
                         ×
                     </button>
-                
+
                     {/* Sidebar Header */}
                     <div className="sidebar-header-section">
-                        <h1 className="sidebar-logo">
-                            Bsocio
-                        </h1>
+                        <div className="sidebar-logo">
+                            <Logo />
+                        </div>
                         <p className="sidebar-subtitle">
                             Admin Dashboard
                         </p>
@@ -219,7 +228,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex flex-col items-start p-3 gap-1 flex-1">
+                    <nav aria-label="Main navigation" className="flex flex-col items-start p-3 gap-1 flex-1">
                         {visibleNavItems.map((item) => (
                             <NavItemLink
                                 key={item.id}
@@ -233,8 +242,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                     {/* Footer */}
                     <div className="sidebar-footer-section">
-                        <button 
-                            onClick={handleLogout} 
+                        <button
+                            onClick={handleLogout}
                             className="sidebar-logout-btn flex items-center justify-center gap-2"
                         >
                             <Power />
@@ -249,9 +258,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <header className="admin-header">
                         <div className="header-content">
                             <div className="header-title-section">
-                                <h1 className="header-title">
+                                <div className="header-title">
                                     Bsocio Admin
-                                </h1>
+                                </div>
                                 <p className="header-subtitle">
                                     Manage your platform with ease
                                 </p>
@@ -265,7 +274,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                         {user?.email || ''}
                                     </span>
                                 </div>
-                                <div className="header-user-avatar">
+                                <div className="header-user-avatar" aria-hidden="true">
                                     {userInitials}
                                 </div>
                             </div>

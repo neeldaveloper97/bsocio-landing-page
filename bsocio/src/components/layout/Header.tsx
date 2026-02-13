@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       <line x1="4" x2="20" y1="12" y2="12" />
       <line x1="4" x2="20" y1="6" y2="6" />
       <line x1="4" x2="20" y1="18" y2="18" />
@@ -24,7 +24,7 @@ function MenuIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </svg>
@@ -132,6 +132,7 @@ function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
       
       {/* Dropdown Panel from Top - fixed below header */}
       <div
+        id="mobile-menu"
         className={cn(
           "fixed left-0 right-0 top-16 lg:hidden",
           "transform transition-all duration-300 ease-in-out",
@@ -225,7 +226,7 @@ export default function Header() {
           {/* Desktop CTA */}
           <div className="hidden lg:block">
             <Button asChild size="lg">
-              <Link href="/signup">Accept Your Free $250 Gift</Link>
+              <Link href="/signup/verify">Accept Your Free $250 Gift</Link>
             </Button>
           </div>
 

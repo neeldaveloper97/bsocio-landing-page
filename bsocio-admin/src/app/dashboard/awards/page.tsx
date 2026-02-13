@@ -5,13 +5,14 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import Link from 'next/link';
-import { 
-    useAwardCategories, 
-    useCreateAwardCategory, 
-    useUpdateAwardCategory, 
+import { X } from 'lucide-react';
+import {
+    useAwardCategories,
+    useCreateAwardCategory,
+    useUpdateAwardCategory,
     useDeleteAwardCategory,
     useAwardsStatistics,
-    useEventStatistics 
+    useEventStatistics
 } from '@/hooks';
 import type { AwardCategory, CreateAwardCategoryRequest, AwardCategoryStatus } from '@/types';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -37,7 +38,7 @@ const truncateText = (text: string, maxLength: number): string => {
 function CategoryIcon({ icon, color }: { icon?: string; color?: string }) {
     const bgColor = color || '#1F6AE1';
     return (
-        <div 
+        <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl"
             style={{ backgroundColor: bgColor }}
         >
@@ -48,7 +49,7 @@ function CategoryIcon({ icon, color }: { icon?: string; color?: string }) {
 
 function QuickActionCard({ icon, title, description, onClick }: { icon: React.ReactNode; title: string; description: string; onClick: () => void }) {
     return (
-        <div 
+        <div
             className="bg-white rounded-xl border border-border p-6 cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200 text-center"
             onClick={onClick}
         >
@@ -212,7 +213,7 @@ export default function AwardsPage() {
             {/* Award Categories Section */}
             <div className="bg-white rounded-xl border border-border p-4 sm:p-6 w-full overflow-hidden">
                 <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">Award Categories</h2>
-                
+
                 {isLoading ? (
                     <div className="space-y-4 w-full">
                         {[1, 2, 3].map((i) => (
@@ -229,8 +230,8 @@ export default function AwardsPage() {
                 ) : categories && categories.length > 0 ? (
                     <div className="space-y-4 w-full">
                         {categories.map((category) => (
-                            <div 
-                                key={category.id} 
+                            <div
+                                key={category.id}
                                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl border border-border hover:border-primary/30 transition-all gap-4"
                             >
                                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -240,24 +241,24 @@ export default function AwardsPage() {
                                         <p className="text-sm text-muted-foreground" title={category.description}>{truncateText(category.description || '', 50)}</p>
                                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
                                             <span className="flex items-center gap-1">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                                    <circle cx="9" cy="7" r="4"/>
-                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                                    <circle cx="9" cy="7" r="4" />
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                                 </svg>
                                                 {category._count?.nominees || 0} Nominees
                                             </span>
                                             <span className="flex items-center gap-1">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <circle cx="12" cy="12" r="10"/>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+                                                    <circle cx="12" cy="12" r="10" />
                                                 </svg>
                                                 {category.status === 'ACTIVE' ? category._count?.nominees || 0 : 0} Active Awards
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     className="w-full sm:w-auto px-4 py-2 text-sm bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors shrink-0"
                                     onClick={() => openEditModal(category)}
                                 >
@@ -288,15 +289,15 @@ export default function AwardsPage() {
                             icon={<span>👤</span>}
                             title="Manage Nominees"
                             description="View and edit all nominees"
-                            onClick={() => {}}
+                            onClick={() => { }}
                         />
                     </Link>
-                   <Link href="/dashboard/events">
+                    <Link href="/dashboard/events">
                         <QuickActionCard
                             icon={<span>🎭</span>}
                             title="Award Ceremony"
                             description="Schedule new ceremony"
-                            onClick={() => {}}
+                            onClick={() => { }}
                         />
                     </Link>
                 </div>
@@ -316,11 +317,11 @@ export default function AwardsPage() {
                                     {editingCategory ? 'Update award category details' : 'Add a new award category'}
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-lg text-gray-600 hover:text-gray-900"
                                 onClick={() => { setShowModal(false); resetForm(); }}
                             >
-                                ×
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
 
@@ -350,11 +351,10 @@ export default function AwardsPage() {
                                         <button
                                             key={icon}
                                             type="button"
-                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg text-xl max-sm:text-lg flex items-center justify-center border-2 transition-all ${
-                                                formData.icon === icon 
-                                                    ? 'border-primary bg-primary/10' 
+                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg text-xl max-sm:text-lg flex items-center justify-center border-2 transition-all ${formData.icon === icon
+                                                    ? 'border-primary bg-primary/10'
                                                     : 'border-border hover:border-primary/50'
-                                            }`}
+                                                }`}
                                             onClick={() => setFormData(prev => ({ ...prev, icon }))}
                                         >
                                             {icon}
@@ -373,11 +373,10 @@ export default function AwardsPage() {
                                         <button
                                             key={color}
                                             type="button"
-                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg border-2 transition-all ${
-                                                formData.color === color 
-                                                    ? 'border-foreground scale-110' 
+                                            className={`w-10 h-10 max-sm:w-8 max-sm:h-8 rounded-lg border-2 transition-all ${formData.color === color
+                                                    ? 'border-foreground scale-110'
                                                     : 'border-transparent hover:scale-105'
-                                            }`}
+                                                }`}
                                             style={{ backgroundColor: color }}
                                             onClick={() => setFormData(prev => ({ ...prev, color }))}
                                         />

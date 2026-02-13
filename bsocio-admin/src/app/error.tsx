@@ -25,6 +25,7 @@ export default function Error({
         <div className="mb-6 flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
             <svg
+              aria-hidden="true"
               width="28"
               height="28"
               viewBox="0 0 24 24"
@@ -59,6 +60,7 @@ export default function Error({
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90"
           >
             <svg
+              aria-hidden="true"
               width="16"
               height="16"
               viewBox="0 0 24 24"

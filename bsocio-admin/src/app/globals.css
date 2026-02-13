@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ==========================================
    BSOCIO ADMIN DASHBOARD - OPTIMIZED STYLES
@@ -10,48 +10,71 @@
    ========================================== */
 
 @keyframes animate-in {
-  from {
-    opacity: 0;
-    transform: var(--tw-enter-translate-x, 0) var(--tw-enter-translate-y, 0) scale(var(--tw-enter-scale, 1));
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: var(--tw-enter-translate-x, 0) var(--tw-enter-translate-y, 0) scale(var(--tw-enter-scale, 1));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0) scale(1);
+    }
 }
 
 @keyframes animate-out {
-  from {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: var(--tw-exit-translate-x, 0) var(--tw-exit-translate-y, 0) scale(var(--tw-exit-scale, 1));
-  }
+    from {
+        opacity: 1;
+        transform: translateX(0) translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: var(--tw-exit-translate-x, 0) var(--tw-exit-translate-y, 0) scale(var(--tw-exit-scale, 1));
+    }
 }
 
 .animate-in {
-  animation: animate-in 0.2s ease-out;
+    animation: animate-in 0.2s ease-out;
 }
 
 .animate-out {
-  animation: animate-out 0.15s ease-in;
+    animation: animate-out 0.15s ease-in;
 }
 
 /* Slide animations */
-[data-side="top"] { --tw-enter-translate-y: -0.5rem; }
-[data-side="bottom"] { --tw-enter-translate-y: 0.5rem; }
-[data-side="left"] { --tw-enter-translate-x: -0.5rem; }
-[data-side="right"] { --tw-enter-translate-x: 0.5rem; }
+[data-side="top"] {
+    --tw-enter-translate-y: -0.5rem;
+}
+
+[data-side="bottom"] {
+    --tw-enter-translate-y: 0.5rem;
+}
+
+[data-side="left"] {
+    --tw-enter-translate-x: -0.5rem;
+}
+
+[data-side="right"] {
+    --tw-enter-translate-x: 0.5rem;
+}
 
 /* Zoom animations */
-.zoom-in-95 { --tw-enter-scale: 0.95; }
-.zoom-out-95 { --tw-exit-scale: 0.95; }
+.zoom-in-95 {
+    --tw-enter-scale: 0.95;
+}
+
+.zoom-out-95 {
+    --tw-exit-scale: 0.95;
+}
 
 /* Fade animations */
-.fade-in-0 { --tw-enter-opacity: 0; }
-.fade-out-0 { --tw-exit-opacity: 0; }
+.fade-in-0 {
+    --tw-enter-opacity: 0;
+}
+
+.fade-out-0 {
+    --tw-exit-opacity: 0;
+}
 
 /* ==========================================
    BASE STYLES
@@ -63,7 +86,8 @@ html {
     scrollbar-gutter: stable;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -74,6 +98,12 @@ body {
     background: #F3F4F6;
     color: #101828;
     overflow-x: hidden;
+}
+
+/* Global focus styles for accessibility */
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
 /* Modal scroll lock - applied via JS when modal opens */
@@ -122,7 +152,7 @@ body.modal-open[data-scroll-locked] {
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
-    
+
     /* ========== Brand Colors ========== */
     --color-primary: #1F6AE1;
     --color-primary-foreground: #FFFFFF;
@@ -132,7 +162,7 @@ body.modal-open[data-scroll-locked] {
     --color-accent-foreground: #FFFFFF;
     --color-destructive: #EF4444;
     --color-destructive-foreground: #FFFFFF;
-    
+
     /* ========== Theme Colors ========== */
     --color-background: #F3F4F6;
     --color-foreground: #101828;
@@ -145,7 +175,7 @@ body.modal-open[data-scroll-locked] {
     --color-border: #E5E7EB;
     --color-input: #E5E7EB;
     --color-ring: #1F6AE1;
-    
+
     /* ========== Sidebar Colors ========== */
     --color-sidebar: #101828;
     --color-sidebar-foreground: #D1D5DC;
@@ -154,22 +184,32 @@ body.modal-open[data-scroll-locked] {
     --color-sidebar-accent: #364153;
     --color-sidebar-accent-foreground: #FFFFFF;
     --color-sidebar-border: #364153;
-    
+
     /* ========== Font Families - Single font for performance ========== */
     --font-sans: var(--font-inter), 'Inter', sans-serif;
-    
+
     /* ========== Custom Spacing ========== */
     --spacing-70: 280px;
-    --spacing-1: 0.25rem;    /* 4px */
-    --spacing-2: 0.5rem;     /* 8px */
-    --spacing-3: 0.75rem;    /* 12px */
-    --spacing-4: 1rem;       /* 16px */
-    --spacing-5: 1.25rem;    /* 20px */
-    --spacing-6: 1.5rem;     /* 24px */
-    --spacing-7: 1.75rem;    /* 28px */
-    --spacing-8: 2rem;       /* 32px */
-    --spacing-10: 2.5rem;    /* 40px */
-    --spacing-12: 3rem;      /* 48px */
+    --spacing-1: 0.25rem;
+    /* 4px */
+    --spacing-2: 0.5rem;
+    /* 8px */
+    --spacing-3: 0.75rem;
+    /* 12px */
+    --spacing-4: 1rem;
+    /* 16px */
+    --spacing-5: 1.25rem;
+    /* 20px */
+    --spacing-6: 1.5rem;
+    /* 24px */
+    --spacing-7: 1.75rem;
+    /* 28px */
+    --spacing-8: 2rem;
+    /* 32px */
+    --spacing-10: 2.5rem;
+    /* 40px */
+    --spacing-12: 3rem;
+    /* 48px */
 }
 
 /* ==========================================
@@ -233,7 +273,7 @@ body.modal-open[data-scroll-locked] {
 .tiptap-content {
     padding: 16px;
     min-height: 250px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     line-height: 1.6;
     color: #374151;
@@ -255,9 +295,17 @@ body.modal-open[data-scroll-locked] {
     color: #111827;
 }
 
-.tiptap-content h1 { font-size: 24px; }
-.tiptap-content h2 { font-size: 20px; }
-.tiptap-content h3 { font-size: 18px; }
+.tiptap-content h1 {
+    font-size: 24px;
+}
+
+.tiptap-content h2 {
+    font-size: 20px;
+}
+
+.tiptap-content h3 {
+    font-size: 18px;
+}
 
 .tiptap-content ul,
 .tiptap-content ol {
@@ -297,7 +345,7 @@ body.modal-open[data-scroll-locked] {
 .ProseMirror {
     min-height: 250px;
     padding: 16px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     line-height: 1.6;
     color: #374151;
@@ -321,9 +369,20 @@ body.modal-open[data-scroll-locked] {
     line-height: 1.3;
 }
 
-.ProseMirror h1 { font-size: 24px; margin-top: 16px; }
-.ProseMirror h2 { font-size: 20px; margin-top: 14px; }
-.ProseMirror h3 { font-size: 18px; margin-top: 12px; }
+.ProseMirror h1 {
+    font-size: 24px;
+    margin-top: 16px;
+}
+
+.ProseMirror h2 {
+    font-size: 20px;
+    margin-top: 14px;
+}
+
+.ProseMirror h3 {
+    font-size: 18px;
+    margin-top: 12px;
+}
 
 .ProseMirror ul,
 .ProseMirror ol {
@@ -402,9 +461,17 @@ body.modal-open[data-scroll-locked] {
 }
 
 /* Text alignment */
-.ProseMirror [style*="text-align: left"] { text-align: left; }
-.ProseMirror [style*="text-align: center"] { text-align: center; }
-.ProseMirror [style*="text-align: right"] { text-align: right; }
+.ProseMirror [style*="text-align: left"] {
+    text-align: left;
+}
+
+.ProseMirror [style*="text-align: center"] {
+    text-align: center;
+}
+
+.ProseMirror [style*="text-align: right"] {
+    text-align: right;
+}
 
 /* Placeholder */
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -465,6 +532,7 @@ body.modal-open[data-scroll-locked] {
     z-index: 50;
     transition: transform 0.3s ease;
     flex-shrink: 0;
+    will-change: transform;
 }
 
 @media (max-width: 1024px) {
@@ -473,7 +541,7 @@ body.modal-open[data-scroll-locked] {
         width: 280px;
         max-width: 85vw;
     }
-    
+
     .admin-sidebar.active {
         transform: translateX(0);
     }
@@ -508,7 +576,7 @@ body.modal-open[data-scroll-locked] {
     padding: 0;
 }
 
-.admin-header > div {
+.admin-header>div {
     padding: 16px 32px;
 }
 
@@ -516,14 +584,14 @@ body.modal-open[data-scroll-locked] {
     .admin-header {
         top: 64px;
     }
-    
-    .admin-header > div {
+
+    .admin-header>div {
         padding: 16px 20px;
     }
 }
 
 @media (max-width: 768px) {
-    .admin-header > div {
+    .admin-header>div {
         padding: 12px 16px;
     }
 }
@@ -626,7 +694,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .sidebar-logo {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 700;
     font-size: 24px;
     line-height: 32px;
@@ -642,7 +710,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .sidebar-subtitle {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     line-height: 20px;
     color: #99A1AF;
@@ -671,7 +739,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .sidebar-role-text {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 700;
     font-size: 14px;
     line-height: 20px;
@@ -704,7 +772,7 @@ body.modal-open[data-scroll-locked] {
     background: transparent;
     border: none;
     border-radius: 12px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #D1D5DC;
     cursor: pointer;
@@ -751,7 +819,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .header-title {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 700;
     font-size: 20px;
     line-height: 28px;
@@ -766,7 +834,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .header-subtitle {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     line-height: 20px;
     color: #6A7282;
@@ -804,14 +872,14 @@ body.modal-open[data-scroll-locked] {
 }
 
 .header-user-name {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 600;
     font-size: 14px;
     color: #101828;
 }
 
 .header-user-email {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 12px;
     color: #6A7282;
 }
@@ -825,7 +893,7 @@ body.modal-open[data-scroll-locked] {
     align-items: center;
     justify-content: center;
     color: #FFFFFF;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 700;
     font-size: 14px;
 }
@@ -852,7 +920,7 @@ body.modal-open[data-scroll-locked] {
     background: transparent;
     border: none;
     padding: 0;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 600;
     color: #6B7280;
@@ -924,6 +992,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 768px) {
+
     .btn-icon,
     .action-btn {
         width: 32px;
@@ -931,7 +1000,7 @@ body.modal-open[data-scroll-locked] {
         min-width: 32px;
         min-height: 32px;
     }
-    
+
     .action-btn svg {
         width: 14px;
         height: 14px;
@@ -939,6 +1008,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 640px) {
+
     .btn-icon,
     .action-btn {
         width: 28px;
@@ -947,7 +1017,7 @@ body.modal-open[data-scroll-locked] {
         min-height: 28px;
         border-radius: 6px;
     }
-    
+
     .action-btn svg {
         width: 12px;
         height: 12px;
@@ -969,7 +1039,7 @@ body.modal-open[data-scroll-locked] {
     align-items: center;
     padding: 4px 10px;
     border-radius: 20px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 500;
 }
@@ -1003,7 +1073,7 @@ body.modal-open[data-scroll-locked] {
    ========================================== */
 
 .pagination-info {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #6A7282;
     padding: 8px 0;
@@ -1075,6 +1145,7 @@ body.modal-open[data-scroll-locked] {
         transform: translateY(100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -1108,7 +1179,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .modal-header h2 {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 20px;
     font-weight: 700;
     color: #101828;
@@ -1200,7 +1271,7 @@ body.modal-open[data-scroll-locked] {
         gap: 8px;
         flex-direction: column-reverse;
     }
-    
+
     .modal-footer button {
         width: 100%;
     }
@@ -1219,7 +1290,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .form-group label {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: #374151;
@@ -1235,7 +1306,7 @@ body.modal-open[data-scroll-locked] {
 .form-select,
 .form-textarea {
     padding: 12px 16px !important;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #101828;
     background: #FFFFFF;
@@ -1247,6 +1318,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 768px) {
+
     .form-input,
     .form-select,
     .form-textarea {
@@ -1256,6 +1328,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 640px) {
+
     .form-input,
     .form-select,
     .form-textarea {
@@ -1328,7 +1401,7 @@ body.modal-open[data-scroll-locked] {
 .section-intro h1,
 .section-intro h1,
 .section-intro h2 {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 24px;
     font-weight: 700;
     color: #101828;
@@ -1336,6 +1409,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 768px) {
+
     .section-intro h1,
     .section-intro h2 {
         font-size: 20px;
@@ -1343,6 +1417,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 640px) {
+
     .section-intro h1,
     .section-intro h2 {
         font-size: 18px;
@@ -1350,7 +1425,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .section-intro p {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #6B7280;
     margin: 0;
@@ -1370,6 +1445,7 @@ body.modal-open[data-scroll-locked] {
     0% {
         background-position: -200% 0;
     }
+
     100% {
         background-position: 200% 0;
     }
@@ -1420,7 +1496,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .empty-state-title {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 18px;
     font-weight: 700;
     color: #101828;
@@ -1428,7 +1504,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .empty-state-desc {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #6B7280;
     margin: 0;
@@ -1476,7 +1552,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .page-subtitle {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
@@ -1525,7 +1601,7 @@ body.modal-open[data-scroll-locked] {
     .card-header {
         padding: 12px 16px;
     }
-    
+
     .card-body {
         padding: 16px;
     }
@@ -1677,7 +1753,7 @@ body.modal-open[data-scroll-locked] {
 
 /* Page title */
 .page-main-title {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 30px;
     font-weight: 700;
     color: #101828;
@@ -1839,7 +1915,7 @@ body.modal-open[data-scroll-locked] {
 
 /* Stat value responsive */
 .stat-value-responsive {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 700;
     font-size: 32px;
     line-height: 1.2;
@@ -1866,7 +1942,7 @@ body.modal-open[data-scroll-locked] {
 
 /* Stat label responsive */
 .stat-label-responsive {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 500;
     font-size: 14px;
     line-height: 1.4;
@@ -1894,7 +1970,7 @@ body.modal-open[data-scroll-locked] {
     padding: 10px 20px;
     background: #1F6AE1;
     color: #FFFFFF;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
     border: none;
@@ -1983,13 +2059,13 @@ body.modal-open[data-scroll-locked] {
         gap: 12px;
         flex-wrap: wrap;
     }
-    
-    .table-header-row > div:first-child {
+
+    .table-header-row>div:first-child {
         min-width: 0;
         width: 100%;
     }
-    
-    .table-header-row > div:last-child {
+
+    .table-header-row>div:last-child {
         width: 100%;
     }
 }
@@ -2016,7 +2092,7 @@ body.modal-open[data-scroll-locked] {
         flex-wrap: wrap;
         gap: 8px;
     }
-    
+
     .table-header-actions {
         width: 100%;
         justify-content: flex-start;
@@ -2025,7 +2101,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .table-title-responsive {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-weight: 600;
     font-size: 18px;
     color: #101828;
@@ -2068,7 +2144,7 @@ body.modal-open[data-scroll-locked] {
     border: none;
     background: transparent;
     outline: none;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #101828;
     width: 100%;
@@ -2095,11 +2171,11 @@ body.modal-open[data-scroll-locked] {
     .table-responsive-container {
         scrollbar-width: auto;
         /* Visual scroll hint with shadows */
-        background: 
-            linear-gradient(90deg, white 30%, rgba(255,255,255,0)),
-            linear-gradient(90deg, rgba(255,255,255,0), white 70%) 100% 0,
-            radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.12), transparent),
-            radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.12), transparent) 100% 0;
+        background:
+            linear-gradient(90deg, white 30%, rgba(255, 255, 255, 0)),
+            linear-gradient(90deg, rgba(255, 255, 255, 0), white 70%) 100% 0,
+            radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, .12), transparent),
+            radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, .12), transparent) 100% 0;
         background-repeat: no-repeat;
         background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
         background-attachment: local, local, scroll, scroll;
@@ -2145,7 +2221,7 @@ body.modal-open[data-scroll-locked] {
 .data-table-responsive td {
     padding: 16px 20px;
     text-align: left;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     white-space: nowrap;
     box-sizing: border-box;
 }
@@ -2158,6 +2234,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 768px) {
+
     .data-table-responsive th,
     .data-table-responsive td {
         padding: 12px 14px;
@@ -2166,6 +2243,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 @media (max-width: 640px) {
+
     .data-table-responsive th,
     .data-table-responsive td {
         padding: 10px 10px;
@@ -2275,7 +2353,7 @@ body.modal-open[data-scroll-locked] {
 }
 
 .pagination-info {
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     color: #6A7282;
     white-space: nowrap;
@@ -2312,7 +2390,7 @@ body.modal-open[data-scroll-locked] {
     border: 1px solid #E5E7EB;
     background: #FFFFFF;
     border-radius: 8px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: #6A7282;
@@ -2364,7 +2442,7 @@ body.modal-open[data-scroll-locked] {
     align-items: center;
     padding: 4px 10px;
     border-radius: 9999px;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -2408,6 +2486,7 @@ body.modal-open[data-scroll-locked] {
 
 /* Ensure touch targets are at least 44px for accessibility */
 @media (max-width: 768px) {
+
     button,
     a,
     input[type="radio"],
@@ -2415,14 +2494,14 @@ body.modal-open[data-scroll-locked] {
         min-height: 44px;
         min-width: 44px;
     }
-    
+
     /* Exception for inline buttons in tables */
     .table-action-btn,
     .table-actions-cell button {
         min-height: 32px;
         min-width: 32px;
     }
-    
+
     /* Checkboxes should remain small with larger touch target via label */
     input[type="checkbox"] {
         min-height: 16px !important;
@@ -2462,7 +2541,7 @@ body.modal-open[data-scroll-locked] {
         -ms-overflow-style: none;
         padding-bottom: 4px;
     }
-    
+
     .filter-tabs::-webkit-scrollbar {
         display: none;
     }
@@ -2476,7 +2555,7 @@ body.modal-open[data-scroll-locked] {
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     background: #FFFFFF;
-    font-family: 'Arimo', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: #374151;
@@ -2642,15 +2721,15 @@ input[type="checkbox"] {
         max-width: calc(100% - 24px) !important;
         border-radius: 12px !important;
     }
-    
+
     .confirm-modal-container h3 {
         font-size: 16px !important;
     }
-    
+
     .confirm-modal-container p {
         font-size: 13px !important;
     }
-    
+
     .confirm-modal-container button {
         padding: 8px 16px !important;
         font-size: 13px !important;

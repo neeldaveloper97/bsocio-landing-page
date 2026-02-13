@@ -2,6 +2,13 @@
 
 import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import {
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "./table";
 
 // Column definition type
 export interface Column<T> {
@@ -25,33 +32,33 @@ export interface DataTableProps<T> {
     data: T[];
     columns: Column<T>[];
     keyExtractor: (item: T) => string | number;
-    
+
     // Loading & empty states
     isLoading?: boolean;
     loadingRows?: number;
     emptyIcon?: string;
     emptyTitle?: string;
     emptyDescription?: string;
-    
+
     // Header
     title?: string;
     totalCount?: number;
     headerActions?: ReactNode;
-    
+
     // Sorting
     sortConfig?: SortConfig;
     onSort?: (key: string) => void;
-    
+
     // Pagination
     currentPage?: number;
     totalPages?: number;
     onPageChange?: (page: number) => void;
     pageInfo?: string;
-    
+
     // Row actions
     onRowClick?: (item: T) => void;
     rowClassName?: (item: T) => string;
-    
+
     // Custom class
     className?: string;
 }
@@ -60,11 +67,11 @@ export interface DataTableProps<T> {
 function SortIcon({ active, order }: { active: boolean; order?: 'asc' | 'desc' }) {
     return (
         <span className={cn("sort-icon", active && order)}>
-            <svg viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <svg viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         </span>
     );
@@ -73,19 +80,19 @@ function SortIcon({ active, order }: { active: boolean; order?: 'asc' | 'desc' }
 // Skeleton Row Component
 function SkeletonRow({ columns }: { columns: number }) {
     return (
-        <tr>
+        <TableRow>
             {Array.from({ length: columns }).map((_, i) => (
-                <td key={i}>
-                    <div 
-                        className="skeleton-box" 
-                        style={{ 
-                            width: '100%', 
-                            height: '16px' 
+                <TableCell key={i}>
+                    <div
+                        className="skeleton-box"
+                        style={{
+                            width: '100%',
+                            height: '16px'
                         }}
                     />
-                </td>
+                </TableCell>
             ))}
-        </tr>
+        </TableRow>
     );
 }
 
@@ -112,7 +119,7 @@ export function DataTable<T>({
     rowClassName,
     className,
 }: DataTableProps<T>) {
-    
+
     const handleSort = (key: string) => {
         if (onSort) {
             onSort(key);
@@ -149,16 +156,21 @@ export function DataTable<T>({
 
             {/* Table */}
             <div className="table-responsive-container">
-                <table className="data-table-responsive">
-                    <thead>
-                        <tr>
+                <table className="data-table-responsive" aria-label={title || "Data table"}>
+                    <TableHeader>
+                        <TableRow>
                             {(columns || []).map((column) => (
-                                <th 
+                                <TableHead
                                     key={column.key}
-                                    style={{ 
+                                    style={{
                                         textAlign: column.align || 'left',
                                         width: column.width,
                                     }}
+                                    aria-sort={
+                                        column.sortable && sortConfig?.key === column.key
+                                            ? sortConfig.order === 'asc' ? 'ascending' : 'descending'
+                                            : undefined
+                                    }
                                 >
                                     {column.sortable && onSort ? (
                                         <button
@@ -167,21 +179,22 @@ export function DataTable<T>({
                                                 sortConfig?.key === column.key && "active"
                                             )}
                                             onClick={() => handleSort(column.key)}
+                                            aria-label={`Sort by ${column.header}`}
                                         >
                                             {column.header}
-                                            <SortIcon 
-                                                active={sortConfig?.key === column.key} 
+                                            <SortIcon
+                                                active={sortConfig?.key === column.key}
                                                 order={sortConfig?.order}
                                             />
                                         </button>
                                     ) : (
                                         column.header
                                     )}
-                                </th>
+                                </TableHead>
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {isLoading ? (
                             // Loading skeleton
                             Array.from({ length: loadingRows }).map((_, i) => (
@@ -189,9 +202,9 @@ export function DataTable<T>({
                             ))
                         ) : !data || data.length === 0 ? (
                             // Empty state
-                            <tr>
-                                <td 
-                                    colSpan={(columns || []).length || 1} 
+                            <TableRow>
+                                <TableCell
+                                    colSpan={(columns || []).length || 1}
                                     style={{ textAlign: 'center', padding: '48px 24px' }}
                                 >
                                     <div className="empty-state">
@@ -205,35 +218,43 @@ export function DataTable<T>({
                                             {emptyDescription}
                                         </p>
                                     </div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             // Data rows
                             data.map((item, index) => (
-                                <tr 
+                                <TableRow
                                     key={keyExtractor(item)}
                                     onClick={() => onRowClick?.(item)}
+                                    onKeyDown={(e) => {
+                                        if (onRowClick && (e.key === 'Enter' || e.key === ' ')) {
+                                            e.preventDefault();
+                                            onRowClick(item);
+                                        }
+                                    }}
+                                    tabIndex={onRowClick ? 0 : undefined}
+                                    role={onRowClick ? "button" : undefined}
                                     className={cn(
                                         onRowClick && "cursor-pointer",
                                         rowClassName?.(item)
                                     )}
                                 >
                                     {(columns || []).map((column) => (
-                                        <td 
+                                        <TableCell
                                             key={column.key}
                                             data-label={column.header}
                                             style={{ textAlign: column.align || 'left' }}
                                         >
-                                            {column.render 
+                                            {column.render
                                                 ? column.render(item, index)
                                                 : (item as Record<string, unknown>)[column.key] as ReactNode
                                             }
-                                        </td>
+                                        </TableCell>
                                     ))}
-                                </tr>
+                                </TableRow>
                             ))
                         )}
-                    </tbody>
+                    </TableBody>
                 </table>
             </div>
 
@@ -248,6 +269,7 @@ export function DataTable<T>({
                             className="pagination-btn"
                             disabled={currentPage === 0}
                             onClick={handlePrevPage}
+                            aria-label="Go to previous page"
                         >
                             Previous
                         </button>
@@ -255,6 +277,7 @@ export function DataTable<T>({
                             className="pagination-btn"
                             disabled={currentPage >= totalPages - 1}
                             onClick={handleNextPage}
+                            aria-label="Go to next page"
                         >
                             Next
                         </button>

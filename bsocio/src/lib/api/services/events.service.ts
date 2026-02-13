@@ -27,14 +27,17 @@ export const eventsService = {
     const response = await apiClient.get<{ items?: Event[] } | Event[]>(API_ENDPOINTS.EVENTS.LIST, queryParams);
 
     // Handle API response - might be { items: [...] } or direct array
+    // Handle API response - might be { items: [...] } or direct array
     const data = response.data;
+    let events: Event[] = [];
+
     if (Array.isArray(data)) {
-      return data;
+      events = data;
+    } else if (data && Array.isArray(data.items)) {
+      events = data.items;
     }
-    if (data && Array.isArray(data.items)) {
-      return data.items;
-    }
-    return [];
+
+    return events;
   },
 
   /**

@@ -158,7 +158,7 @@ export default function GoogleCompletePage() {
     const storedData = sessionStorage.getItem("googleUserData");
     if (!storedData) {
       toast.error("No Google account data found. Please sign in again.");
-      router.push("/signup");
+      router.push("/landingpage");
       return;
     }
 
@@ -174,7 +174,7 @@ export default function GoogleCompletePage() {
     } catch (error) {
       console.error("Failed to parse Google user data:", error);
       toast.error("Invalid session data. Please sign in again.");
-      router.push("/signup");
+      router.push("/landingpage");
     }
   }, [router]);
 

@@ -18,7 +18,8 @@ interface AuthGuardProps {
 // Skeleton layout to show while checking auth - provides visual structure for LCP
 function AuthLoadingSkeleton() {
   return (
-    <div className="admin-dashboard min-h-screen">
+    <div className="admin-dashboard min-h-screen" role="status" aria-label="Loading dashboard">
+      <span className="sr-only">Loading...</span>
       {/* Sidebar skeleton */}
       <aside className="admin-sidebar bg-[#101828] w-[280px] min-h-screen">
         <div className="p-6 bg-[#101828]">

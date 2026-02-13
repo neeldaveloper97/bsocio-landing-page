@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-helper';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/admin-icons';
+import { X } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -48,7 +49,7 @@ const getEventStatus = (eventDate: string): 'upcoming' | 'ongoing' | 'past' => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
+
     if (eventDay > today) return 'upcoming';
     if (eventDay.getTime() === today.getTime()) return 'ongoing';
     return 'past';
@@ -216,7 +217,7 @@ export default function EventsPage() {
         }
         if (!formData.venue.trim()) errors.venue = 'Please enter a venue';
         if (formData.maxAttendees && parseInt(formData.maxAttendees) < 1) errors.maxAttendees = 'Max attendees must be at least 1';
-        
+
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) return;
 
@@ -316,7 +317,7 @@ export default function EventsPage() {
 
             {/* Filter Tabs */}
             <div className="filter-tabs">
-                <button 
+                <button
                     className={cn(
                         "filter-tab",
                         filterStatus === 'all' && "active"
@@ -325,7 +326,7 @@ export default function EventsPage() {
                 >
                     All Events
                 </button>
-                <button 
+                <button
                     className={cn(
                         "filter-tab",
                         filterStatus === 'upcoming' && "active"
@@ -334,7 +335,7 @@ export default function EventsPage() {
                 >
                     Upcoming
                 </button>
-                <button 
+                <button
                     className={cn(
                         "filter-tab",
                         filterStatus === 'past' && "active"
@@ -349,8 +350,8 @@ export default function EventsPage() {
             <DataTable<Event>
                 data={effectiveEvents}
                 columns={[
-                    { 
-                        key: 'title', 
+                    {
+                        key: 'title',
                         header: 'Event Name',
                         width: '25%',
                         render: (event) => (
@@ -362,16 +363,16 @@ export default function EventsPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'venue', 
-                        header: 'Venue', 
+                    {
+                        key: 'venue',
+                        header: 'Venue',
                         width: '20%',
                         render: (event) => (
                             <span title={event.venue}>{truncateText(event.venue, 20)}</span>
                         )
                     },
-                    { 
-                        key: 'eventDate', 
+                    {
+                        key: 'eventDate',
                         header: 'Date',
                         width: '15%',
                         render: (event) => (
@@ -381,8 +382,8 @@ export default function EventsPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'attendees', 
+                    {
+                        key: 'attendees',
                         header: 'Attendees',
                         width: '15%',
                         render: (event) => (
@@ -394,8 +395,8 @@ export default function EventsPage() {
                             </div>
                         )
                     },
-                    { 
-                        key: 'status', 
+                    {
+                        key: 'status',
                         header: 'Status',
                         width: '12%',
                         render: (event) => getStatusBadge(event.eventDate, event.status)
@@ -430,19 +431,21 @@ export default function EventsPage() {
 
             {/* Create/Edit Event Modal */}
             {showModal && typeof window !== 'undefined' && createPortal(
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 max-sm:p-3" role="dialog" aria-modal="true" aria-labelledby="event-modal-title" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
                     <div className="bg-white rounded-2xl max-sm:rounded-xl w-full max-w-[560px] max-sm:max-w-[95vw] max-h-[90vh] overflow-auto shadow-xl">
                         <div className="flex justify-between items-center p-6 max-sm:p-4 border-b border-[#E5E7EB] pr-14 max-sm:pr-12 relative">
-                            <h2 className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
-                            <button className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={() => { setShowModal(false); resetForm(); }}>×</button>
+                            <h2 id="event-modal-title" className="font-sans text-xl max-sm:text-lg font-bold text-[#101828] m-0">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
+                            <button type="button" aria-label="Close modal" className="absolute right-4 max-sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 max-sm:w-7 max-sm:h-7 flex items-center justify-center rounded-full bg-gray-100 border-none cursor-pointer text-gray-600 text-lg hover:bg-gray-200 hover:text-gray-900 transition-colors" onClick={() => { setShowModal(false); resetForm(); }}>
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="p-6 max-sm:p-4">
                             <div className="flex flex-col gap-2">
                                 <label htmlFor="eventTitle" className="font-sans text-sm font-semibold text-[#374151]">Event Name *</label>
-                                <input 
-                                    type="text" 
-                                    id="eventTitle" 
-                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                <input
+                                    type="text"
+                                    id="eventTitle"
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                     placeholder="Enter event name"
                                     value={formData.title}
                                     onChange={(e) => { setFormData(prev => ({ ...prev, title: e.target.value })); setFieldErrors(prev => ({ ...prev, title: '' })); }}
@@ -452,10 +455,10 @@ export default function EventsPage() {
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="venue" className="font-sans text-sm font-semibold text-[#374151]">Venue *</label>
-                                    <input 
-                                        type="text" 
-                                        id="venue" 
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                    <input
+                                        type="text"
+                                        id="venue"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         placeholder="Enter venue"
                                         value={formData.venue}
                                         onChange={(e) => { setFormData(prev => ({ ...prev, venue: e.target.value })); setFieldErrors(prev => ({ ...prev, venue: '' })); }}
@@ -464,9 +467,9 @@ export default function EventsPage() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="eventDate" className="font-sans text-sm font-semibold text-[#374151]">Date *</label>
-                                    <input 
-                                        type="date" 
-                                        id="eventDate" 
+                                    <input
+                                        type="date"
+                                        id="eventDate"
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         value={formData.eventDate}
                                         onChange={(e) => { setFormData(prev => ({ ...prev, eventDate: e.target.value })); setFieldErrors(prev => ({ ...prev, eventDate: '' })); }}
@@ -477,9 +480,9 @@ export default function EventsPage() {
                             <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="eventTime" className="font-sans text-sm font-semibold text-[#374151]">Time</label>
-                                    <input 
-                                        type="time" 
-                                        id="eventTime" 
+                                    <input
+                                        type="time"
+                                        id="eventTime"
                                         className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         value={formData.eventTime}
                                         onChange={(e) => setFormData(prev => ({ ...prev, eventTime: e.target.value }))}
@@ -487,10 +490,10 @@ export default function EventsPage() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="maxAttendees" className="font-sans text-sm font-semibold text-[#374151]">Max Attendees</label>
-                                    <input 
-                                        type="number" 
-                                        id="maxAttendees" 
-                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]" 
+                                    <input
+                                        type="number"
+                                        id="maxAttendees"
+                                        className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF]"
                                         placeholder="Optional"
                                         value={formData.maxAttendees}
                                         onChange={(e) => { setFormData(prev => ({ ...prev, maxAttendees: e.target.value })); setFieldErrors(prev => ({ ...prev, maxAttendees: '' })); }}
@@ -526,10 +529,10 @@ export default function EventsPage() {
                             </div>
                             <div className="flex flex-col gap-2 mt-4">
                                 <label htmlFor="description" className="font-sans text-sm font-semibold text-[#374151]">Description</label>
-                                <textarea 
-                                    id="description" 
-                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-none" 
-                                    placeholder="Describe the event..." 
+                                <textarea
+                                    id="description"
+                                    className="py-3 px-4 font-sans text-sm text-[#101828] bg-white border border-[#D1D5DB] rounded-lg transition-all duration-200 w-full focus:outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder:text-[#9CA3AF] resize-none"
+                                    placeholder="Describe the event..."
                                     rows={4}
                                     value={formData.description}
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -537,8 +540,8 @@ export default function EventsPage() {
                             </div>
                             <div className="flex justify-end gap-3 max-sm:gap-2 p-6 max-sm:p-4 border-t border-[#E5E7EB] -mx-6 max-sm:-mx-4 -mb-6 max-sm:-mb-4 mt-6">
                                 <button className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#F3F4F6]" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
-                                <button 
-                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed" 
+                                <button
+                                    className="py-2.5 px-5 max-sm:text-xs max-sm:py-2 max-sm:px-4 font-sans text-sm font-semibold text-white bg-[#2563EB] border-none rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#1D4ED8] disabled:opacity-60 disabled:cursor-not-allowed"
                                     onClick={handleSubmit}
                                     disabled={isCreating || isUpdating || !formData.title || !formData.venue || !formData.eventDate}
                                 >

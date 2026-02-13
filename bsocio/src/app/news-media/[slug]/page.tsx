@@ -53,7 +53,7 @@ function getAuthorInitials(author: string): string {
 
 function BackArrowIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       <path d="M12.5 16.25L6.25 10L12.5 3.75" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
@@ -61,7 +61,7 @@ function BackArrowIcon() {
 
 function AuthorIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" fill="currentColor"/>
       <path d="M10 12.5C5.85786 12.5 2.5 15.8579 2.5 20H17.5C17.5 15.8579 14.1421 12.5 10 12.5Z" fill="currentColor"/>
     </svg>
@@ -70,7 +70,7 @@ function AuthorIcon() {
 
 function CalendarIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       <rect x="2.5" y="3.33334" width="15" height="13.3333" rx="1.67" stroke="currentColor" strokeWidth="1.67"/>
       <path d="M13.3334 1.66667V5.00001" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round"/>
       <path d="M6.66666 1.66667V5.00001" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round"/>
@@ -81,7 +81,7 @@ function CalendarIcon() {
 
 function TagIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       <path d="M10 3.33334L13.3333 6.66667L16.6667 3.33334L13.3333 0L10 3.33334Z" fill="currentColor"/>
       <path d="M3.33333 10L6.66667 13.3333L3.33333 16.6667L0 13.3333L3.33333 10Z" fill="currentColor"/>
     </svg>
@@ -90,7 +90,7 @@ function TagIcon() {
 
 function ShareIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       <path d="M15 6.66667C16.3807 6.66667 17.5 5.54738 17.5 4.16667C17.5 2.78595 16.3807 1.66667 15 1.66667C13.6193 1.66667 12.5 2.78595 12.5 4.16667C12.5 5.54738 13.6193 6.66667 15 6.66667Z" stroke="currentColor" strokeWidth="1.67"/>
       <path d="M5 12.5C6.38071 12.5 7.5 11.3807 7.5 10C7.5 8.61929 6.38071 7.5 5 7.5C3.61929 7.5 2.5 8.61929 2.5 10C2.5 11.3807 3.61929 12.5 5 12.5Z" stroke="currentColor" strokeWidth="1.67"/>
       <path d="M15 18.3333C16.3807 18.3333 17.5 17.214 17.5 15.8333C17.5 14.4526 16.3807 13.3333 15 13.3333C13.6193 13.3333 12.5 14.4526 12.5 15.8333C12.5 17.214 13.6193 18.3333 15 18.3333Z" stroke="currentColor" strokeWidth="1.67"/>
@@ -119,22 +119,22 @@ function ShareButton({ type, onClick }: ShareButtonProps) {
 
   const icons: Record<string, React.ReactNode> = {
     facebook: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
         <path d="M20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 14.9912 3.65684 19.1283 8.4375 19.8785V12.8906H5.89844V10H8.4375V7.79688C8.4375 5.29063 9.93047 3.90625 12.2146 3.90625C13.3084 3.90625 14.4531 4.10156 14.4531 4.10156V6.5625H13.1922C11.95 6.5625 11.5625 7.3334 11.5625 8.125V10H14.3359L13.8926 12.8906H11.5625V19.8785C16.3432 19.1283 20 14.9912 20 10Z" fill="white"/>
       </svg>
     ),
     twitter: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
         <path d="M6.2896 18.1406C13.8368 18.1406 17.9648 11.8462 17.9648 6.50779C17.9648 6.32779 17.9648 6.14859 17.9528 5.97019C18.7559 5.38748 19.4491 4.66148 20 3.83139C19.2511 4.16219 18.4566 4.38299 17.6432 4.48659C18.4998 3.9749 19.1409 3.16948 19.4472 2.22219C18.6417 2.69708 17.7605 3.03428 16.8416 3.21939C16.2229 2.55837 15.4047 2.11837 14.5135 1.96657C13.6223 1.81478 12.7078 1.95957 11.9116 2.37717C11.1154 2.79477 10.4819 3.46237 10.1083 4.27577C9.73463 5.08916 9.64123 6.00396 9.8416 6.87299C8.2057 6.79299 6.60564 6.36739 5.14978 5.62659C3.69393 4.88579 2.41655 3.84739 1.3952 2.57779C0.867274 3.49859 0.706209 4.59219 0.945729 5.63299C1.18525 6.67379 1.80636 7.58579 2.6816 8.18219C2.01849 8.16099 1.37062 7.97779 0.8 7.64779V7.69699C0.800259 8.63179 1.1284 9.53659 1.72894 10.2534C2.32948 10.9702 3.16368 11.4526 4.092 11.6166C3.4879 11.7582 2.85406 11.7838 2.23839 11.6918C2.50127 12.5022 3.01144 13.2094 3.69829 13.7134C4.38514 14.2174 5.21634 14.4934 6.0728 14.5062C4.6172 15.6478 2.83301 16.2686 1 16.2658C0.665735 16.2658 0.331729 16.2466 0 16.2086C1.87653 17.4098 4.05994 18.1406 6.2896 18.1382" fill="white"/>
       </svg>
     ),
     linkedin: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
         <path d="M18.5195 0H1.47656C0.660156 0 0 0.644531 0 1.44141V18.5547C0 19.3516 0.660156 20 1.47656 20H18.5195C19.3359 20 20 19.3516 20 18.5586V1.44141C20 0.644531 19.3359 0 18.5195 0ZM5.93359 17.043H2.96484V7.49609H5.93359V17.043ZM4.44922 6.19531C3.49609 6.19531 2.72656 5.42578 2.72656 4.47656C2.72656 3.52734 3.49609 2.75781 4.44922 2.75781C5.39844 2.75781 6.16797 3.52734 6.16797 4.47656C6.16797 5.42188 5.39844 6.19531 4.44922 6.19531ZM17.043 17.043H14.0781V12.4023C14.0781 11.2969 14.0586 9.87109 12.5352 9.87109C10.9922 9.87109 10.7578 11.0781 10.7578 12.3242V17.043H7.79688V7.49609H10.6406V8.80078H10.6797C11.0742 8.05078 12.043 7.25781 13.4844 7.25781C16.4883 7.25781 17.043 9.23438 17.043 11.8047V17.043Z" fill="white"/>
       </svg>
     ),
     copy: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
         <path d="M16.6667 7.5H9.16667C8.24619 7.5 7.5 8.24619 7.5 9.16667V16.6667C7.5 17.5871 8.24619 18.3333 9.16667 18.3333H16.6667C17.5871 18.3333 18.3333 17.5871 18.3333 16.6667V9.16667C18.3333 8.24619 17.5871 7.5 16.6667 7.5Z" stroke="#6B7280" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M4.16667 12.5H3.33333C2.89131 12.5 2.46738 12.3244 2.15482 12.0118C1.84226 11.6993 1.66667 11.2754 1.66667 10.8333V3.33333C1.66667 2.89131 1.84226 2.46738 2.15482 2.15482C2.46738 1.84226 2.89131 1.66667 3.33333 1.66667H10.8333C11.2754 1.66667 11.6993 1.84226 12.0118 2.15482C12.3244 2.46738 12.5 2.89131 12.5 3.33333V4.16667" stroke="#6B7280" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
@@ -319,7 +319,7 @@ export default function NewsDetailPage() {
           <div className="text-muted-foreground/70">{calculateReadTime(article.content)}</div>
           {(article.views != null && article.views > 0) && (
             <div className="flex items-center gap-1.5 text-muted-foreground/70">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true" focusable="false">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
               </svg>
